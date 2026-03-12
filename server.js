@@ -57,6 +57,55 @@ app.post('/api/app-login', (req, res) => {
     }
 });
 
+
+// ==========================================
+// UPDATE STOCK ROUTE
+// ==========================================
+app.put('/api/inventory/:id', async (req, res) => {
+    try {
+        console.log(`Attempting to update stock for ID: ${req.params.id} to ${req.body.stock}`);
+        
+        // IMPORTANT: Ensure 'Product' matches the name of your Mongoose model!
+        const updatedItem = await Product.findByIdAndUpdate(
+            req.params.id, 
+            { currentStock: req.body.stock }, // <-- FIXED: Changed to 'currentStock' to match your DB
+            { new: true }
+        );
+        
+        if (!updatedItem) {
+            console.log("Item not found in database.");
+            return res.status(404).json({ message: "Item not found" });
+        }
+        
+        console.log("Stock updated successfully!");
+        res.status(200).json(updatedItem);
+    } catch (error) {
+        console.error("Error updating stock:", error);
+        res.status(500).json({ message: "Server error updating stock" });
+    }
+});
+
+// ==========================================
+// DELETE PRODUCT ROUTE
+// ==========================================
+app.delete('/api/inventory/:id', async (req, res) => {
+    try {
+        console.log(`Attempting to delete product ID: ${req.params.id}`);
+        
+        const deletedItem = await Product.findByIdAndDelete(req.params.id);
+        
+        if (!deletedItem) {
+            return res.status(404).json({ message: "Item not found" });
+        }
+        
+        console.log("Product deleted successfully!");
+        res.status(200).json({ message: "Item deleted successfully" });
+    } catch (error) {
+        console.error("Error deleting item:", error);
+        res.status(500).json({ message: "Server error deleting item" });
+    }
+});
+
 // ==========================================
 // 3. INVENTORY & TRANSACTION ROUTES
 // ==========================================
