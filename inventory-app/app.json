@@ -1,65 +1,50 @@
 {
   "expo": {
-    "name": "PPL Warehouse", 
+    "name": "PPL Warehouse",
     "slug": "ppl-warehouse",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/download.png",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/download.png",
+      "image": "./assets/icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
     "ios": {
       "supportsTablet": true,
-
-      "plugins": [
-      [
-        "expo-barcode-scanner",
-        {
-          "barcodeScannerPermission": "Allow the app to scan product barcodes."
-        }
-      ]
-    ]
+      "bundleIdentifier": "com.ppl.warehouse.app"
     },
-
-
-    
     "android": {
+      "package": "com.ppl.warehouse.app",
       "adaptiveIcon": {
-         "foregroundImage": "./assets/download.png",
+        "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#ffffff"
-       
       },
-      "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "permissions": [
+        "android.permission.CAMERA"
+      ]
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/icon.png"
     },
     "plugins": [
       "expo-router",
       [
-        "expo-splash-screen",
+        "expo-barcode-scanner",
         {
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 200,
-          "resizeMode": "contain",
-          "backgroundColor": "#ffffff",
-          "dark": {
-            "backgroundColor": "#000000"
-          }
+          "barcodeScannerPermission": "Allow PPL Warehouse to scan barcodes."
         }
-      ],
-      "expo-barcode-scanner"
+      ]
     ],
     "experiments": {
-      "typedRoutes": true,
-      "reactCompiler": true
+      "typedRoutes": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "60599b8e-bcac-4f99-85f0-b301de749966"
+      }
     }
   }
 }
-
-

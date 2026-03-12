@@ -46,8 +46,8 @@ app.post('/api/app-login', (req, res) => {
     // 👉 THESE ARE THE USERNAMES & PASSWORDS FOR THE MOBILE APP
     const allowedUsers = {
         "admin": "admin123",
-        "worker1": "bolt123",
-        "worker2": "bolt456"
+        "worker1": "bolt1234",
+        "worker2": "bolt4567"
     };
 
     if (allowedUsers[username] && allowedUsers[username] === password) {
