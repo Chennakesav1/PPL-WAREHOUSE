@@ -4,7 +4,7 @@ import { CameraView, useCameraPermissions } from 'expo-camera';
 import axios from 'axios';
 
 // UPDATE TO YOUR LAPTOP'S IP ADDRESS
-const API_URL = "https://ppl-warehouse-wkdp.onrender.com";
+const API_URL = "https://ppl-warehouse-wkdp.onrender.com/api";
 
 export default function App() {
   const [permission, requestPermission] = useCameraPermissions();
