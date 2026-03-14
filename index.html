@@ -75,7 +75,8 @@
             border-radius: 10px;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
             text-align: center;
-            width: 300px;
+            width: 90%;
+            max-width: 300px;
         }
 
         .login-box input {
@@ -125,10 +126,12 @@
 
         .inventory-section {
             flex: 2;
+            min-width: 0; /* Prevents flex items from overflowing */
         }
 
         .transaction-section {
             flex: 1.2;
+            min-width: 0;
         }
 
         h2 {
@@ -141,6 +144,13 @@
             align-items: center;
             flex-wrap: wrap;
             gap: 10px;
+        }
+
+        .search-container {
+            display: flex; 
+            gap: 10px; 
+            align-items: center;
+            flex-wrap: wrap;
         }
 
         .search-box {
@@ -178,10 +188,18 @@
             background-color: #007bff;
         }
 
+        .table-wrapper {
+            max-height: 700px; 
+            overflow-y: auto; 
+            overflow-x: auto; /* Makes table swipeable horizontally */
+            width: 100%;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 15px;
+            min-width: 600px; /* Forces scroll on very small screens instead of squishing */
         }
 
         th,
@@ -197,6 +215,7 @@
             color: white;
             position: sticky;
             top: 0;
+            z-index: 1;
         }
 
         .stock-val {
@@ -259,15 +278,20 @@
             background-color: rgba(0, 0, 0, 0.6);
             justify-content: center;
             align-items: center;
+            padding: 10px;
+            box-sizing: border-box;
         }
 
         .modal-content {
             background-color: white;
             padding: 30px;
             border-radius: 10px;
-            width: 400px;
+            width: 100%;
+            max-width: 400px;
             position: relative;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            max-height: 90vh;
+            overflow-y: auto;
         }
 
         .close-btn {
@@ -320,6 +344,48 @@
         .save-btn:hover {
             background-color: #0056b3;
         }
+
+        /* =========================================
+           📱 MOBILE RESPONSIVENESS MEDIA QUERIES
+           ========================================= */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .dashboard-container {
+                flex-direction: column; /* Stack cards vertically */
+            }
+
+            .logout-btn {
+                position: static;
+                display: block;
+                width: 100%;
+                margin-bottom: 15px;
+            }
+
+            .search-container {
+                flex-direction: column;
+                width: 100%;
+                align-items: stretch;
+            }
+
+            .search-box {
+                width: 100% !important;
+            }
+
+            .add-btn, .export-btn {
+                width: 100%;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr; /* Make modal inputs single column */
+            }
+
+            .full-width {
+                grid-column: 1 / -1;
+            }
+        }
     </style>
 </head>
 
@@ -328,7 +394,7 @@
     <div id="addProductModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal()">×</span>
-            <h2 style="border-bottom: none; justify-content: center; color: #007bff; margin-bottom: 0;">Add New Product</h2>
+            <h2 style="border-bottom: none; justify-content: center; color: #007bff; margin-bottom: 0; font-size: 1.2rem;">Add New Product</h2>
             <div class="form-grid">
                 <input type="text" id="newProdCode" class="full-width" placeholder="* Product Code (e.g., L0100)" required>
                 <input type="text" id="newSector" placeholder="Sector (e.g., Auto)">
@@ -366,13 +432,13 @@
             <div class="card inventory-section">
                 <h2>
                     Live Stock
-                    <div style="display: flex; gap: 10px;">
+                    <div class="search-container">
                         <input type="text" id="searchInput" class="search-box" style="width: 220px;" onkeyup="filterInventory()" placeholder="🔍 Search anything (Grade, Type...)">
                         <button class="add-btn" onclick="openModal()">➕ Add Product</button>
                         <button class="export-btn" onclick="exportTableToCSV('productsTable', 'Live_Stock_Inventory.csv')">⬇️ Excel</button>
                     </div>
                 </h2>
-                <div style="max-height: 700px; overflow-y: auto;">
+                <div class="table-wrapper">
                     <table id="productsTable">
                         <thead>
                             <tr>
@@ -399,13 +465,13 @@
             <div class="card transaction-section">
                 <h2>
                     Recent Movements
-                    <div style="display: flex; gap: 10px; align-items: center;">
+                    <div class="search-container">
                         <input type="date" id="dateSearchInput" class="search-box" style="width: 130px;" onchange="applyTxFilters()">
                         <input type="text" id="searchTxInput" class="search-box" style="width: 90px;" onkeyup="applyTxFilters()" placeholder="🔍 Item...">
                         <button class="export-btn" onclick="exportTableToCSV('transactionsTable', 'Warehouse_Movements.csv')">⬇️ Excel</button>
                     </div>
                 </h2>
-                <div style="max-height: 700px; overflow-y: auto;">
+                <div class="table-wrapper">
                     <table id="transactionsTable">
                         <thead>
                             <tr>
@@ -502,21 +568,13 @@
             } catch (error) { alert("Failed to connect to server."); }
         }
 
-        // ==========================================
-        // 🌟 UPDATED: SEARCH BY EVERYTHING FUNCTION
-        // ==========================================
         function filterInventory() {
             const filter = document.getElementById('searchInput').value.toUpperCase();
             const tr = document.getElementById('productsTable').getElementsByTagName("tr");
             
             for (let i = 1; i < tr.length; i++) {
-                // Ignore the 'Loading' row if it exists
                 if (tr[i].cells.length === 1 && tr[i].cells[0].innerText.includes("Loading")) continue;
-                
-                // Grab ALL the text inside the entire row
                 let rowText = tr[i].textContent || tr[i].innerText;
-                
-                // If any part of the row matches the search, show it. Otherwise, hide it.
                 if (rowText.toUpperCase().indexOf(filter) > -1) {
                     tr[i].style.display = "";
                 } else {
@@ -581,8 +639,8 @@
                         <td class="stock-val ${isLowStock ? 'low-stock-text' : ''}">
                             <input type="number" id="stock-${p._id}" value="${currentStock}" style="width: 70px; text-align: center; border: 1px solid #ccc; border-radius: 4px; padding: 4px; font-weight: bold;">
                         </td>
-                        <td>
-                            <button onclick="updateStock('${p._id}')" style="background: #28a745; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; margin-right: 5px;">Update</button>
+                        <td style="display:flex; flex-direction:column; gap:5px;">
+                            <button onclick="updateStock('${p._id}')" style="background: #28a745; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Update</button>
                             <button onclick="deleteProduct('${p._id}')" style="background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Delete</button>
                         </td>
                     `;
@@ -592,7 +650,6 @@
             } catch (error) { console.error("Error loading inventory:", error); }
         }
 
-        // Function to Update Stock
         async function updateStock(productId) {
             const newStock = document.getElementById(`stock-${productId}`).value;
             try {
@@ -606,7 +663,7 @@
 
                 if (response.ok) {
                     alert('Stock updated successfully!');
-                    loadInventory(); // Refresh the table
+                    loadInventory(); 
                 } else {
                     alert('Failed to update stock.');
                 }
@@ -616,7 +673,6 @@
             }
         }
 
-        // Function to Delete a Product
         async function deleteProduct(productId) {
             if (!confirm('Are you sure you want to completely remove this product?')) return;
             try {
@@ -626,7 +682,7 @@
 
                 if (response.ok) {
                     alert('Product removed!');
-                    loadInventory(); // Refresh the table
+                    loadInventory(); 
                 } else {
                     alert('Failed to delete product.');
                 }
