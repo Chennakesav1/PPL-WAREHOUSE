@@ -367,7 +367,7 @@
                 <h2>
                     Live Stock
                     <div style="display: flex; gap: 10px;">
-                        <input type="text" id="searchInput" class="search-box" style="width: 140px;" onkeyup="filterInventory()" placeholder="🔍 Search Code...">
+                        <input type="text" id="searchInput" class="search-box" style="width: 220px;" onkeyup="filterInventory()" placeholder="🔍 Search anything (Grade, Type...)">
                         <button class="add-btn" onclick="openModal()">➕ Add Product</button>
                         <button class="export-btn" onclick="exportTableToCSV('productsTable', 'Live_Stock_Inventory.csv')">⬇️ Excel</button>
                     </div>
@@ -384,7 +384,8 @@
                                 <th>A/F</th>
                                 <th>Wt/Pc</th>
                                 <th>Current Stock</th>
-                                <th>Actions</th> </tr>
+                                <th>Actions</th>
+                            </tr>
                         </thead>
                         <tbody>
                             <tr>
@@ -501,12 +502,26 @@
             } catch (error) { alert("Failed to connect to server."); }
         }
 
+        // ==========================================
+        // 🌟 UPDATED: SEARCH BY EVERYTHING FUNCTION
+        // ==========================================
         function filterInventory() {
             const filter = document.getElementById('searchInput').value.toUpperCase();
             const tr = document.getElementById('productsTable').getElementsByTagName("tr");
+            
             for (let i = 1; i < tr.length; i++) {
-                let td = tr[i].getElementsByTagName("td")[0];
-                if (td) tr[i].style.display = (td.textContent || td.innerText).toUpperCase().indexOf(filter) > -1 ? "" : "none";
+                // Ignore the 'Loading' row if it exists
+                if (tr[i].cells.length === 1 && tr[i].cells[0].innerText.includes("Loading")) continue;
+                
+                // Grab ALL the text inside the entire row
+                let rowText = tr[i].textContent || tr[i].innerText;
+                
+                // If any part of the row matches the search, show it. Otherwise, hide it.
+                if (rowText.toUpperCase().indexOf(filter) > -1) {
+                    tr[i].style.display = "";
+                } else {
+                    tr[i].style.display = "none";
+                }
             }
         }
 
@@ -555,7 +570,6 @@
                     const isLowStock = currentStock <= 10;
                     if (isLowStock) tr.className = "low-stock";
 
-                    // Added the editable stock input and action buttons
                     tr.innerHTML = `
                         <td><strong>${p.productCode || 'N/A'}</strong></td>
                         <td>${p.sector || '-'}</td>
