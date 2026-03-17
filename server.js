@@ -25,29 +25,16 @@ mongoose.connect(process.env.MONGO_URI)
 // ==========================================
 // 1. WEB DASHBOARD LOGIN ROUTE
 // ==========================================
-// ==========================================
-// 2. WEB DASHBOARD LOGIN (Traffic Cop)
-// ==========================================
-app.post('/api/login', async (req, res) => {
-    const { username, password } = req.body;
-    try {
-        const user = await User.findOne({ username: username });
-        
-        if (!user || user.password !== password) {
-            return res.status(401).json({ success: false, message: "Incorrect Username or Password" });
-        }
+app.post('/api/login', (req, res) => {
+    const { password } = req.body;
+    
+    // 👉 THIS IS THE PASSWORD FOR THE WEBSITE
+    const SECRET_PASSWORD = 'Admin12345'; 
 
-        // Send them to their specific department screen!
-        let redirectPage = 'index.html'; // Fallback
-        if (user.role === 'sales') redirectPage = 'sales-dashboard.html';
-        if (user.role === 'production') redirectPage = 'production-dashboard.html';
-        if (user.role === 'accounts') redirectPage = 'billing-dashboard.html';
-        if (user.role === 'admin') redirectPage = 'admin-dashboard.html'; 
-
-        // THIS IS THE CRITICAL LINE! It must have 'redirectUrl'
-        res.json({ success: true, role: user.role, redirectUrl: redirectPage, name: user.name });
-    } catch (error) {
-        res.status(500).json({ success: false, message: "Server error during login" });
+    if (password === SECRET_PASSWORD) {
+        res.json({ success: true, message: "Welcome to the Dashboard" });
+    } else {
+        res.status(401).json({ success: false, message: "Incorrect Password" });
     }
 });
 
