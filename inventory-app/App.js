@@ -31,8 +31,8 @@ export default function App() {
     return () => clearTimeout(timer);
   }, []);
 
- const handleLogin = async () => {
-    // .trim() removes accidental spaces, .toLowerCase() fixes auto-caps
+ // --- UPDATED LOGIN (Clears old data first) ---
+  const handleLogin = async () => {
     const cleanUser = username.trim().toLowerCase();
     const cleanPass = password.trim();
 
@@ -40,6 +40,9 @@ export default function App() {
     
     setLoading(true);
     try {
+      // 1. Force clear ANY existing data before trying a new login
+      await AsyncStorage.clear(); 
+
       const res = await fetch(`${API_URL}/app-login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -48,13 +51,37 @@ export default function App() {
       const data = await res.json();
       
       if (data.success) {
-        setUser(data);
+        // 2. Save the fresh user data
         await AsyncStorage.setItem('workerUser', JSON.stringify(data));
+        setUser(data);
+        // 3. Clear the input fields so the next person doesn't see them
+        setUsername('');
+        setPassword('');
       } else {
-        Alert.alert("Login Failed", "Check Worker Username/Password");
+        Alert.alert("Login Failed", "Invalid Worker Credentials");
       }
     } catch (e) {
-      Alert.alert("Connection Error", "Check if your Render server is awake!");
+      Alert.alert("Connection Error", "Server is not responding.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // --- UPDATED LOGOUT (Total Wipeout) ---
+  const handleLogout = async () => {
+    try {
+      setLoading(true);
+      // 1. Completely wipe the phone's storage
+      await AsyncStorage.clear();
+      // 2. Reset the app state
+      setUser(null);
+      setBarcode('');
+      setQuantity('');
+      setUsername('');
+      setPassword('');
+      Alert.alert("Logged Out", "Session cleared successfully.");
+    } catch (e) {
+      console.error("Logout Error", e);
     } finally {
       setLoading(false);
     }
@@ -126,7 +153,7 @@ export default function App() {
     setRawMaterialCode(''); setRawMaterialKg(''); 
   };
 
-  const handleLogout = () => { setUser(null); setUsernameInput(''); };
+
 
   // --- UI RENDER BLOCKS ---
 
