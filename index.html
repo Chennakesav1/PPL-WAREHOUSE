@@ -876,17 +876,34 @@
             const expectedKg = document.getElementById('poExpectedKg').value;
             const costPerKg = document.getElementById('poCostPerKg').value;
             
-            if (!supplierName || !materialCode || !expectedKg || !costPerKg) return showToast("Fill all PO fields", true);
+            if (!supplierName || !materialCode || !expectedKg || !costPerKg) {
+                return showToast("Fill all PO fields", true);
+            }
 
             try {
                 document.getElementById('poSubmitBtn').innerText = "Generating...";
                 const res = await fetch(`${API_URL}/purchase-orders`, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ supplierName, materialCode, expectedKg, costPerKg, username: currentUser.username })
                 });
-                if(res.ok) { showToast("✅ PO Generated!"); closePOModal(); refreshDashboard(); }
-            } catch(e) { showToast("❌ Error", true); }
-            finally { document.getElementById('poSubmitBtn').innerText = "Generate PO"; }
+                
+                // Parse the response so we can read error messages
+                const data = await res.json(); 
+
+                if (res.ok && data.success) { 
+                    showToast("✅ PO Generated!"); 
+                    closePOModal(); 
+                    refreshDashboard(); 
+                } else {
+                    // Show the specific error if it fails
+                    showToast("❌ Error: " + (data.message || data.error || "Failed to generate"), true);
+                }
+            } catch(e) { 
+                showToast("❌ Network Error connecting to server", true); 
+            } finally { 
+                document.getElementById('poSubmitBtn').innerText = "Generate PO"; 
+            }
         }
 
         async function receivePO(poId) {
