@@ -25,25 +25,35 @@ export default function App() {
   const [rawMaterialCode, setRawMaterialCode] = useState('');
   const [rawMaterialKg, setRawMaterialKg] = useState('');
 
-// --- FIX: This runs every time the app opens ---
+// --- 1. RUN THIS AS SOON AS APP OPENS ---
   useEffect(() => {
-    checkLogin();
+    const initializeApp = async () => {
+      await checkLogin();
+    };
+    initializeApp();
   }, []);
 
+  // --- 2. THE LOGIC TO STAY LOGGED IN ---
   const checkLogin = async () => {
     try {
       const savedUser = await AsyncStorage.getItem('workerUser');
+      console.log("Checking storage for user...", savedUser);
+
       if (savedUser !== null) {
-        // 🛠️ THE FIX: Convert the text back to a Javascript object
+        // Convert the string back into an object
         const userData = JSON.parse(savedUser);
         
-        // 🛠️ THE FIX: Tell the app "Yes, we have a user, show the scanner!"
+        // CRITICAL: This tells the UI to switch to the Scanner screen
         setUser(userData); 
         
-        console.log("Welcome back:", userData.username);
+        console.log("Session Restored for:", userData.username);
+      } else {
+        console.log("No user found in storage. Staying on Login.");
       }
     } catch (e) { 
-      console.error("Failed to load user from memory", e); 
+      console.error("AsyncStorage Error:", e); 
+      // If there's an error, force a logout just in case
+      setUser(null);
     }
   };
 
