@@ -557,8 +557,17 @@
 
             <div class="card" id="poCard" style="display: none;">
                 <h2>
-                    Purchase Orders (Pending & Received)
-                    <button class="add-btn" onclick="openPOModal()" style="background-color: #ff9800;">📝 Create PO</button>
+                    Purchase Orders
+                    <div class="search-container">
+                        <input type="text" id="searchPOInput" class="search-box" style="width: 200px;" onkeyup="filterPOs()" placeholder="🔍 Supplier, Material, Scope...">
+                        <select id="statusPOFilter" class="search-box" style="width: 120px;" onchange="filterPOs()">
+                            <option value="">All Status</option>
+                            <option value="PENDING">Pending</option>
+                            <option value="RECEIVED">Received</option>
+                        </select>
+                        <button class="add-btn" onclick="openPOModal()" style="background-color: #ff9800;">📝 Create PO</button>
+                        <button class="export-btn" onclick="exportTableToCSV('poTable', 'Purchase_Orders.csv')">⬇️ Excel</button>
+                    </div>
                 </h2>
                 <div class="table-wrapper">
                     <table id="poTable">
@@ -567,14 +576,14 @@
                                 <th>PO Number</th>
                                 <th>Supplier</th>
                                 <th>Material</th>
-                                <th>Qty (Kg)</th>
+                                <th>Grade</th>     <th>Scope</th>     <th>Qty (Kg)</th>
                                 <th>Total Cost (₹)</th>
                                 <th>Status</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
-                        <tbody><tr><td colspan="7">Loading...</td></tr></tbody>
-                    </table>
+                        <tbody><tr><td colspan="9">Loading...</td></tr></tbody>
+                    </table>>
                 </div>
             </div>
         </div>
@@ -671,6 +680,7 @@
         }
 
         // 5. LOAD INVENTORY
+        // 5. LOAD INVENTORY (Updated with Error Handling)
         async function loadInventory() {
             try {
                 const response = await fetch(`${API_URL}/products`);
@@ -678,6 +688,19 @@
                 const tbody = document.querySelector('#productsTable tbody');
                 tbody.innerHTML = '';
                 
+                // FIX 1: If the server sends an error instead of a list
+                if (!Array.isArray(products)) {
+                    console.error("Server returned an error:", products);
+                    tbody.innerHTML = '<tr><td colspan="9" style="color: red; text-align: center; padding: 20px;">❌ Server Error. Check your backend terminal.</td></tr>';
+                    return;
+                }
+
+                // FIX 2: If the database is completely empty
+                if (products.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; color: #666; padding: 20px;">No finished goods found in the database. Please run your importData.js script!</td></tr>';
+                    return;
+                }
+
                 products.forEach(p => {
                     const currentStock = p.currentStock || 0;
                     const isLowStock = currentStock <= 10;
@@ -695,22 +718,23 @@
                     }
 
                     tr.innerHTML = `
-                        <td><strong>${po.poNumber}</strong><br><span style="font-size:11px; color:#666;">👤 ${po.orderedBy}</span></td>
-                        <td>${po.supplierName}</td>
-                        <td>
-                            <strong>${po.materialCode}</strong><br>
-                            <span style="font-size:12px; color:#555;">Grade: ${po.grade || '-'}</span><br>
-                            <span style="font-size:11px; color:#888;">Scope: ${po.scope || '-'}</span>
-                        </td>
-                        <td><strong>${po.expectedKg} Kg</strong></td>
-                        <td>₹${po.totalCost.toLocaleString()} <span style="font-size:11px; color:#666;">(₹${po.costPerKg}/kg)</span></td>
-                        <td style="color:${statusColor}; font-weight:bold;">${po.status}</td>
-                        <td>${actionBtn}</td>
+                        <td><strong>${p.productCode || 'N/A'}</strong></td>
+                        <td>${p.sector || '-'}</td>
+                        <td>${p.type || '-'}</td>
+                        <td>${p.grade || '-'}</td>
+                        <td>${p.length ? p.length + ' mm' : '-'}</td>
+                        <td>${p.af !== undefined && p.af !== null ? p.af : '-'}</td>
+                        <td>${p.weightPerPc || '0'}g</td>
+                        <td class="stock-val ${isLowStock ? 'low-stock-text' : ''}">${currentStock}</td>
+                        ${actionHTML}
                     `;
                     tbody.appendChild(tr);
                 });
                 filterInventory();
-            } catch (error) { console.error("Error loading inventory"); }
+            } catch (error) { 
+                console.error("Error loading inventory", error); 
+                document.querySelector('#productsTable tbody').innerHTML = '<tr><td colspan="9" style="color: red; text-align: center;">❌ Failed to connect to server.</td></tr>';
+            }
         }
 
         // 6. LOAD TRANSACTIONS
@@ -833,7 +857,7 @@
             }
         }
 
-        // --- 9. PURCHASE ORDER LOGIC ---
+       // --- 9. PURCHASE ORDER LOGIC ---
         async function loadPOs() {
             try {
                 const response = await fetch(`${API_URL}/purchase-orders`);
@@ -841,7 +865,10 @@
                 const tbody = document.querySelector('#poTable tbody');
                 tbody.innerHTML = '';
                 
-                if (pos.length === 0) return tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No Purchase Orders.</td></tr>';
+                if (pos.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="9" style="text-align: center;">No Purchase Orders.</td></tr>';
+                    return; // Added return here so it stops if empty
+                }
 
                 pos.forEach(po => {
                     const isPending = po.status === 'PENDING';
@@ -854,7 +881,9 @@
                     tr.innerHTML = `
                         <td><strong>${po.poNumber}</strong><br><span style="font-size:11px; color:#666;">👤 ${po.orderedBy}</span></td>
                         <td>${po.supplierName}</td>
-                        <td>${po.materialCode}</td>
+                        <td><strong>${po.materialCode}</strong></td>
+                        <td>${po.grade || '-'}</td>
+                        <td><span style="font-size:12px; color:#555;">${po.scope || '-'}</span></td>
                         <td><strong>${po.expectedKg} Kg</strong></td>
                         <td>₹${po.totalCost.toLocaleString()} <span style="font-size:11px; color:#666;">(₹${po.costPerKg}/kg)</span></td>
                         <td style="color:${statusColor}; font-weight:bold;">${po.status}</td>
@@ -862,6 +891,10 @@
                     `;
                     tbody.appendChild(tr);
                 });
+
+                // 🛠️ THE FIX: Re-apply the filter after drawing the fresh table!
+                filterPOs(); 
+
             } catch (error) { console.error("Error loading POs"); }
         }
 
@@ -974,6 +1007,37 @@
             for (let i = 1; i < tr.length; i++) {
                 if (tr[i].cells.length === 1) continue;
                 tr[i].style.display = (tr[i].textContent || tr[i].innerText).toUpperCase().indexOf(filter) > -1 ? "" : "none";
+            }
+        }
+
+
+
+        function filterPOs() {
+            const searchText = document.getElementById('searchPOInput').value.toUpperCase();
+            const statusFilter = document.getElementById('statusPOFilter').value.toUpperCase();
+            const tr = document.getElementById('poTable').getElementsByTagName("tr");
+
+            for (let i = 1; i < tr.length; i++) {
+                if (tr[i].cells.length === 1) continue; // Skip the "Loading" or "No Data" row
+
+                // Grab the text from the specific columns
+                const supplier = tr[i].cells[1].textContent.toUpperCase();
+                const material = tr[i].cells[2].textContent.toUpperCase();
+                const grade = tr[i].cells[3].textContent.toUpperCase();
+                const scope = tr[i].cells[4].textContent.toUpperCase();
+                const status = tr[i].cells[7].textContent.toUpperCase();
+
+                // Check if the search text matches Supplier, Material, Grade, OR Scope
+                const matchesText = supplier.includes(searchText) || 
+                                    material.includes(searchText) || 
+                                    grade.includes(searchText) || 
+                                    scope.includes(searchText);
+
+                // Check if the status matches the dropdown
+                const matchesStatus = statusFilter === "" || status.includes(statusFilter);
+
+                // Show the row only if BOTH filters match
+                tr[i].style.display = (matchesText && matchesStatus) ? "" : "none";
             }
         }
         function applyTxFilters() {
