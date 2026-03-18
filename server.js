@@ -1,5 +1,4 @@
 const express = require('express');
-const path = require('path');
 const mongoose = require('mongoose');
 const cors = require('cors');
 require('dotenv').config();
@@ -8,69 +7,74 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// CRITICAL FIX: We are importing PurchaseOrder and RawMaterial here!
-const { Product, Transaction, RawMaterial, PurchaseOrder } = require('./models');
+// 1. IMPORT ALL MODELS (Including the new ProductionBatch)
+const { Product, Transaction, RawMaterial, PurchaseOrder, ProductionBatch } = require('./models');
 
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB Connected"))
   .catch(err => console.log(err));
 
 // ==========================================
-// 1. ROLE-BASED LOGIN (Split for Security)
+// 2. ROLE-BASED LOGIN (Split for Security)
 // ==========================================
 
 // 🟢 DEPARTMENT HEADS: Allowed on the main Web Dashboard (index.html)
 const DASHBOARD_USERS = {
     "admin":  { pass: "admin123",  role: "ADMIN" },
     "buyer":  { pass: "buy123",    role: "PURCHASE" },
-    "maker":  { pass: "make123",   role: "PRODUCTION" }, // Production Manager
-    "seller": { pass: "sell123",   role: "SALES" }       // Sales Manager
+    "maker":  { pass: "make123",   role: "PRODUCTION" },
+    "seller": { pass: "sell123",   role: "SALES" }      
 };
 
-// 🔵 FLOOR WORKERS: Allowed ONLY on the Mobile Scanner App (worker.html)
+// 🔵 FLOOR WORKERS: Allowed ONLY on the Mobile Scanner App (Expo)
 const WORKER_USERS = {
-    "worker1": { pass: "work123", role: "PRODUCTION" }, // Floor Worker 1
-    "worker2": { pass: "work456", role: "PRODUCTION" }  // Floor Worker 2
+    "worker1": { pass: "work123", role: "PRODUCTION" },
+    "worker2": { pass: "work456", role: "PRODUCTION" } 
 };
 
 // --- WEB DASHBOARD LOGIN ROUTE ---
 app.post('/api/login', (req, res) => {
-    const username = req.body.username ? req.body.username.toLowerCase().trim() : '';
-    const password = req.body.password ? req.body.password.trim() : '';
+    try {
+        const username = req.body.username ? req.body.username.toLowerCase().trim() : '';
+        const password = req.body.password ? req.body.password.trim() : '';
 
-    // Master override for setup
-    if (password === 'Admin12345' && !username) {
-        return res.json({ success: true, role: "ADMIN", username: "Admin" });
-    }
-    
-    // Check if they are a Dashboard User
-    if (DASHBOARD_USERS[username] && DASHBOARD_USERS[username].pass === password) {
-        res.json({ success: true, role: DASHBOARD_USERS[usernam].role, username: username });
-    } else {
-        res.status(401).json({ success: false, message: "Access Denied: Dashboard credentials required." });
+        if (password === 'Admin12345' && !username) {
+            return res.json({ success: true, role: "ADMIN", username: "Admin" });
+        }
+        
+        if (DASHBOARD_USERS[username] && DASHBOARD_USERS[username].pass === password) {
+            res.json({ success: true, role: DASHBOARD_USERS[username].role, username: username });
+        } else {
+            res.status(401).json({ success: false, message: "Access Denied: Dashboard credentials required." });
+        }
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Server login error" });
     }
 });
 
 // --- MOBILE APP LOGIN ROUTE ---
 app.post('/api/app-login', (req, res) => {
-    const username = req.body.username ? req.body.username.toLowerCase().trim() : '';
-    const password = req.body.password ? req.body.password.trim() : '';
+    try {
+        const username = req.body.username ? req.body.username.toLowerCase().trim() : '';
+        const password = req.body.password ? req.body.password.trim() : '';
 
-    // Allow the Admin to log into the scanner app for testing/overrides
-    if (username === 'admin' && password === DASHBOARD_USERS['admin'].pass) {
-         return res.json({ success: true, role: "ADMIN", username: "admin" });
-    }
+        // Allow Admin to log into the scanner app for testing
+        if (username === 'admin' && password === DASHBOARD_USERS['admin'].pass) {
+             return res.json({ success: true, role: "ADMIN", username: "admin" });
+        }
 
-    // Check if they are a Floor Worker
-    if (WORKER_USERS[username] && WORKER_USERS[username].pass === password) {
-        res.json({ success: true, role: WORKER_USERS[username].role, username: username });
-    } else {
-        res.status(401).json({ success: false, message: "Access Denied: Worker credentials required." });
+        if (WORKER_USERS[username] && WORKER_USERS[username].pass === password) {
+            res.json({ success: true, role: WORKER_USERS[username].role, username: username });
+        } else {
+            res.status(401).json({ success: false, message: "Access Denied: Worker credentials required." });
+        }
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Server login error" });
     }
 });
 
 // ==========================================
-// PURCHASE DEPT: Purchase Orders (PO)
+// 3. PURCHASE DEPT: Purchase Orders (PO)
 // ==========================================
 app.get('/api/purchase-orders', async (req, res) => {
     try {
@@ -79,17 +83,15 @@ app.get('/api/purchase-orders', async (req, res) => {
     } catch (err) { res.status(500).json({ error: "Server error" }); }
 });
 
-// Create a new PO (Pending)
 app.post('/api/purchase-orders', async (req, res) => {
-    // NEW: We now extract grade and scope from the frontend request
     const { supplierName, materialCode, grade, scope, expectedKg, costPerKg, username } = req.body;
     try {
         const newPO = new PurchaseOrder({
             poNumber: `PO-${Date.now()}`,
             supplierName,
             materialCode: materialCode.toUpperCase(),
-            grade: grade || "Standard", // NEW
-            scope: scope || "General Inventory", // NEW
+            grade: grade || "Standard", 
+            scope: scope || "General Inventory", 
             expectedKg: Number(expectedKg),
             costPerKg: Number(costPerKg),
             totalCost: Number(expectedKg) * Number(costPerKg),
@@ -133,24 +135,11 @@ app.put('/api/purchase-orders/:id/receive', async (req, res) => {
 });
 
 // ==========================================
-// PURCHASE DEPT: Manage Raw Materials
+// 4. PURCHASE DEPT: Manage Raw Materials
 // ==========================================
 app.get('/api/raw-materials', async (req, res) => {
     try {
         let materials = await RawMaterial.find(); 
-        let needsSave = false;
-        for (let m of materials) {
-            if (!m.lastUpdate || !m.lastUpdatedBy) {
-                m.lastUpdate = new Date(); 
-                m.lastUpdatedBy = "System (Auto-Fixed)";
-                needsSave = true;
-            }
-            if (m.materialName === "New Steel") {
-                m.materialName = "Steel Stock";
-                needsSave = true;
-            }
-            if (needsSave) await m.save(); 
-        }
         res.json(materials);
     } catch (err) { res.status(500).json({ error: "Server error fetching materials" }); }
 });
@@ -178,7 +167,76 @@ app.post('/api/raw-materials/receive', async (req, res) => {
 });
 
 // ==========================================
-// INVENTORY & TRANSACTIONS
+// 5. PRODUCTION DEPT: Multi-Stage Tracking
+// ==========================================
+app.post('/api/production/batch', async (req, res) => {
+    const { 
+        productBarcode, stage, machineName, acceptedQty, rejectedQty, 
+        rawMaterialCode, rawMaterialConsumedKg, username 
+    } = req.body;
+    
+    try {
+        if (stage === 'FORGING') {
+            const material = await RawMaterial.findOne({ materialCode: rawMaterialCode.toUpperCase() });
+            if (!material || material.currentStockKg < rawMaterialConsumedKg) {
+                return res.status(400).json({ message: "Not enough raw steel in stock!" });
+            }
+            material.currentStockKg -= Number(rawMaterialConsumedKg);
+            await material.save();
+        }
+
+        const newBatch = new ProductionBatch({
+            productBarcode,
+            stage,
+            machineName: machineName || "Unknown",
+            operator: username,
+            acceptedQty: Number(acceptedQty),
+            rejectedQty: Number(rejectedQty) || 0,
+            rawMaterialConsumedKg: stage === 'FORGING' ? Number(rawMaterialConsumedKg) : 0
+        });
+        await newBatch.save();
+
+        if (stage === 'SEC_OP' || stage === 'ROLLING') {
+            const product = await Product.findOne({ barcode: productBarcode });
+            if (product) {
+                product.currentStock += Number(acceptedQty);
+                await product.save();
+                
+                await new Transaction({ 
+                    barcode: productBarcode, type: 'PRODUCTION', 
+                    quantity: acceptedQty, resultingStock: product.currentStock, user: username 
+                }).save();
+            }
+        }
+
+        res.json({ success: true, message: `${stage} batch recorded successfully!` });
+    } catch (err) { res.status(500).json({ error: "Production error" }); }
+});
+
+// ==========================================
+// 6. SALES DEPT
+// ==========================================
+app.post('/api/sales/order', async (req, res) => {
+    const { productBarcode, quantitySold, username } = req.body;
+    try {
+        const product = await Product.findOne({ barcode: productBarcode });
+        if (!product || product.currentStock < quantitySold) {
+            return res.status(400).json({ message: "Not enough finished goods in stock!" });
+        }
+        
+        product.currentStock -= Number(quantitySold);
+        await product.save();
+
+        await new Transaction({ 
+            barcode: productBarcode, type: 'DISPATCH', quantity: quantitySold, resultingStock: product.currentStock, user: username 
+        }).save();
+
+        res.json({ success: true, message: "Order processed and dispatched!" });
+    } catch (err) { res.status(500).json({ error: "Sales error" }); }
+});
+
+// ==========================================
+// 7. INVENTORY & TRANSACTIONS (General)
 // ==========================================
 app.get('/api/product/:barcode', async (req, res) => {
     try {
@@ -219,57 +277,6 @@ app.post('/api/products', async (req, res) => {
         }
         res.json({ success: true, message: "Product Added Successfully!" });
     } catch (error) { res.status(500).json({ success: false, message: "Server Error saving product." }); }
-});
-
-// ==========================================
-// PRODUCTION DEPT: Multi-Stage Tracking
-// ==========================================
-app.post('/api/production/batch', async (req, res) => {
-    const { 
-        productBarcode, stage, machineName, acceptedQty, rejectedQty, 
-        rawMaterialCode, rawMaterialConsumedKg, username 
-    } = req.body;
-    
-    try {
-        // 1. If this is FORGING (Stage 1), deduct the Raw Steel
-        if (stage === 'FORGING') {
-            const material = await RawMaterial.findOne({ materialCode: rawMaterialCode.toUpperCase() });
-            if (!material || material.currentStockKg < rawMaterialConsumedKg) {
-                return res.status(400).json({ message: "Not enough raw steel in stock!" });
-            }
-            material.currentStockKg -= Number(rawMaterialConsumedKg);
-            await material.save();
-        }
-
-        // 2. Save the Batch Record (Matches your Excel Columns!)
-        const newBatch = new ProductionBatch({
-            productBarcode,
-            stage,
-            machineName: machineName || "Unknown",
-            operator: username,
-            acceptedQty: Number(acceptedQty),
-            rejectedQty: Number(rejectedQty) || 0,
-            rawMaterialConsumedKg: stage === 'FORGING' ? Number(rawMaterialConsumedKg) : 0
-        });
-        await newBatch.save();
-
-        // 3. If this is the FINAL stage (e.g., SEC_OP or ROLLING), add to Finished Goods
-        // (You can adjust this logic based on which stage finishes your specific bolts)
-        if (stage === 'SEC_OP' || stage === 'ROLLING') {
-            const product = await Product.findOne({ barcode: productBarcode });
-            if (product) {
-                product.currentStock += Number(acceptedQty);
-                await product.save();
-                
-                await new Transaction({ 
-                    barcode: productBarcode, type: 'PRODUCTION', 
-                    quantity: acceptedQty, resultingStock: product.currentStock, user: username 
-                }).save();
-            }
-        }
-
-        res.json({ success: true, message: `${stage} batch recorded successfully!` });
-    } catch (err) { res.status(500).json({ error: "Production error" }); }
 });
 
 app.post('/api/stock', async (req, res) => {
