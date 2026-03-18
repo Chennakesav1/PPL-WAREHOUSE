@@ -62,6 +62,13 @@ const productionBatchSchema = new mongoose.Schema({
   shift: String,              
   workOrderNo: String,        
   productBarcode: String,     
+  
+  // EXCEL COLUMNS (NEW)
+  pieceWeight: { type: Number, default: 0 },
+  speedRpm: { type: Number, default: 0 },
+  scheduleHours: { type: Number, default: 0 },
+  targetQty: { type: Number, default: 0 },
+
   acceptedQty: { type: Number, default: 0 },
   rejectedQty: { type: Number, default: 0 },
   rejectionReason: String,    
@@ -79,5 +86,5 @@ module.exports = {
   Transaction: mongoose.model('Transaction', transactionSchema),
   RawMaterial: mongoose.model('RawMaterial', rawMaterialSchema),
   PurchaseOrder: mongoose.model('PurchaseOrder', purchaseOrderSchema),
-  ProductionBatch: mongoose.model('ProductionBatch', productionBatchSchema) // <--- ADD THIS
+  ProductionBatch: mongoose.model('ProductionBatch', productionBatchSchema)
 };

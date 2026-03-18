@@ -49,9 +49,13 @@
         @keyframes fadein { from { bottom: 0; opacity: 0; } to { bottom: 30px; opacity: 1; } }
         @keyframes fadeout { from { bottom: 30px; opacity: 1; } to { bottom: 0; opacity: 0; } }
 
-        /* Production Form Inputs */
+        /* NEW STYLES FOR PRODUCTION TABS & FORMS */
         .prod-input { padding: 10px; border: 1px solid #ccc; border-radius: 5px; outline: none; }
         .prod-input:focus { border-color: #ff9800; }
+        .tab-btn { padding: 10px 20px; border: none; background: #eee; cursor: pointer; border-radius: 8px 8px 0 0; font-weight: bold; margin-right: 5px; font-size: 15px; color: #555;}
+        .tab-btn.active { background: #ff9800; color: white; }
+        .tab-container { border-bottom: 3px solid #ff9800; display: flex; margin-top: 15px; }
+        .stage-group { display: none; gap: 15px; flex-wrap: wrap; background: #fff; padding: 10px; border-radius: 5px; margin-bottom: 15px; border-left: 4px solid #ff9800; }
     </style>
 </head>
 <body>
@@ -86,8 +90,9 @@
                 </h2>
                 
                 <div style="background: #fff3e0; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #ffe0b2;">
+                    
                     <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 15px;">
-                        <select id="prodStage" class="prod-input" style="flex: 1; font-weight: bold; border-color: #ff9800;">
+                        <select id="prodStage" class="prod-input" style="flex: 1; font-weight: bold; border-color: #ff9800; background-color: white;" onchange="toggleStageFields()">
                             <option value="FORGING">1. FORGING</option>
                             <option value="ROLLING">2. ROLLING</option>
                             <option value="SEC_OP">3. SEC. OP. (Lathe/Pointing)</option>
@@ -97,16 +102,57 @@
                     </div>
 
                     <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 15px;">
-                        <input type="text" id="prodMachine" class="prod-input" placeholder="* Machine (e.g., Lathe, CH5)" style="flex: 1;" required>
-                        <input type="text" id="prodOperation" class="prod-input" placeholder="Operation (e.g., TURNNING)" style="flex: 1;">
+                        <input type="text" id="prodMachine" class="prod-input" placeholder="* Machine Name (e.g., CH5)" style="flex: 1;" required>
                         <input type="text" id="prodOperator" class="prod-input" placeholder="Operator Name" style="flex: 1;">
                         <input type="text" id="prodCode" class="prod-input" placeholder="* Product / Part Size" style="flex: 1;" required>
                     </div>
 
+                    <div id="forgingFields" class="stage-group" style="display: flex; flex-direction: column; background: #fff; padding: 15px; border-radius: 5px; margin-bottom: 15px; border-left: 4px solid #ff9800;">
+                        <div style="font-size: 12px; font-weight: bold; color: #ff9800; margin-bottom: 10px;">FORGING EXCEL COLUMNS</div>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <input type="text" id="forgeRMCode" class="prod-input" placeholder="Coil / RM Code" style="flex: 1;">
+                            <input type="text" id="forgeHeatNo" class="prod-input" placeholder="Coil Heat No." style="flex: 1;">
+                            <input type="number" id="forgeRMKg" class="prod-input" placeholder="RM Consumed (Kg)" style="flex: 1;">
+                        </div>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px;">
+                            <input type="number" step="0.001" id="forgePieceWt" class="prod-input" placeholder="Piece Weight (Kg)" style="flex: 1;">
+                            <input type="number" id="forgeSpeed" class="prod-input" placeholder="Speed (RPM)" style="flex: 1;">
+                            <input type="number" id="forgeSchHrs" class="prod-input" placeholder="Schedule Hours" style="flex: 1;">
+                            <input type="number" id="forgeTarget" class="prod-input" placeholder="Shift Target Qty" style="flex: 1;">
+                        </div>
+                    </div>
+
+                    <div id="rollingFields" class="stage-group" style="display: none; flex-direction: column; background: #fff; padding: 15px; border-radius: 5px; margin-bottom: 15px; border-left: 4px solid #17a2b8;">
+                        <div style="font-size: 12px; font-weight: bold; color: #17a2b8; margin-bottom: 10px;">ROLLING EXCEL COLUMNS</div>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <input type="text" id="rollHeatNo" class="prod-input" placeholder="Blank Heat No." style="flex: 1;">
+                            <input type="number" step="0.001" id="rollPieceWt" class="prod-input" placeholder="Piece Weight (Kg)" style="flex: 1;">
+                        </div>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px;">
+                            <input type="number" id="rollSpeed" class="prod-input" placeholder="Speed (RPM)" style="flex: 1;">
+                            <input type="number" id="rollSchHrs" class="prod-input" placeholder="Schedule Hours" style="flex: 1;">
+                            <input type="number" id="rollTarget" class="prod-input" placeholder="Shift Target Qty" style="flex: 1;">
+                        </div>
+                    </div>
+
+                    <div id="secOpFields" class="stage-group" style="display: none; flex-direction: column; background: #fff; padding: 15px; border-radius: 5px; margin-bottom: 15px; border-left: 4px solid #28a745;">
+                        <div style="font-size: 12px; font-weight: bold; color: #28a745; margin-bottom: 10px;">SEC. OP. EXCEL COLUMNS</div>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <select id="secOpType" class="prod-input" style="flex: 1;">
+                                <option value="">-- Select Operation --</option>
+                                <option value="TURNNING">Turning</option>
+                                <option value="POINTING">Pointing</option>
+                                <option value="DRILLING">Drilling</option>
+                            </select>
+                            <input type="number" id="secOpSchHrs" class="prod-input" placeholder="Schedule Hours" style="flex: 1;">
+                            <input type="number" id="secOpTarget" class="prod-input" placeholder="Shift Target Qty" style="flex: 1;">
+                        </div>
+                    </div>
+
                     <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 15px; background: white; padding: 10px; border-radius: 5px;">
-                        <input type="number" id="prodAccepted" class="prod-input" placeholder="✅ Accepted Qty" style="flex: 1; border-color: #28a745;">
-                        <input type="number" id="prodRejected" class="prod-input" placeholder="❌ Rejected Qty" style="flex: 1; border-color: #dc3545;">
-                        <input type="text" id="prodRejReason" class="prod-input" placeholder="Rejection Reason" style="flex: 2;">
+                        <input type="number" id="prodAccepted" class="prod-input" placeholder="✅ Accepted Qty (PCS)" style="flex: 1; border-color: #28a745;">
+                        <input type="number" id="prodRejected" class="prod-input" placeholder="❌ Rejected Qty (PCS)" style="flex: 1; border-color: #dc3545;">
+                        <input type="text" id="prodRejReason" class="prod-input" placeholder="Rejection Reason (e.g., Tool Chip Out)" style="flex: 2;">
                     </div>
 
                     <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 15px; background: white; padding: 10px; border-radius: 5px;">
@@ -115,27 +161,28 @@
                             <option value="">-- Select Downtime Reason --</option>
                             <option value="TOOL CHANGE">Tool Change / Setting</option>
                             <option value="NO RM">No Raw Material</option>
-                            <option value="MAINTENANCE">Maintenance</option>
+                            <option value="MAINTENANCE">Maintenance (M/MNT or E/MNT)</option>
                             <option value="QA APPROVAL">QA Approval</option>
+                            <option value="NO OPERATOR">No Operator</option>
                             <option value="NO POWER">No Power / Air / Oil</option>
                         </select>
                     </div>
 
-                    <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-                        <input type="text" id="prodRMCode" class="prod-input" placeholder="RM Code (If Forging)" style="flex: 1;">
-                        <input type="number" id="prodRMKg" class="prod-input" placeholder="RM Consumed (Kg)" style="flex: 1;">
-                        <input type="text" id="prodHeat" class="prod-input" placeholder="Heat No." style="flex: 1;">
-                    </div>
-
-                    <button onclick="submitProductionForm()" style="background: #ff9800; color: white; padding: 15px; width: 100%; font-size: 18px; font-weight: bold; border: none; border-radius: 8px; margin-top: 15px; cursor: pointer;">
+                    <button onclick="submitProductionForm()" style="background: #ff9800; color: white; padding: 15px; width: 100%; font-size: 18px; font-weight: bold; border: none; border-radius: 8px; margin-top: 10px; cursor: pointer;">
                         💾 Save to Master Database
                     </button>
                 </div>
 
-                <h3 style="display: flex; justify-content: space-between;">
-                    Recent Production Logs 
-                    <button class="export-btn" onclick="exportTableToCSV('productionTable', 'Production_Report.csv')">⬇️ Download to Excel</button>
-                </h3>
+                <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+                    <div class="tab-container">
+                        <button class="tab-btn active" id="tab-ALL" onclick="filterLogs('ALL')">All Logs</button>
+                        <button class="tab-btn" id="tab-FORGING" onclick="filterLogs('FORGING')">Forging</button>
+                        <button class="tab-btn" id="tab-ROLLING" onclick="filterLogs('ROLLING')">Rolling</button>
+                        <button class="tab-btn" id="tab-SEC_OP" onclick="filterLogs('SEC_OP')">Sec. Ops</button>
+                    </div>
+                    <button class="export-btn" style="margin-bottom: 5px;" onclick="exportTableToCSV('productionTable', 'Production_Report.csv')">⬇️ Excel</button>
+                </div>
+
                 <div class="table-wrapper">
                     <table id="productionTable">
                         <thead style="background-color: #ff9800;">
@@ -242,6 +289,7 @@
         const API_URL = 'https://ppl-warehouse-wkdp.onrender.com/api';
         let refreshInterval;
         let currentUser = null;
+        let currentLogFilter = 'ALL'; // Keeps track of which tab is active
 
         function showToast(message, isError = false) {
             const toast = document.getElementById("toastNotification");
@@ -292,9 +340,9 @@
             // ONLY PRODUCTION CAN SEE THE NEW FORM
             if(currentUser.role === 'PRODUCTION') {
                 document.getElementById('productionCard').style.display = 'block';
+                toggleStageFields(); // Initialize form fields
             }
 
-            // ADMIN & PURCHASE SEE RM & POs
             if(currentUser.role === 'ADMIN' || currentUser.role === 'PURCHASE') {
                 document.getElementById('rawMaterialCard').style.display = 'block';
                 document.getElementById('poCard').style.display = 'block';
@@ -313,21 +361,52 @@
         function refreshDashboard() { 
             loadInventory(); 
             loadTransactions(); 
-            
             if(currentUser && currentUser.role === 'PRODUCTION') loadProductionBatches();
-            
             if(currentUser && (currentUser.role === 'ADMIN' || currentUser.role === 'PURCHASE')) {
                 loadRawMaterials(); loadPOs();
             }
         }
 
         // ==========================================
-        // PRODUCTION LOGIC
+        // DYNAMIC PRODUCTION LOGIC
         // ==========================================
+        
+       // 1. Toggles specific fields in the form based on Stage
+        function toggleStageFields() {
+            const stage = document.getElementById('prodStage').value;
+            
+            // First, hide all of them
+            document.getElementById('forgingFields').style.display = 'none';
+            document.getElementById('rollingFields').style.display = 'none';
+            document.getElementById('secOpFields').style.display = 'none';
+            
+            // Then, show only the one that matches the dropdown
+            if (stage === 'FORGING') {
+                document.getElementById('forgingFields').style.display = 'flex';
+            } else if (stage === 'ROLLING') {
+                document.getElementById('rollingFields').style.display = 'flex';
+            } else if (stage === 'SEC_OP') {
+                document.getElementById('secOpFields').style.display = 'flex';
+            }
+        }
+        // 2. Toggles the tabs above the table
+        function filterLogs(stage) {
+            currentLogFilter = stage;
+            
+            // Update Tab UI Colors
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('tab-' + stage).classList.add('active');
+            
+            // Reload Table Data
+            loadProductionBatches();
+        }
+
         async function submitProductionForm() {
+            const stage = document.getElementById('prodStage').value;
+            
+            // Base Data (Always collected)
             const data = {
-                stage: document.getElementById('prodStage').value,
-                operation: document.getElementById('prodOperation').value,
+                stage: stage,
                 machineName: document.getElementById('prodMachine').value,
                 operator: document.getElementById('prodOperator').value,
                 shift: document.getElementById('prodShift').value,
@@ -338,11 +417,33 @@
                 rejectionReason: document.getElementById('prodRejReason').value,
                 downtimeMinutes: document.getElementById('prodDowntime').value,
                 downtimeReason: document.getElementById('prodDownReason').value,
-                rawMaterialCode: document.getElementById('prodRMCode').value,
-                rawMaterialConsumedKg: document.getElementById('prodRMKg').value,
-                heatNo: document.getElementById('prodHeat').value,
-                username: currentUser.username
+                username: currentUser.username,
+                // Default empty values for dynamic fields
+                operation: '', heatNo: '', pieceWeight: 0, speedRpm: 0, scheduleHours: 0, targetQty: 0, rawMaterialCode: '', rawMaterialConsumedKg: 0
             };
+
+            // Grab the specific columns based on the Stage selected
+            if(stage === 'FORGING') {
+                data.operation = "COLD FORGING";
+                data.rawMaterialCode = document.getElementById('forgeRMCode').value;
+                data.heatNo = document.getElementById('forgeHeatNo').value;
+                data.rawMaterialConsumedKg = document.getElementById('forgeRMKg').value;
+                data.pieceWeight = document.getElementById('forgePieceWt').value;
+                data.speedRpm = document.getElementById('forgeSpeed').value;
+                data.scheduleHours = document.getElementById('forgeSchHrs').value;
+                data.targetQty = document.getElementById('forgeTarget').value;
+            } else if(stage === 'ROLLING') {
+                data.operation = "THREAD ROLLING";
+                data.heatNo = document.getElementById('rollHeatNo').value;
+                data.pieceWeight = document.getElementById('rollPieceWt').value;
+                data.speedRpm = document.getElementById('rollSpeed').value;
+                data.scheduleHours = document.getElementById('rollSchHrs').value;
+                data.targetQty = document.getElementById('rollTarget').value;
+            } else if(stage === 'SEC_OP') {
+                data.operation = document.getElementById('secOpType').value;
+                data.scheduleHours = document.getElementById('secOpSchHrs').value;
+                data.targetQty = document.getElementById('secOpTarget').value;
+            }
 
             if (!data.machineName || !data.productBarcode || !data.acceptedQty) {
                 return showToast("Machine, Part Code, and Accepted Qty are required!", true);
@@ -356,6 +457,7 @@
                 const result = await response.json();
                 if (result.success) {
                     showToast("✅ Log Saved Successfully!");
+                    // Clear the variable fields for the next entry
                     document.getElementById('prodAccepted').value = '';
                     document.getElementById('prodRejected').value = '';
                     document.getElementById('prodDowntime').value = '';
@@ -373,21 +475,33 @@
                 
                 if (batches.length === 0) return tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No logs found.</td></tr>';
 
+                let count = 0;
                 batches.forEach(b => {
+                    // TAB FILTERING LOGIC
+                    if (currentLogFilter !== 'ALL' && b.stage !== currentLogFilter) return;
+                    count++;
+
                     let stageColor = b.stage === 'FORGING' ? '#ff9800' : (b.stage === 'ROLLING' ? '#17a2b8' : '#28a745');
                     const dt = new Date(b.date);
+                    
+                    let specificDetail = '';
+                    if(b.stage === 'FORGING' && b.rawMaterialCode) specificDetail = `<br><span style="color:#555; font-size:11px;">RM: ${b.rawMaterialCode} (${b.rawMaterialConsumedKg}kg)</span>`;
+                    if(b.stage === 'ROLLING' && b.heatNo) specificDetail = `<br><span style="color:#555; font-size:11px;">Heat: ${b.heatNo}</span>`;
                     
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
                         <td><strong>${dt.toLocaleDateString()}</strong><br><span style="color:#666; font-size:12px;">Shift: ${b.shift || '-'}</span></td>
                         <td><span style="background:${stageColor}; color:white; padding:4px 8px; border-radius:4px; font-weight:bold; font-size:12px;">${b.stage}</span><br><small>${b.operation || ''}</small></td>
                         <td><strong>${b.machineName || '-'}</strong><br><span style="color:#666; font-size:12px;">👤 ${b.operator || '-'}</span></td>
-                        <td><strong>${b.productBarcode || '-'}</strong><br><span style="color:#666; font-size:12px;">WO: ${b.workOrderNo || '-'}</span></td>
+                        <td><strong>${b.productBarcode || '-'}</strong><br><span style="color:#666; font-size:12px;">WO: ${b.workOrderNo || '-'}</span>${specificDetail}</td>
                         <td><span style="color:green; font-weight:bold;">${b.acceptedQty} ✅</span><br><span style="color:red; font-size:12px;">${b.rejectedQty} ❌ ${b.rejectionReason ? '('+b.rejectionReason+')' : ''}</span></td>
                         <td>${b.downtimeMinutes > 0 ? `<span style="color:#dc3545; font-weight:bold;">${b.downtimeMinutes}m</span><br><span style="font-size:11px;">${b.downtimeReason || ''}</span>` : '<span style="color:#28a745;">0m</span>'}</td>
                     `;
                     tbody.appendChild(tr);
                 });
+
+                if(count === 0) tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No logs found for this stage.</td></tr>';
+
             } catch (error) { console.error("Error loading production batches"); }
         }
 

@@ -73,6 +73,7 @@ app.get('/api/production/batches', async (req, res) => {
 app.post('/api/production/batch', async (req, res) => {
     const { 
         stage, operation, machineName, operator, shift, workOrderNo, productBarcode, 
+        pieceWeight, speedRpm, scheduleHours, targetQty, // NEW FIELDS
         acceptedQty, rejectedQty, rejectionReason, rawMaterialCode, rawMaterialConsumedKg, 
         heatNo, downtimeMinutes, downtimeReason, remarks, username 
     } = req.body;
@@ -88,16 +89,15 @@ app.post('/api/production/batch', async (req, res) => {
 
         const newBatch = new ProductionBatch({
             stage, operation, machineName, operator, shift, workOrderNo, productBarcode,
+            pieceWeight: Number(pieceWeight) || 0,
+            speedRpm: Number(speedRpm) || 0,
+            scheduleHours: Number(scheduleHours) || 0,
+            targetQty: Number(targetQty) || 0,
             acceptedQty: Number(acceptedQty) || 0, 
             rejectedQty: Number(rejectedQty) || 0, 
-            rejectionReason, 
-            rawMaterialCode, 
+            rejectionReason, rawMaterialCode, 
             rawMaterialConsumedKg: Number(rawMaterialConsumedKg) || 0,
-            heatNo, 
-            downtimeMinutes: Number(downtimeMinutes) || 0, 
-            downtimeReason, 
-            remarks, 
-            loggedBy: username
+            heatNo, downtimeMinutes: Number(downtimeMinutes) || 0, downtimeReason, remarks, loggedBy: username
         });
         await newBatch.save();
 
