@@ -25,11 +25,27 @@ export default function App() {
   const [rawMaterialCode, setRawMaterialCode] = useState('');
   const [rawMaterialKg, setRawMaterialKg] = useState('');
 
-  // 1. Splash Screen Timer
+// --- FIX: This runs every time the app opens ---
   useEffect(() => {
-    const timer = setTimeout(() => { setShowSplash(false); }, 5000);
-    return () => clearTimeout(timer);
+    checkLogin();
   }, []);
+
+  const checkLogin = async () => {
+    try {
+      const savedUser = await AsyncStorage.getItem('workerUser');
+      if (savedUser !== null) {
+        // 🛠️ THE FIX: Convert the text back to a Javascript object
+        const userData = JSON.parse(savedUser);
+        
+        // 🛠️ THE FIX: Tell the app "Yes, we have a user, show the scanner!"
+        setUser(userData); 
+        
+        console.log("Welcome back:", userData.username);
+      }
+    } catch (e) { 
+      console.error("Failed to load user from memory", e); 
+    }
+  };
 
  // --- UPDATED LOGIN (Clears old data first) ---
   const handleLogin = async () => {
