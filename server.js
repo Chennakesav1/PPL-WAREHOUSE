@@ -214,6 +214,20 @@ app.post('/api/production/batch', async (req, res) => {
 });
 
 // ==========================================
+// 5. PRODUCTION DEPT: Multi-Stage Tracking
+// ==========================================
+
+// Add this NEW GET route so the dashboard can fetch the data
+app.get('/api/production/batches', async (req, res) => {
+    try {
+        const batches = await ProductionBatch.find().sort({ date: -1 }).limit(100);
+        res.json(batches);
+    } catch (err) { res.status(500).json({ error: "Server error fetching batches" }); }
+});
+
+// (Your existing app.post('/api/production/batch' stays right here below it)
+
+// ==========================================
 // 6. SALES DEPT
 // ==========================================
 app.post('/api/sales/order', async (req, res) => {

@@ -12,28 +12,28 @@ const API_URL = "https://ppl-warehouse-wkdp.onrender.com/api";
 
 export default function App() {
   const [permission, requestPermission] = useCameraPermissions();
-
-
-  const [prodStage, setProdStage] = useState('FORGING'); // 'FORGING', 'ROLLING', 'SEC_OP'
-  const [machineName, setMachineName] = useState('');
-  const [rejectedQty, setRejectedQty] = useState('');
   
-  // --- 1. SESSION & AUTH STATES ---
+  // --- 1. SESSION STATES ---
   const [isReady, setIsReady] = useState(false); 
   const [user, setUser] = useState(null);
   const [usernameInput, setUsernameInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // --- 2. APP FUNCTIONAL STATES ---
+  // --- 2. GENERAL APP STATES ---
   const [scanned, setScanned] = useState(false);
   const [product, setProduct] = useState(null);
-  const [quantity, setQuantity] = useState('1');
+  const [quantity, setQuantity] = useState('1'); // Accepted Qty
   const [manualCode, setManualCode] = useState('');
+
+  // --- 3. PRODUCTION SPECIFIC STATES (THE FIX) ---
+  const [prodStage, setProdStage] = useState('FORGING'); // Default stage
+  const [machineName, setMachineName] = useState('');
+  const [rejectedQty, setRejectedQty] = useState('');
   const [rawMaterialCode, setRawMaterialCode] = useState('');
   const [rawMaterialKg, setRawMaterialKg] = useState('');
 
-  // --- 3. IMPROVED INITIALIZATION (STAY LOGGED IN) ---
+  // --- INITIALIZE ---
   useEffect(() => {
     const restoreSession = async () => {
       try {
@@ -41,32 +41,24 @@ export default function App() {
         if (savedUser) {
           const userData = JSON.parse(savedUser);
           setUser(userData);
-          console.log("✅ Session Restored:", userData.username);
         }
-      } catch (e) {
-        console.error("❌ Storage Error:", e);
-      } finally {
-        // 🛠️ Wait for splash effect for 2 seconds then show app
-        setTimeout(() => setIsReady(true), 2000); 
-      }
+      } catch (e) { console.error("Storage Error:", e); } 
+      finally { setTimeout(() => setIsReady(true), 1500); }
     };
     restoreSession();
   }, []);
 
-  // --- 4. LOGIN LOGIC ---
+  // --- LOGIN / LOGOUT ---
   const handleLogin = async () => {
     const cleanUser = usernameInput.trim().toLowerCase();
     const cleanPass = passwordInput.trim();
-
     if (!cleanUser || !cleanPass) return Alert.alert("Error", "Enter credentials");
     
     setLoading(true);
     try {
-      await AsyncStorage.clear(); // Wipe old ghosts
-
+      await AsyncStorage.clear(); 
       const res = await fetch(`${API_URL}/app-login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: cleanUser, password: cleanPass })
       });
       const data = await res.json();
@@ -74,65 +66,37 @@ export default function App() {
       if (data.success) {
         await AsyncStorage.setItem('workerUser', JSON.stringify(data));
         setUser(data);
-        setUsernameInput('');
-        setPasswordInput('');
-      } else {
-        Alert.alert("Login Failed", "Invalid Worker Credentials");
-      }
-    } catch (e) {
-      Alert.alert("Connection Error", "Server is not responding.");
-    } finally {
-      setLoading(false);
-    }
+        setUsernameInput(''); setPasswordInput('');
+      } else { Alert.alert("Login Failed", "Invalid Credentials"); }
+    } catch (e) { Alert.alert("Error", "Server not responding."); } 
+    finally { setLoading(false); }
   };
 
-  // --- 5. LOGOUT LOGIC ---
   const handleLogout = async () => {
-    try {
-      setLoading(true);
-      await AsyncStorage.clear();
-      setUser(null);
-      resetApp();
-      Alert.alert("Logged Out", "Session cleared successfully.");
-    } catch (e) {
-      console.error("Logout Error:", e);
-    } finally {
-      setLoading(false);
-    }
+    setLoading(true);
+    await AsyncStorage.clear();
+    setUser(null); resetApp();
+    setLoading(false);
   };
 
-  // --- 6. PRODUCT SEARCH / SCAN ---
+  // --- SCAN / SEARCH ---
   const handleSearch = async (searchCode) => {
-    if (!searchCode) return Alert.alert("Error", "Please enter a code");
+    if (!searchCode) return Alert.alert("Error", "Enter a code");
     setScanned(true); 
     try {
       const res = await axios.get(`${API_URL}/product/${searchCode.trim()}`);
       setProduct(res.data);
       setManualCode(''); 
     } catch (err) {
-      Alert.alert("Not Found", `Code ${searchCode} is not in the system.`, [{ text: "OK", onPress: () => setScanned(false) }]);
+      Alert.alert("Not Found", "Product not in system.", [{ text: "OK", onPress: () => setScanned(false) }]);
     }
   };
 
-  // --- 7. STOCK UPDATES (ADMIN/PURCHASE) ---
-  const handleStandardUpdate = async (type) => {
-    if (!quantity || isNaN(parseInt(quantity)) || parseInt(quantity) <= 0) return Alert.alert("Error", "Enter a valid quantity");
-    try {
-      const res = await axios.post(`${API_URL}/stock`, {
-        barcode: product.barcode || product.productCode, 
-        type: type, 
-        quantity: parseInt(quantity),
-        username: user.username 
-      });
-      Alert.alert("Success! ✅", `${type} recorded.\nNew Stock: ${res.data.newStock}`, [{ text: "Scan Next", onPress: resetApp }]);
-    } catch (err) { Alert.alert("Failed", "Server Error."); }
-  };
-
-// --- 8. MULTI-STAGE PRODUCTION LOGIC ---
+  // --- MULTI-STAGE PRODUCTION SUBMIT ---
   const handleProduction = async () => {
-    if (!quantity) return Alert.alert("Error", "Enter accepted quantity");
+    if (!quantity) return Alert.alert("Error", "Enter accepted quantity (PCS)");
     if (prodStage === 'FORGING' && (!rawMaterialCode || !rawMaterialKg)) {
-        return Alert.alert("Error", "Forging requires Raw Material details");
+        return Alert.alert("Error", "Forging requires Raw Steel details");
     }
 
     try {
@@ -146,60 +110,66 @@ export default function App() {
         rawMaterialConsumedKg: parseFloat(rawMaterialKg) || 0,
         username: user.username
       });
-      Alert.alert("Success! 🏭", `${prodStage} recorded successfully!`, [{ text: "Scan Next", onPress: resetApp }]);
+      Alert.alert("Success! 🏭", `${prodStage} batch recorded!`, [{ text: "Scan Next", onPress: resetApp }]);
     } catch (err) {
       Alert.alert("Failed", err.response?.data?.message || "Production Error");
     }
   };
 
-  // --- 9. SALES LOGIC ---
+  // --- SALES & ADJUSTMENTS ---
+  const handleStandardUpdate = async (type) => {
+    if (!quantity) return Alert.alert("Error", "Enter quantity");
+    try {
+      const res = await axios.post(`${API_URL}/stock`, {
+        barcode: product.barcode || product.productCode, type: type, 
+        quantity: parseInt(quantity), username: user.username 
+      });
+      Alert.alert("Success! ✅", `${type} recorded.`, [{ text: "Scan Next", onPress: resetApp }]);
+    } catch (err) { Alert.alert("Failed", "Server Error."); }
+  };
+
   const handleSales = async () => {
-    if (!quantity || isNaN(parseInt(quantity)) || parseInt(quantity) <= 0) return Alert.alert("Error", "Enter a valid quantity");
+    if (!quantity) return Alert.alert("Error", "Enter quantity");
     try {
       await axios.post(`${API_URL}/sales/order`, {
         productBarcode: product.barcode || product.productCode,
-        quantitySold: parseInt(quantity),
-        username: user.username
+        quantitySold: parseInt(quantity), username: user.username
       });
       Alert.alert("Success! 📦", "Order Dispatched!", [{ text: "Scan Next", onPress: resetApp }]);
-    } catch (err) {
-      Alert.alert("Failed", err.response?.data?.message || "Sales Error");
-    }
+    } catch (err) { Alert.alert("Failed", err.response?.data?.message || "Sales Error"); }
   };
 
   const resetApp = () => { 
     setScanned(false); setProduct(null); setQuantity('1'); 
-    setRawMaterialCode(''); setRawMaterialKg(''); 
+    setMachineName(''); setRejectedQty(''); setRawMaterialCode(''); setRawMaterialKg(''); 
   };
 
-  // --- RENDER SPLASH/READY STATE ---
+  // ==========================================
+  // RENDER SCREENS
+  // ==========================================
   if (!isReady) {
     return (
       <View style={styles.splashContainer}>
         <Text style={styles.splashLogo}>PPL</Text>
         <ActivityIndicator size="large" color="#007bff" style={{ marginTop: 20 }} />
-        <Text style={styles.splashText}>RESUMING SESSION...</Text>
       </View>
     );
   }
 
-  // --- RENDER PERMISSION SCREEN ---
   if (!permission?.granted) {
     return (
       <View style={styles.centered}>
-        <Text style={{marginBottom: 20}}>Camera permission required to scan.</Text>
+        <Text style={{marginBottom: 20}}>Camera permission required.</Text>
         <TouchableOpacity style={styles.btnBlue} onPress={requestPermission}><Text style={styles.btnText}>Enable Camera</Text></TouchableOpacity>
       </View>
     );
   }
 
-  // --- RENDER LOGIN SCREEN ---
   if (!user) {
     return (
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.loginContainer}>
         <View style={styles.loginCard}>
           <Text style={styles.loginTitle}>PPL ERP App</Text>
-          <Text style={styles.loginSubtitle}>Authorized Personnel Only</Text>
           <TextInput style={styles.loginInput} placeholder="Username" value={usernameInput} onChangeText={setUsernameInput} autoCapitalize="none" />
           <TextInput style={styles.loginInput} placeholder="Password" value={passwordInput} onChangeText={setPasswordInput} secureTextEntry={true} />
           <TouchableOpacity style={styles.loginBtn} onPress={handleLogin}>
@@ -210,7 +180,6 @@ export default function App() {
     );
   }
 
-  // --- RENDER MAIN APP ---
   return (
     <SafeAreaView style={styles.container}>
       {!scanned ? (
@@ -224,7 +193,7 @@ export default function App() {
           </View>
           
           <View style={styles.searchContainer}>
-            <TextInput style={styles.searchInput} placeholder="Type code..." value={manualCode} onChangeText={setManualCode} autoCapitalize="characters" />
+            <TextInput style={styles.searchInput} placeholder="Type code manually..." value={manualCode} onChangeText={setManualCode} autoCapitalize="characters" />
             <TouchableOpacity style={styles.searchBtn} onPress={() => handleSearch(manualCode)}><Text style={styles.searchBtnText}>Search</Text></TouchableOpacity>
           </View>
 
@@ -239,53 +208,48 @@ export default function App() {
               <Text style={styles.itemTitle}>{String(product.productCode || 'N/A')}</Text>
               <View style={styles.card}>
                 <View style={styles.infoRow}><Text style={styles.label}>Sector:</Text><Text style={styles.val}>{String(product.sector || '-')}</Text></View>
-                <View style={styles.infoRow}><Text style={styles.label}>Type:</Text><Text style={styles.val}>{String(product.type || '-')}</Text></View>
                 <View style={styles.infoRow}><Text style={styles.label}>Grade:</Text><Text style={styles.val}>{String(product.grade || '-')}</Text></View>
-                <View style={styles.infoRow}><Text style={styles.label}>A/F:</Text><Text style={styles.val}>{String(product.af !== undefined && product.af !== null ? product.af : '-')}</Text></View>
-                <View style={styles.infoRow}><Text style={styles.label}>Length:</Text><Text style={styles.val}>{String(product.length || 0)} mm</Text></View>
-                <View style={styles.infoRow}><Text style={styles.label}>Wt/Pc:</Text><Text style={styles.val}>{String(product.weightPerPc || 0)} g</Text></View>
                 <View style={styles.infoRow}><Text style={styles.label}>Stock:</Text><Text style={[styles.val, {color: '#007bff', fontSize: 18}]}>{String(product.currentStock || 0)}</Text></View>
               </View>
 
-              <Text style={styles.qtyLabel}>Quantity (Bolts):</Text>
-              <TextInput style={styles.inputBig} keyboardType="numeric" value={quantity} onChangeText={setQuantity} autoFocus={true} />
+              <Text style={styles.qtyLabel}>Accepted Quantity (PCS):</Text>
+              <TextInput style={styles.inputBig} keyboardType="numeric" value={quantity} onChangeText={setQuantity} />
 
-              {/* 1. UPGRADED PRODUCTION ROLE (Multi-Stage) */}
+              {/* 🏭 PRODUCTION DASHBOARD (FOR WORKERS & MAKERS) */}
               {user.role === 'PRODUCTION' && (
                 <View style={styles.roleBox}>
                   <Text style={styles.roleBoxTitle}>🏭 Production Stage</Text>
                   
-                  {/* Stage Selector Toggle */}
+                  {/* Stage Toggle Buttons */}
                   <View style={{flexDirection: 'row', marginBottom: 15, borderRadius: 8, overflow: 'hidden', borderWidth: 1, borderColor: '#ddd'}}>
                     <TouchableOpacity style={[styles.toggleBtn, prodStage === 'FORGING' && {backgroundColor: '#007bff'}]} onPress={() => setProdStage('FORGING')}>
-                      <Text style={{color: prodStage === 'FORGING' ? 'white' : '#666', fontWeight: 'bold'}}>FORGING</Text>
+                      <Text style={{color: prodStage === 'FORGING' ? 'white' : '#666', fontWeight: 'bold', fontSize: 12}}>FORGING</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={[styles.toggleBtn, prodStage === 'ROLLING' && {backgroundColor: '#007bff'}]} onPress={() => setProdStage('ROLLING')}>
-                      <Text style={{color: prodStage === 'ROLLING' ? 'white' : '#666', fontWeight: 'bold'}}>ROLLING</Text>
+                      <Text style={{color: prodStage === 'ROLLING' ? 'white' : '#666', fontWeight: 'bold', fontSize: 12}}>ROLLING</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={[styles.toggleBtn, prodStage === 'SEC_OP' && {backgroundColor: '#007bff'}]} onPress={() => setProdStage('SEC_OP')}>
-                      <Text style={{color: prodStage === 'SEC_OP' ? 'white' : '#666', fontWeight: 'bold'}}>SEC. OP</Text>
+                      <Text style={{color: prodStage === 'SEC_OP' ? 'white' : '#666', fontWeight: 'bold', fontSize: 12}}>SEC. OP</Text>
                     </TouchableOpacity>
                   </View>
 
-                  <TextInput style={styles.inputSmall} placeholder="Machine (e.g., CH5, TK250)" value={machineName} onChangeText={setMachineName} autoCapitalize="characters" />
-                  <TextInput style={styles.inputSmall} placeholder="Rejected Qty (PCS)" keyboardType="numeric" value={rejectedQty} onChangeText={setRejectedQty} />
+                  <TextInput style={styles.inputSmall} placeholder="Machine (e.g., CH5)" value={machineName} onChangeText={setMachineName} autoCapitalize="characters" />
+                  <TextInput style={styles.inputSmall} placeholder="Rejected Qty (Losses)" keyboardType="numeric" value={rejectedQty} onChangeText={setRejectedQty} />
                   
-                  {/* Only ask for Raw Steel during Forging */}
+                  {/* Show Steel inputs ONLY if Forging */}
                   {prodStage === 'FORGING' && (
                     <View style={{backgroundColor: '#eef2f5', padding: 10, borderRadius: 8, marginBottom: 10}}>
-                        <Text style={{fontSize: 12, fontWeight: 'bold', marginBottom: 5, color: '#555'}}>RAW MATERIAL CONSUMED</Text>
-                        <TextInput style={[styles.inputSmall, {backgroundColor: 'white'}]} placeholder="Steel Code (e.g., STL-10MM)" value={rawMaterialCode} onChangeText={setRawMaterialCode} />
+                        <Text style={{fontSize: 12, fontWeight: 'bold', marginBottom: 5, color: '#555'}}>STEEL CONSUMED</Text>
+                        <TextInput style={[styles.inputSmall, {backgroundColor: 'white'}]} placeholder="Steel Code (STL-10MM)" value={rawMaterialCode} onChangeText={setRawMaterialCode} />
                         <TextInput style={[styles.inputSmall, {backgroundColor: 'white', marginBottom: 0}]} placeholder="Weight Used (Kg)" keyboardType="numeric" value={rawMaterialKg} onChangeText={setRawMaterialKg} />
                     </View>
                   )}
 
-                  <TouchableOpacity style={styles.btnBlue} onPress={handleProduction}>
-                      <Text style={styles.btnText}>Record {prodStage}</Text>
-                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.btnBlue} onPress={handleProduction}><Text style={styles.btnText}>Record {prodStage}</Text></TouchableOpacity>
                 </View>
               )}
 
+              {/* SALES & ADMIN CONTROLS */}
               {user.role === 'SALES' && (
                 <View style={styles.roleBox}>
                   <Text style={styles.roleBoxTitle}>📦 Order Fulfillment</Text>
@@ -317,11 +281,9 @@ const styles = StyleSheet.create({
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
   splashContainer: { flex: 1, backgroundColor: '#ffffff', justifyContent: 'center', alignItems: 'center' },
   splashLogo: { fontSize: 80, fontWeight: '900', color: '#007bff', letterSpacing: 5 },
-  splashText: { marginTop: 40, color: '#666', fontSize: 16, fontWeight: 'bold', letterSpacing: 2 },
   loginContainer: { flex: 1, backgroundColor: '#2c3e50', justifyContent: 'center', alignItems: 'center' },
   loginCard: { backgroundColor: 'white', padding: 30, borderRadius: 15, width: '85%', alignItems: 'center', elevation: 5 },
-  loginTitle: { fontSize: 28, fontWeight: 'bold', color: '#007bff', marginBottom: 5 },
-  loginSubtitle: { fontSize: 14, color: '#666', marginBottom: 25 },
+  loginTitle: { fontSize: 28, fontWeight: 'bold', color: '#007bff', marginBottom: 15 },
   loginInput: { width: '100%', borderWidth: 1, borderColor: '#ccc', borderRadius: 8, padding: 15, marginBottom: 15, fontSize: 16, backgroundColor: '#f9f9f9' },
   loginBtn: { backgroundColor: '#007bff', width: '100%', padding: 15, borderRadius: 8, alignItems: 'center', marginTop: 10 },
   header: { padding: 30, paddingTop: 50, backgroundColor: '#007bff', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
@@ -343,11 +305,12 @@ const styles = StyleSheet.create({
   roleBox: { backgroundColor: '#fff', padding: 15, borderRadius: 10, borderWidth: 1, borderColor: '#ddd', width: '100%', marginBottom: 15 },
   roleBoxTitle: { fontSize: 16, fontWeight: 'bold', color: '#444', marginBottom: 15, textAlign: 'center' },
   inputSmall: { borderWidth: 1, borderColor: '#ccc', borderRadius: 8, padding: 12, marginBottom: 10, fontSize: 16, backgroundColor: '#f9f9f9' },
+  toggleBtn: { flex: 1, paddingVertical: 12, alignItems: 'center', backgroundColor: '#f8f9fa' },
   btnRow: { flexDirection: 'row', justifyContent: 'space-between', width: '100%' },
   btnGreen: { flex: 1, backgroundColor: '#28a745', padding: 18, borderRadius: 10, alignItems: 'center', marginHorizontal: 2 },
   btnRed: { flex: 1, backgroundColor: '#dc3545', padding: 18, borderRadius: 10, alignItems: 'center', marginHorizontal: 2 },
   btnBlue: { width: '100%', backgroundColor: '#007bff', padding: 18, borderRadius: 10, alignItems: 'center' },
   btnText: { color: 'white', fontWeight: 'bold', fontSize: 16 },
-  cancelBtn: { marginTop: 20, alignSelf: 'center' },
-  cancelText: { color: '#666', fontSize: 16, fontWeight: 'bold' }
+  cancelBtn: { marginTop: 10, alignSelf: 'center', padding: 10 },
+  cancelText: { color: '#dc3545', fontSize: 16, fontWeight: 'bold' }
 });
