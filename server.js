@@ -350,4 +350,9 @@ app.delete('/api/inventory/:id', async (req, res) => {
     }
 });
 
+// Basic health check route
+app.get('/', (req, res) => {
+    res.send("🏭 ERP Backend is awake and running!");
+});
+
 app.listen(process.env.PORT || 5000, () => console.log(`ERP Server Running on port ${process.env.PORT || 5000}`));
