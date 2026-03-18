@@ -102,6 +102,7 @@ app.post('/api/production/batch', async (req, res) => {
         // Map all fields directly from the request
         const newBatch = new ProductionBatch({
             ...req.body,
+            batchNumber: req.body.batchNumber || `BATCH-${Date.now()}`, 
             date: req.body.date ? new Date(req.body.date) : new Date(),
             length: Number(req.body.length) || 0,
             rawMaterialConsumedKg: Number(req.body.rawMaterialConsumedKg) || 0,
@@ -109,10 +110,6 @@ app.post('/api/production/batch', async (req, res) => {
             scheduleHours: Number(req.body.scheduleHours) || 0,
             jobChangeHours: Number(req.body.jobChangeHours) || 0,
             prodPlannedHours: Number(req.body.prodPlannedHours) || 0,
-            batchNumber: req.body.batchNumber || `BATCH-${Date.now()}`, 
-            
-            date: req.body.date ? new Date(req.body.date) : new Date(),
-            length: Number(req.body.length) || 0,
             speedRpm: Number(req.body.speedRpm) || 0,
             shiftTargetQty: Number(req.body.shiftTargetQty) || 0,
             acceptedQty: Number(req.body.acceptedQty) || 0,
