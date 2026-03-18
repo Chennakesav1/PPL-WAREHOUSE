@@ -32,26 +32,145 @@ app.post('/api/login', (req, res) => {
         res.status(401).json({ success: false, message: "Invalid credentials" });
     }
 });
+// ==========================================
+// PURCHASE DEPT: Manage Raw Materials
+// ==========================================
 
-// ==========================================
-// 2. PURCHASE DEPT: Manage Raw Materials
-// ==========================================
+// 1. GET ROUTE (This will auto-fix "N/A" the second you load the page)
 app.get('/api/raw-materials', async (req, res) => {
-    const materials = await RawMaterial.find();
-    res.json(materials);
+    try {
+        let materials = await RawMaterial.find(); 
+        
+        let needsSave = false;
+        for (let m of materials) {
+            // Forcefully fix missing dates and "N/A"
+            if (!m.lastUpdate || !m.lastUpdatedBy) {
+                m.lastUpdate = new Date(); 
+                m.lastUpdatedBy = "System (Auto-Fixed)";
+                needsSave = true;
+            }
+            // Forcefully remove "New Steel" from old entries
+            if (m.materialName === "New Steel") {
+                m.materialName = "Steel Stock";
+                needsSave = true;
+            }
+            if (needsSave) await m.save(); // Save the fix permanently
+        }
+        res.json(materials);
+    } catch (err) { 
+        res.status(500).json({ error: "Server error fetching materials" }); 
+    }
+});
+
+// 2. POST ROUTE (This aggressively overwrites the name when you type it)
+app.post('/api/raw-materials/receive', async (req, res) => {
+    const { materialCode, materialName, addedKg, username } = req.body; 
+    
+    try {
+        let material = await RawMaterial.findOne({ materialCode });
+        
+        if (!material) {
+            material = new RawMaterial({ 
+                materialCode, 
+                materialName: materialName || "Carbon Steel", 
+                currentStockKg: addedKg,
+                lastUpdatedBy: username || 'Purchase Dept',
+                lastUpdate: new Date()
+            });
+        } else {
+            material.currentStockKg += Number(addedKg);
+            material.lastUpdatedBy = username || 'Purchase Dept';
+            material.lastUpdate = new Date();
+            
+            // CRITICAL FIX: Aggressively update the name if you typed one
+            if (materialName && materialName.trim() !== "") {
+                material.materialName = materialName.trim(); 
+            }
+        }
+        await material.save();
+
+        await new Transaction({ 
+            barcode: `[RAW] ${materialCode}`, 
+            type: 'INWARD', 
+            quantity: addedKg, 
+            resultingStock: material.currentStockKg, 
+            user: username || 'Purchase Dept' 
+        }).save();
+
+        res.json({ success: true, message: "Raw material updated", stock: material.currentStockKg });
+    } catch (err) { res.status(500).json({ error: "Server error" }); }
 });
 
 app.post('/api/raw-materials/receive', async (req, res) => {
-    const { materialCode, addedKg } = req.body;
+    // NEW: We receive the materialName from the frontend
+    const { materialCode, materialName, addedKg, username } = req.body; 
+    
+    try {
+        let material = await RawMaterial.findOne({ materialCode });
+        
+        if (!material) {
+            // Create brand new material
+            material = new RawMaterial({ 
+                materialCode, 
+                materialName: materialName || "Steel Stock", // Uses what you typed
+                currentStockKg: addedKg,
+                lastUpdatedBy: username || 'Purchase Dept',
+                lastUpdate: new Date()
+            });
+        } else {
+            // Update existing material
+            material.currentStockKg += Number(addedKg);
+            material.lastUpdatedBy = username || 'Purchase Dept';
+            material.lastUpdate = new Date();
+            // If you typed a new name, it overrides the old one
+            if (materialName) material.materialName = materialName; 
+        }
+        await material.save();
+
+        await new Transaction({ 
+            barcode: `[RAW] ${materialCode}`, 
+            type: 'INWARD', 
+            quantity: addedKg, 
+            resultingStock: material.currentStockKg, 
+            user: username || 'Purchase Dept' 
+        }).save();
+
+        res.json({ success: true, message: "Raw material updated", stock: material.currentStockKg });
+    } catch (err) { res.status(500).json({ error: "Server error" }); }
+});
+
+// ==========================================
+// PURCHASE DEPT: Manage Raw Materials
+// ==========================================
+app.post('/api/raw-materials/receive', async (req, res) => {
+    const { materialCode, addedKg, username } = req.body; 
+    
     try {
         let material = await RawMaterial.findOne({ materialCode });
         if (!material) {
-            // Create new if it doesn't exist
-            material = new RawMaterial({ materialCode, materialName: "New Steel", currentStockKg: addedKg });
+            material = new RawMaterial({ 
+                materialCode, 
+                materialName: "Steel Stock", 
+                currentStockKg: addedKg,
+                lastUpdatedBy: username || 'Purchase Dept',
+                lastUpdate: new Date()
+            });
         } else {
             material.currentStockKg += Number(addedKg);
+            material.lastUpdatedBy = username || 'Purchase Dept';
+            material.lastUpdate = new Date();
         }
         await material.save();
+
+        // Log this in the Recent Movements table
+        await new Transaction({ 
+            barcode: `[RAW] ${materialCode}`, 
+            type: 'INWARD', 
+            quantity: addedKg, 
+            resultingStock: material.currentStockKg, 
+            user: username || 'Purchase Dept' 
+        }).save();
+
         res.json({ success: true, message: "Raw material updated", stock: material.currentStockKg });
     } catch (err) { res.status(500).json({ error: "Server error" }); }
 });

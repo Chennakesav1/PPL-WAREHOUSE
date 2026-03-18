@@ -6,59 +6,422 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Warehouse ERP Dashboard 📦</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; color: #333; }
-        #splashScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #ffffff; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; }
-        .ppl-logo { font-size: 100px; font-weight: 900; color: #007bff; margin: 0; letter-spacing: 5px; }
-        .spinning-bolt { font-size: 60px; animation: spin 2s linear infinite; margin-top: 10px; }
-        .loading-text { margin-top: 20px; color: #666; font-size: 18px; font-weight: bold; letter-spacing: 2px; }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
-        #loginOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #2c3e50; display: none; justify-content: center; align-items: center; z-index: 1000; }
-        .login-box { background: white; padding: 40px; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); text-align: center; width: 90%; max-width: 300px; }
-        .login-box input { width: 90%; padding: 10px; margin: 10px 0; border: 2px solid #ddd; border-radius: 5px; font-size: 16px; }
-        .login-box button { background-color: #007bff; color: white; border: none; padding: 12px 20px; border-radius: 5px; font-size: 16px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 10px;}
-        #mainDashboard { display: none; }
-        h1 { text-align: center; color: #007bff; margin-bottom: 20px; position: relative;}
-        .role-badge { font-size: 14px; background: #28a745; color: white; padding: 5px 10px; border-radius: 20px; vertical-align: middle; margin-left: 10px;}
-        .dashboard-container { display: flex; gap: 20px; max-width: 1500px; margin: 0 auto; }
-        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .inventory-section { flex: 2; min-width: 0; }
-        .transaction-section { flex: 1.2; min-width: 0; }
-        h2 { border-bottom: 2px solid #eee; padding-bottom: 10px; margin-top: 0; color: #444; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
-        .search-container { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-        .search-box { padding: 8px 12px; font-size: 14px; border: 2px solid #007bff; border-radius: 6px; outline: none; }
-        .export-btn, .logout-btn, .add-btn { color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; }
-        .export-btn { background-color: #28a745; }
-        .logout-btn { background-color: #dc3545; position: absolute; top: 20px; right: 20px; }
-        .add-btn { background-color: #007bff; }
-        .table-wrapper { max-height: 700px; overflow-y: auto; overflow-x: auto; width: 100%; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; min-width: 600px; }
-        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; font-size: 14px; }
-        th { background-color: #007bff; color: white; position: sticky; top: 0; z-index: 1; }
-        .stock-val { font-weight: bold; font-size: 1.1em; }
-        .type-inward { color: #28a745; font-weight: bold; }
-        .type-dispatch { color: #dc3545; font-weight: bold; }
-        .status-dot { height: 12px; width: 12px; background-color: #28a745; border-radius: 50%; display: inline-block; margin-right: 8px; }
-        .date-text { font-weight: bold; display: block; }
-        .time-text { color: #666; font-size: 0.85em; }
-        .user-tag { color: #555; font-size: 0.85em; margin-top: 4px; display: block; }
-        .low-stock { background-color: #ffebee !important; }
-        .low-stock-text { color: #d32f2f !important; }
-        
-        /* Modal Styles */
-        .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); justify-content: center; align-items: center; padding: 10px; box-sizing: border-box; }
-        .modal-content { background-color: white; padding: 30px; border-radius: 10px; width: 100%; max-width: 400px; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.3); max-height: 90vh; overflow-y: auto; }
-        .close-btn { position: absolute; top: 15px; right: 20px; font-size: 24px; cursor: pointer; color: #888; font-weight: bold; }
-        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
-        .form-grid input { padding: 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; width: 100%; box-sizing: border-box; }
-        .full-width { grid-column: 1 / -1; }
-        .save-btn { background-color: #007bff; color: white; border: none; padding: 12px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 20px; width: 100%; font-size: 16px; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
 
+        #splashScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .ppl-logo {
+            font-size: 100px;
+            font-weight: 900;
+            color: #007bff;
+            margin: 0;
+            letter-spacing: 5px;
+        }
+
+        .spinning-bolt {
+            font-size: 60px;
+            animation: spin 2s linear infinite;
+            margin-top: 10px;
+        }
+
+        .loading-text {
+            margin-top: 20px;
+            color: #666;
+            font-size: 18px;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+
+        @keyframes spin {
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        #loginOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #2c3e50;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .login-box {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            width: 90%;
+            max-width: 300px;
+        }
+
+        .login-box input {
+            width: 90%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .login-box button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        #mainDashboard {
+            display: none;
+        }
+
+        h1 {
+            text-align: center;
+            color: #007bff;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .role-badge {
+            font-size: 14px;
+            background: #28a745;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            vertical-align: middle;
+            margin-left: 10px;
+        }
+
+        .dashboard-container {
+            display: flex;
+            flex-wrap: wrap;
+            /* CRITICAL: This allows cards to drop to a new line */
+            gap: 20px;
+            max-width: 1500px;
+            margin: 0 auto;
+        }
+
+        .inventory-section {
+            flex: 2;
+            min-width: 500px;
+        }
+
+        .transaction-section {
+            flex: 1.2;
+            min-width: 350px;
+        }
+
+        /* NEW: Forces Raw Materials to the bottom row */
+        #rawMaterialCard {
+            flex: 1 1 100% !important;
+            margin-top: 10px;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+
+        h2 {
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+            margin-top: 0;
+            color: #444;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .search-container {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            padding: 8px 12px;
+            font-size: 14px;
+            border: 2px solid #007bff;
+            border-radius: 6px;
+            outline: none;
+        }
+
+        .export-btn,
+        .logout-btn,
+        .add-btn {
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .export-btn {
+            background-color: #28a745;
+        }
+
+        .logout-btn {
+            background-color: #dc3545;
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+
+        .add-btn {
+            background-color: #007bff;
+        }
+
+        .table-wrapper {
+            max-height: 700px;
+            overflow-y: auto;
+            overflow-x: auto;
+            width: 100%;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            min-width: 600px;
+        }
+
+        th,
+        td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+            font-size: 14px;
+        }
+
+        th {
+            background-color: #007bff;
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        .stock-val {
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .type-inward {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .type-dispatch {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        .status-dot {
+            height: 12px;
+            width: 12px;
+            background-color: #28a745;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+
+        .date-text {
+            font-weight: bold;
+            display: block;
+        }
+
+        .time-text {
+            color: #666;
+            font-size: 0.85em;
+        }
+
+        .user-tag {
+            color: #555;
+            font-size: 0.85em;
+            margin-top: 4px;
+            display: block;
+        }
+
+        .low-stock {
+            background-color: #ffebee !important;
+        }
+
+        .low-stock-text {
+            color: #d32f2f !important;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            width: 100%;
+            max-width: 400px;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #888;
+            font-weight: bold;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .form-grid input {
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .save-btn {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 20px;
+            width: 100%;
+            font-size: 16px;
+        }
+
+        .dashboard-container {
+            display: flex;
+            flex-wrap: wrap;
+            /* This allows cards to drop to a new line */
+            gap: 20px;
+            max-width: 1500px;
+            margin: 0 auto;
+        }
+
+
+        /* TOAST NOTIFICATION STYLES */
+        .toast {
+            visibility: hidden; 
+            min-width: 250px; 
+            background-color: #28a745; 
+            color: #fff;
+            text-align: center; 
+            border-radius: 8px; 
+            padding: 16px; 
+            position: fixed; 
+            z-index: 3000;
+            left: 50%; 
+            transform: translateX(-50%); 
+            bottom: 30px; 
+            font-size: 16px; 
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        .toast.show { 
+            visibility: visible; 
+            animation: fadein 0.5s, fadeout 0.5s 2.5s; 
+        }
+        .toast.error { background-color: #dc3545; }
+
+        @keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 30px; opacity: 1;} }
+        @keyframes fadeout { from {bottom: 30px; opacity: 1;} to {bottom: 0; opacity: 0;} }
+
+        
         @media (max-width: 768px) {
-            .dashboard-container { flex-direction: column; }
-            .logout-btn { position: static; display: block; width: 100%; margin-bottom: 15px; }
-            .search-container { flex-direction: column; width: 100%; align-items: stretch; }
-            .search-box { width: 100% !important; }
-            .form-grid { grid-template-columns: 1fr; }
+            .dashboard-container {
+                flex-direction: column;
+            }
+
+            .logout-btn {
+                position: static;
+                display: block;
+                width: 100%;
+                margin-bottom: 15px;
+            }
+
+            .search-container {
+                flex-direction: column;
+                width: 100%;
+                align-items: stretch;
+            }
+
+            .search-box {
+                width: 100% !important;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -68,9 +431,12 @@
     <div id="addProductModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal()">×</span>
-            <h2 style="border-bottom: none; justify-content: center; color: #007bff; margin-bottom: 0; font-size: 1.2rem;">Add New Product</h2>
+            <h2
+                style="border-bottom: none; justify-content: center; color: #007bff; margin-bottom: 0; font-size: 1.2rem;">
+                Add New Product</h2>
             <div class="form-grid">
-                <input type="text" id="newProdCode" class="full-width" placeholder="* Product Code (e.g., L0100)" required>
+                <input type="text" id="newProdCode" class="full-width" placeholder="* Product Code (e.g., L0100)"
+                    required>
                 <input type="text" id="newSector" placeholder="Sector (e.g., Auto)">
                 <input type="text" id="newType" placeholder="Type (e.g., Hex Bolt)">
                 <input type="text" id="newGrade" placeholder="Grade (e.g., 8.8)">
@@ -80,6 +446,22 @@
                 <input type="number" id="newStock" class="full-width" placeholder="Initial Stock Quantity">
             </div>
             <button class="save-btn" onclick="submitNewProduct()">💾 Save to Database</button>
+        </div>
+    </div>
+
+
+    <div id="toastNotification" class="toast"></div>
+
+    <div id="receiveStockModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeReceiveModal()">×</span>
+            <h2 style="border-bottom: none; justify-content: center; color: #007bff; margin-bottom: 0; font-size: 1.2rem;">📥 Receive Raw Steel</h2>
+            <div class="form-grid" style="grid-template-columns: 1fr;">
+                <input type="text" id="rawCodeInput" placeholder="* Steel Code (e.g., STL-10MM)" required>
+                <input type="text" id="rawNameInput" placeholder="* Material Name (e.g., Carbon Steel)" required>
+                <input type="number" id="rawKgInput" placeholder="* Amount Received (Kg)" required>
+            </div>
+            <button class="save-btn" id="receiveSubmitBtn" onclick="submitRawMaterial()">📥 Add to Stock</button>
         </div>
     </div>
 
@@ -95,7 +477,8 @@
             <input type="text" id="usernameInput" placeholder="Enter Username" autoCapitalize="none">
             <input type="password" id="passwordInput" placeholder="Enter Password">
             <button onclick="attemptLogin()">Log In</button>
-            <p id="loginError" style="color: red; display: none; font-size: 14px; margin-top: 10px;">Incorrect Credentials</p>
+            <p id="loginError" style="color: red; display: none; font-size: 14px; margin-top: 10px;">Incorrect
+                Credentials</p>
         </div>
     </div>
 
@@ -108,9 +491,31 @@
                 <h2>
                     Finished Goods Stock
                     <div class="search-container">
-                        <input type="text" id="searchInput" class="search-box" style="width: 220px;" onkeyup="filterInventory()" placeholder="🔍 Search (Grade, Type...)">
+                        <input type="text" id="searchInput" class="search-box" style="width: 220px;"
+                            onkeyup="filterInventory()" placeholder="🔍 Search (Grade, Type...)">
                         <button class="add-btn" id="addBtnUI" onclick="openModal()">➕ Add Product</button>
-                        <button class="export-btn" onclick="exportTableToCSV('productsTable', 'Live_Stock_Inventory.csv')">⬇️ Excel</button>
+                        <button class="export-btn"
+                            onclick="exportTableToCSV('productsTable', 'Live_Stock_Inventory.csv')">⬇️ Excel</button>
+                    </div>
+                    <div class="card" id="rawMaterialCard" style="display: none; flex: 1; min-width: 0;">
+                        <h2>
+                            Raw Materials (Steel)
+                            <button class="add-btn" onclick="openReceiveModal()">📥 Receive Stock</button>
+                        </h2>
+                        <div class="table-wrapper">
+                           <table id="rawMaterialsTable">
+                        <thead>
+                            <tr>
+                                <th>Material Code</th>
+                                <th>Name</th>
+                                <th>Stock (Kg)</th>
+                                <th>Last Received By</th>
+                                <th>Date & Time</th>
+                            </tr>
+                        </thead>
+                        <tbody><tr><td colspan="5">Loading...</td></tr></tbody>
+                    </table>
+                        </div>
                     </div>
                 </h2>
                 <div class="table-wrapper">
@@ -128,7 +533,11 @@
                                 <th class="admin-actions">Actions</th>
                             </tr>
                         </thead>
-                        <tbody><tr><td colspan="9">Loading data...</td></tr></tbody>
+                        <tbody>
+                            <tr>
+                                <td colspan="9">Loading data...</td>
+                            </tr>
+                        </tbody>
                     </table>
                 </div>
             </div>
@@ -137,9 +546,12 @@
                 <h2>
                     Recent Movements
                     <div class="search-container">
-                        <input type="date" id="dateSearchInput" class="search-box" style="width: 130px;" onchange="applyTxFilters()">
-                        <input type="text" id="searchTxInput" class="search-box" style="width: 90px;" onkeyup="applyTxFilters()" placeholder="🔍 Item...">
-                        <button class="export-btn" onclick="exportTableToCSV('transactionsTable', 'Warehouse_Movements.csv')">⬇️ Excel</button>
+                        <input type="date" id="dateSearchInput" class="search-box" style="width: 130px;"
+                            onchange="applyTxFilters()">
+                        <input type="text" id="searchTxInput" class="search-box" style="width: 90px;"
+                            onkeyup="applyTxFilters()" placeholder="🔍 Item...">
+                        <button class="export-btn"
+                            onclick="exportTableToCSV('transactionsTable', 'Warehouse_Movements.csv')">⬇️ Excel</button>
                     </div>
                 </h2>
                 <div class="table-wrapper">
@@ -153,7 +565,11 @@
                                 <th>Balance</th>
                             </tr>
                         </thead>
-                        <tbody><tr><td colspan="5">Loading data...</td></tr></tbody>
+                        <tbody>
+                            <tr>
+                                <td colspan="5">Loading data...</td>
+                            </tr>
+                        </tbody>
                     </table>
                 </div>
             </div>
@@ -180,52 +596,170 @@
         async function attemptLogin() {
             const username = document.getElementById('usernameInput').value.trim().toLowerCase();
             const password = document.getElementById('passwordInput').value;
-            
-            if(!username || !password) return alert("Enter both username and password");
+
+            if (!username || !password) return alert("Enter both username and password");
 
             try {
-                const response = await fetch(`${API_URL}/login`, { 
-                    method: 'POST', 
-                    headers: { 'Content-Type': 'application/json' }, 
-                    body: JSON.stringify({ username, password }) 
+                const response = await fetch(`${API_URL}/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
                 });
                 const data = await response.json();
-                
-                if (data.success) { 
-                    localStorage.setItem("warehouseAuth", JSON.stringify(data)); 
-                    unlockDashboard(data); 
+
+                if (data.success) {
+                    localStorage.setItem("warehouseAuth", JSON.stringify(data));
+                    unlockDashboard(data);
                 } else {
                     document.getElementById('loginError').style.display = 'block';
                 }
             } catch (error) { alert("Cannot connect to server."); }
         }
 
-        // 3. UNLOCK DASHBOARD & SET ROLES
+
+        // --- BEAUTIFUL ALERTS (TOAST) ---
+        function showToast(message, isError = false) {
+            const toast = document.getElementById("toastNotification");
+            toast.innerText = message;
+            toast.className = isError ? "toast show error" : "toast show";
+            setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
+        }
+
+        // --- RAW MATERIAL UI LOGIC ---
+        function openReceiveModal() { document.getElementById('receiveStockModal').style.display = 'flex'; }
+        
+        function closeReceiveModal() {
+            document.getElementById('receiveStockModal').style.display = 'none';
+            document.getElementById('rawCodeInput').value = '';
+            document.getElementById('rawKgInput').value = '';
+        }
+
+       async function submitRawMaterial() {
+            const code = document.getElementById('rawCodeInput').value.trim().toUpperCase();
+            const name = document.getElementById('rawNameInput').value.trim(); // IT GRABS THE NAME HERE
+            const kg = document.getElementById('rawKgInput').value;
+            const btn = document.getElementById('receiveSubmitBtn');
+
+            if (!code || !kg || isNaN(kg) || Number(kg) <= 0) {
+                return showToast("Please enter a valid code and amount.", true);
+            }
+
+            try {
+                btn.innerText = "Processing..."; 
+                btn.disabled = true;
+
+                const response = await fetch(`${API_URL}/raw-materials/receive`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    // IT SENDS THE NAME HERE
+                    body: JSON.stringify({ materialCode: code, materialName: name, addedKg: Number(kg), username: currentUser.username })
+                });
+                const data = await response.json();
+                
+                if(data.success) {
+                    showToast(`✅ Received ${kg}kg of ${code}`);
+                    closeReceiveModal();
+                    loadRawMaterials(); 
+                    loadTransactions(); 
+                } else {
+                    showToast("❌ Error: " + data.message, true);
+                }
+            } catch (err) { 
+                showToast("❌ Server connection failed.", true); 
+            } finally {
+                btn.innerText = "📥 Add to Stock"; 
+                btn.disabled = false;
+            }
+        }
+        
+        function closeReceiveModal() {
+            document.getElementById('receiveStockModal').style.display = 'none';
+            document.getElementById('rawCodeInput').value = '';
+            document.getElementById('rawNameInput').value = ''; // NEW: clear it
+            document.getElementById('rawKgInput').value = '';
+        }
+
+        async function loadRawMaterials() {
+            try {
+                const response = await fetch(`${API_URL}/raw-materials`);
+                const materials = await response.json();
+                const tbody = document.querySelector('#rawMaterialsTable tbody');
+                tbody.innerHTML = '';
+                
+                if (materials.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #666;">No raw materials found. Click Receive Stock to add some.</td></tr>';
+                    return;
+                }
+
+                materials.forEach(m => {
+                    const tr = document.createElement('tr');
+                    const isLow = m.currentStockKg < 100;
+                    if(isLow) tr.className = "low-stock";
+
+                    // Format the Date and Time cleanly
+                    let dateStr = "N/A";
+                    let timeStr = "";
+                    if(m.lastUpdate) {
+                        const dt = new Date(m.lastUpdate);
+                        dateStr = dt.toLocaleDateString();
+                        timeStr = dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    }
+
+                    tr.innerHTML = `
+                        <td><strong>${m.materialCode}</strong></td>
+                        <td>${m.materialName || 'Steel Stock'}</td>
+                        <td class="${isLow ? 'low-stock-text' : ''}" style="font-weight: bold; font-size: 1.1em; color: #007bff;">
+                            ${m.currentStockKg} Kg
+                        </td>
+                        <td><span class="user-tag" style="font-size: 14px;">👤 ${m.lastUpdatedBy || '-'}</span></td>
+                        <td><span class="date-text">${dateStr}</span><span class="time-text">${timeStr}</span></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (error) { 
+                console.error("Error loading raw materials", error); 
+                document.querySelector('#rawMaterialsTable tbody').innerHTML = '<tr><td colspan="5" style="color: red; text-align: center;">Failed to load data.</td></tr>';
+            }
+        }
+
+        
+
         function unlockDashboard(userData) {
             currentUser = userData;
             document.getElementById('loginOverlay').style.display = 'none';
             document.getElementById('mainDashboard').style.display = 'block';
-            
-            // Set Badge
+
             document.getElementById('roleDisplay').innerText = `👤 ${currentUser.username} (${currentUser.role})`;
 
-            // Hide Admin controls if not Admin
-            if(currentUser.role !== 'ADMIN') {
+            // Hide Admin/Purchase controls if unauthorized
+            if (currentUser.role !== 'ADMIN' && currentUser.role !== 'PURCHASE') {
                 document.getElementById('addBtnUI').style.display = 'none';
-                // Hide action columns
                 const style = document.createElement('style');
                 style.innerHTML = '.admin-actions { display: none !important; }';
                 document.head.appendChild(style);
             }
 
+            // Show Raw Materials ONLY to Admin and Purchase
+            if (currentUser.role === 'ADMIN' || currentUser.role === 'PURCHASE') {
+                document.getElementById('rawMaterialCard').style.display = 'block';
+            }
+
             refreshDashboard();
-            refreshInterval = setInterval(refreshDashboard, 5000); // Refresh every 5s
+            refreshInterval = setInterval(refreshDashboard, 5000);
         }
 
-        function logout() { 
-            localStorage.removeItem("warehouseAuth"); 
-            clearInterval(refreshInterval); 
-            window.location.reload(); 
+        function refreshDashboard() {
+            loadInventory();
+            loadTransactions();
+            if (currentUser && (currentUser.role === 'ADMIN' || currentUser.role === 'PURCHASE')) {
+                loadRawMaterials();
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem("warehouseAuth");
+            clearInterval(refreshInterval);
+            window.location.reload();
         }
 
         // 4. INVENTORY LOGIC
@@ -235,16 +769,16 @@
                 const products = await response.json();
                 const tbody = document.querySelector('#productsTable tbody');
                 tbody.innerHTML = '';
-                
+
                 products.forEach(p => {
                     const currentStock = p.currentStock || 0;
                     const isLowStock = currentStock <= 10;
-                    
+
                     const tr = document.createElement('tr');
                     if (isLowStock) tr.className = "low-stock";
 
                     let actionHTML = '';
-                    if(currentUser && currentUser.role === 'ADMIN') {
+                    if (currentUser && currentUser.role === 'ADMIN') {
                         actionHTML = `
                         <td class="admin-actions" style="display:flex; flex-direction:column; gap:5px;">
                             <input type="number" id="stock-${p._id}" value="${currentStock}" style="width: 70px; text-align: center; border: 1px solid #ccc; border-radius: 4px; padding: 4px; margin-bottom: 5px;">
@@ -277,15 +811,15 @@
                 const transactions = await response.json();
                 const tbody = document.querySelector('#transactionsTable tbody');
                 tbody.innerHTML = '';
-                
+
                 transactions.forEach(tx => {
                     const txDate = new Date(tx.date);
                     const isoDate = txDate.toISOString().split('T')[0];
-                    
+
                     let typeColor = '#333';
                     let sign = '';
-                    if(tx.type === 'INWARD' || tx.type === 'PRODUCTION') { typeColor = '#28a745'; sign = '+'; }
-                    if(tx.type === 'DISPATCH') { typeColor = '#dc3545'; sign = '-'; }
+                    if (tx.type === 'INWARD' || tx.type === 'PRODUCTION') { typeColor = '#28a745'; sign = '+'; }
+                    if (tx.type === 'DISPATCH') { typeColor = '#dc3545'; sign = '-'; }
 
                     const tr = document.createElement('tr');
                     tr.setAttribute("data-date", isoDate);
@@ -327,7 +861,7 @@
         // 7. ADD NEW PRODUCT MODAL
         function openModal() { document.getElementById('addProductModal').style.display = 'flex'; }
         function closeModal() { document.getElementById('addProductModal').style.display = 'none'; }
-        
+
         async function submitNewProduct() {
             const productCode = document.getElementById('newProdCode').value;
             if (!productCode) return alert("Product Code required!");
@@ -349,7 +883,7 @@
                     body: JSON.stringify(newProd)
                 });
                 const data = await response.json();
-                if (data.success) { alert("✅ Added!"); closeModal(); refreshDashboard(); } 
+                if (data.success) { alert("✅ Added!"); closeModal(); refreshDashboard(); }
                 else { alert("❌ Error: " + data.message); }
             } catch (error) { alert("Failed to connect."); }
         }
@@ -392,4 +926,5 @@
         }
     </script>
 </body>
+
 </html>

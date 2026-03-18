@@ -28,7 +28,9 @@ const rawMaterialSchema = new mongoose.Schema({
   materialCode: { type: String, required: true, unique: true },
   materialName: String,
   grade: String,
-  currentStockKg: { type: Number, default: 0 }
+  currentStockKg: { type: Number, default: 0 },
+  lastUpdatedBy: String, // NEW: Tracks the user
+  lastUpdate: { type: Date, default: Date.now } // NEW: Tracks the exact time
 });
 
 // 4. Production Batches (Connecting Raw Material to Finished Goods)
