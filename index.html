@@ -428,30 +428,6 @@
         </div>
     </div>
 
-
-    <div class="card" id="productionCard" style="display: none; flex: 1 1 100%; margin-top: 10px;">
-                <h2>
-                    Live Production Tracking 🏭
-                    <button class="export-btn" onclick="exportTableToCSV('productionTable', 'Production_Report.csv')">⬇️ Excel</button>
-                </h2>
-                <div class="table-wrapper">
-                    <table id="productionTable">
-                        <thead>
-                            <tr>
-                                <th>Date & Time</th>
-                                <th>Stage</th>
-                                <th>Product Code</th>
-                                <th>Machine / Operator</th>
-                                <th>Accepted Qty</th>
-                                <th>Rejected Qty (Losses)</th>
-                                <th>Steel Consumed</th>
-                            </tr>
-                        </thead>
-                        <tbody><tr><td colspan="7">Loading...</td></tr></tbody>
-                    </table>
-                </div>
-            </div>
-
     <div id="toastNotification" class="toast"></div>
 
     <div id="receiveStockModal" class="modal">
@@ -682,9 +658,6 @@
                 document.getElementById('rawMaterialCard').style.display = 'block';
                 document.getElementById('poCard').style.display = 'block';
             }
-            if(currentUser.role === 'ADMIN' || currentUser.role === 'PRODUCTION') {
-                document.getElementById('productionCard').style.display = 'block';
-            }
 
             refreshDashboard();
             refreshInterval = setInterval(refreshDashboard, 5000); 
@@ -705,9 +678,6 @@
                 loadPOs(); // Refresh POs table
             }
         }
-        if(currentUser && (currentUser.role === 'ADMIN' || currentUser.role === 'PRODUCTION')) {
-                loadProductionBatches();
-            }
 
         // 5. LOAD INVENTORY
         // 5. LOAD INVENTORY (Updated with Error Handling)
@@ -926,40 +896,6 @@
                 filterPOs(); 
 
             } catch (error) { console.error("Error loading POs"); }
-        }
-
-
-        // --- MULTI-STAGE PRODUCTION LOGIC ---
-        async function loadProductionBatches() {
-            try {
-                const response = await fetch(`${API_URL}/production/batches`);
-                const batches = await response.json();
-                const tbody = document.querySelector('#productionTable tbody');
-                tbody.innerHTML = '';
-                
-                if (batches.length === 0) return tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No production data yet.</td></tr>';
-
-                batches.forEach(b => {
-                    // Color code the stages!
-                    let stageColor = '#007bff';
-                    if (b.stage === 'FORGING') stageColor = '#ff9800'; // Orange
-                    if (b.stage === 'ROLLING') stageColor = '#17a2b8'; // Teal
-                    if (b.stage === 'SEC_OP') stageColor = '#28a745';  // Green
-
-                    const dt = new Date(b.date);
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td><span class="date-text">${dt.toLocaleDateString()}</span><span class="time-text">${dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span></td>
-                        <td><span style="background:${stageColor}; color:white; padding:4px 8px; border-radius:4px; font-size:12px; font-weight:bold;">${b.stage}</span></td>
-                        <td><strong>${b.productBarcode}</strong></td>
-                        <td>${b.machineName}<br><span style="font-size:11px; color:#666;">👤 ${b.operator}</span></td>
-                        <td style="color:#28a745; font-weight:bold;">${b.acceptedQty} PCS</td>
-                        <td style="color:${b.rejectedQty > 0 ? '#dc3545' : '#666'}; font-weight:bold;">${b.rejectedQty} PCS</td>
-                        <td>${b.rawMaterialConsumedKg ? b.rawMaterialConsumedKg + ' Kg' : '-'}</td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-            } catch (error) { console.error("Error loading production batches"); }
         }
 
         function openPOModal() { document.getElementById('poModal').style.display = 'flex'; }
