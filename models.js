@@ -52,10 +52,32 @@ const purchaseOrderSchema = new mongoose.Schema({
   receivedDate: Date
 });
 
-// Export ALL models
+
+const productionBatchSchema = new mongoose.Schema({
+  date: { type: Date, default: Date.now },
+  stage: { type: String, enum: ['FORGING', 'ROLLING', 'SEC_OP'], required: true },
+  operation: String,          
+  machineName: String,        
+  operator: String,           
+  shift: String,              
+  workOrderNo: String,        
+  productBarcode: String,     
+  acceptedQty: { type: Number, default: 0 },
+  rejectedQty: { type: Number, default: 0 },
+  rejectionReason: String,    
+  rawMaterialCode: String,
+  rawMaterialConsumedKg: { type: Number, default: 0 },
+  heatNo: String,             
+  downtimeMinutes: { type: Number, default: 0 },
+  downtimeReason: String,     
+  remarks: String,
+  loggedBy: String
+});
+
 module.exports = {
   Product: mongoose.model('Product', productSchema),
   Transaction: mongoose.model('Transaction', transactionSchema),
   RawMaterial: mongoose.model('RawMaterial', rawMaterialSchema),
-  PurchaseOrder: mongoose.model('PurchaseOrder', purchaseOrderSchema)
+  PurchaseOrder: mongoose.model('PurchaseOrder', purchaseOrderSchema),
+  ProductionBatch: mongoose.model('ProductionBatch', productionBatchSchema) // <--- ADD THIS
 };
