@@ -33,6 +33,29 @@ const rawMaterialSchema = new mongoose.Schema({
   lastUpdate: { type: Date, default: Date.now } // NEW: Tracks the exact time
 });
 
+
+// 4. Purchase Orders (NEW)
+const purchaseOrderSchema = new mongoose.Schema({
+  poNumber: { type: String, required: true, unique: true },
+  supplierName: String,
+  materialCode: String,
+  expectedKg: Number,
+  costPerKg: Number,
+  totalCost: Number,
+  status: { type: String, enum: ['PENDING', 'RECEIVED'], default: 'PENDING' },
+  orderedBy: String,
+  orderDate: { type: Date, default: Date.now },
+  receivedDate: Date
+});
+
+// Make sure to export it at the bottom!
+module.exports = {
+  Product: mongoose.model('Product', productSchema),
+  Transaction: mongoose.model('Transaction', transactionSchema),
+  RawMaterial: mongoose.model('RawMaterial', rawMaterialSchema), // From our previous step
+  PurchaseOrder: mongoose.model('PurchaseOrder', purchaseOrderSchema) // NEW
+};
+
 // 4. Production Batches (Connecting Raw Material to Finished Goods)
 const productionBatchSchema = new mongoose.Schema({
   batchId: { type: String, required: true, unique: true },

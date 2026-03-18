@@ -62,6 +62,73 @@ app.get('/api/raw-materials', async (req, res) => {
     }
 });
 
+
+// ==========================================
+// PURCHASE DEPT: Purchase Orders (PO)
+// ==========================================
+
+// Get all POs
+app.get('/api/purchase-orders', async (req, res) => {
+    try {
+        const pos = await PurchaseOrder.find().sort({ orderDate: -1 });
+        res.json(pos);
+    } catch (err) { res.status(500).json({ error: "Server error" }); }
+});
+
+// Create a new PO (Pending)
+app.post('/api/purchase-orders', async (req, res) => {
+    const { supplierName, materialCode, expectedKg, costPerKg, username } = req.body;
+    try {
+        const newPO = new PurchaseOrder({
+            poNumber: `PO-${Date.now()}`,
+            supplierName,
+            materialCode: materialCode.toUpperCase(),
+            expectedKg: Number(expectedKg),
+            costPerKg: Number(costPerKg),
+            totalCost: Number(expectedKg) * Number(costPerKg),
+            orderedBy: username
+        });
+        await newPO.save();
+        res.json({ success: true, message: "PO Created Successfully!" });
+    } catch (err) { res.status(500).json({ error: "Server error creating PO" }); }
+});
+
+// Receive a PO (GRN) - This auto-updates Raw Materials!
+app.put('/api/purchase-orders/:id/receive', async (req, res) => {
+    const { username } = req.body;
+    try {
+        const po = await PurchaseOrder.findById(req.params.id);
+        if (!po || po.status === 'RECEIVED') return res.status(400).json({ message: "Invalid or already received PO" });
+
+        // 1. Mark PO as Received
+        po.status = 'RECEIVED';
+        po.receivedDate = new Date();
+        await po.save();
+
+        // 2. Add stock to Raw Materials automatically
+        let material = await RawMaterial.findOne({ materialCode: po.materialCode });
+        if (!material) {
+            material = new RawMaterial({ 
+                materialCode: po.materialCode, materialName: "Steel Stock", currentStockKg: po.expectedKg,
+                lastUpdatedBy: username, lastUpdate: new Date()
+            });
+        } else {
+            material.currentStockKg += po.expectedKg;
+            material.lastUpdatedBy = username;
+            material.lastUpdate = new Date();
+        }
+        await material.save();
+
+        // 3. Log the Transaction
+        await new Transaction({ 
+            barcode: `[GRN] ${po.poNumber} (${po.materialCode})`, 
+            type: 'INWARD', quantity: po.expectedKg, resultingStock: material.currentStockKg, user: username 
+        }).save();
+
+        res.json({ success: true, message: "Stock Received & Added to Inventory!" });
+    } catch (err) { res.status(500).json({ error: "Server error receiving PO" }); }
+});
+
 // 2. POST ROUTE (This aggressively overwrites the name when you type it)
 app.post('/api/raw-materials/receive', async (req, res) => {
     const { materialCode, materialName, addedKg, username } = req.body; 
