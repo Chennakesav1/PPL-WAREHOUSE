@@ -1,40 +1,42 @@
 const mongoose = require('mongoose');
 
-// 1. Finished Goods (Bolts)
+// 1. Define Product Schema
 const productSchema = new mongoose.Schema({
   barcode: { type: String, required: true, unique: true },
   productCode: String,
   sector: String,
   type: String, 
-  grade: String,
+  Group: String,
   length: Number,
   af: Number,
+  grade: String,
   weightPerPc: Number,
+  perboxquantity: Number,
+  Numofboxes: Number,
   currentStock: { type: Number, default: 0 }
 });
 
-// 2. Transaction History
+// 2. Define Transaction Schema
 const transactionSchema = new mongoose.Schema({
   barcode: String,
-  type: { type: String, enum: ['INWARD', 'DISPATCH', 'PRODUCTION', 'ADJUSTMENT'] },
+  type: { type: String, enum: ['INWARD', 'DISPATCH'] },
   quantity: Number,
   resultingStock: Number, 
-  user: String,
+  user: String, 
   date: { type: Date, default: Date.now }
 });
 
-// 3. Raw Materials (Steel Rods, Wire, etc.)
+// 3. Define Raw Material Schema
 const rawMaterialSchema = new mongoose.Schema({
   materialCode: { type: String, required: true, unique: true },
   materialName: String,
   grade: String,
   currentStockKg: { type: Number, default: 0 },
-  lastUpdatedBy: String, // NEW: Tracks the user
-  lastUpdate: { type: Date, default: Date.now } // NEW: Tracks the exact time
+  lastUpdatedBy: String,
+  lastUpdate: { type: Date, default: Date.now }
 });
 
-
-// 4. Purchase Orders (NEW)
+// 4. Define Purchase Order Schema (THE FIX)
 const purchaseOrderSchema = new mongoose.Schema({
   poNumber: { type: String, required: true, unique: true },
   supplierName: String,
@@ -48,39 +50,10 @@ const purchaseOrderSchema = new mongoose.Schema({
   receivedDate: Date
 });
 
-// Make sure to export it at the bottom!
-module.exports = {
-  Product: mongoose.model('Product', productSchema),
-  Transaction: mongoose.model('Transaction', transactionSchema),
-  RawMaterial: mongoose.model('RawMaterial', rawMaterialSchema), // From our previous step
-  PurchaseOrder: mongoose.model('PurchaseOrder', purchaseOrderSchema) // NEW
-};
-
-// 4. Production Batches (Connecting Raw Material to Finished Goods)
-const productionBatchSchema = new mongoose.Schema({
-  batchId: { type: String, required: true, unique: true },
-  productBarcode: String,
-  quantityProduced: Number, // How many bolts made
-  rawMaterialUsedCode: String, 
-  rawMaterialConsumedKg: Number, // How much steel used
-  producedBy: String,
-  date: { type: Date, default: Date.now }
-});
-
-// 5. Sales Orders
-const salesOrderSchema = new mongoose.Schema({
-  orderId: { type: String, required: true, unique: true },
-  customerName: String,
-  productBarcode: String,
-  quantitySold: Number,
-  soldBy: String,
-  date: { type: Date, default: Date.now }
-});
-
+// Export ALL models
 module.exports = {
   Product: mongoose.model('Product', productSchema),
   Transaction: mongoose.model('Transaction', transactionSchema),
   RawMaterial: mongoose.model('RawMaterial', rawMaterialSchema),
-  ProductionBatch: mongoose.model('ProductionBatch', productionBatchSchema),
-  SalesOrder: mongoose.model('SalesOrder', salesOrderSchema)
+  PurchaseOrder: mongoose.model('PurchaseOrder', purchaseOrderSchema)
 };
