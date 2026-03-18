@@ -4,387 +4,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Warehouse Dashboard 📦</title>
+    <title>Warehouse ERP Dashboard 📦</title>
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f7f6;
-            margin: 0;
-            padding: 20px;
-            color: #333;
-        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; color: #333; }
+        #splashScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #ffffff; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; }
+        .ppl-logo { font-size: 100px; font-weight: 900; color: #007bff; margin: 0; letter-spacing: 5px; }
+        .spinning-bolt { font-size: 60px; animation: spin 2s linear infinite; margin-top: 10px; }
+        .loading-text { margin-top: 20px; color: #666; font-size: 18px; font-weight: bold; letter-spacing: 2px; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        #loginOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #2c3e50; display: none; justify-content: center; align-items: center; z-index: 1000; }
+        .login-box { background: white; padding: 40px; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); text-align: center; width: 90%; max-width: 300px; }
+        .login-box input { width: 90%; padding: 10px; margin: 10px 0; border: 2px solid #ddd; border-radius: 5px; font-size: 16px; }
+        .login-box button { background-color: #007bff; color: white; border: none; padding: 12px 20px; border-radius: 5px; font-size: 16px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 10px;}
+        #mainDashboard { display: none; }
+        h1 { text-align: center; color: #007bff; margin-bottom: 20px; position: relative;}
+        .role-badge { font-size: 14px; background: #28a745; color: white; padding: 5px 10px; border-radius: 20px; vertical-align: middle; margin-left: 10px;}
+        .dashboard-container { display: flex; gap: 20px; max-width: 1500px; margin: 0 auto; }
+        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .inventory-section { flex: 2; min-width: 0; }
+        .transaction-section { flex: 1.2; min-width: 0; }
+        h2 { border-bottom: 2px solid #eee; padding-bottom: 10px; margin-top: 0; color: #444; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .search-container { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        .search-box { padding: 8px 12px; font-size: 14px; border: 2px solid #007bff; border-radius: 6px; outline: none; }
+        .export-btn, .logout-btn, .add-btn { color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; }
+        .export-btn { background-color: #28a745; }
+        .logout-btn { background-color: #dc3545; position: absolute; top: 20px; right: 20px; }
+        .add-btn { background-color: #007bff; }
+        .table-wrapper { max-height: 700px; overflow-y: auto; overflow-x: auto; width: 100%; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; min-width: 600px; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; font-size: 14px; }
+        th { background-color: #007bff; color: white; position: sticky; top: 0; z-index: 1; }
+        .stock-val { font-weight: bold; font-size: 1.1em; }
+        .type-inward { color: #28a745; font-weight: bold; }
+        .type-dispatch { color: #dc3545; font-weight: bold; }
+        .status-dot { height: 12px; width: 12px; background-color: #28a745; border-radius: 50%; display: inline-block; margin-right: 8px; }
+        .date-text { font-weight: bold; display: block; }
+        .time-text { color: #666; font-size: 0.85em; }
+        .user-tag { color: #555; font-size: 0.85em; margin-top: 4px; display: block; }
+        .low-stock { background-color: #ffebee !important; }
+        .low-stock-text { color: #d32f2f !important; }
+        
+        /* Modal Styles */
+        .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); justify-content: center; align-items: center; padding: 10px; box-sizing: border-box; }
+        .modal-content { background-color: white; padding: 30px; border-radius: 10px; width: 100%; max-width: 400px; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.3); max-height: 90vh; overflow-y: auto; }
+        .close-btn { position: absolute; top: 15px; right: 20px; font-size: 24px; cursor: pointer; color: #888; font-weight: bold; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
+        .form-grid input { padding: 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; width: 100%; box-sizing: border-box; }
+        .full-width { grid-column: 1 / -1; }
+        .save-btn { background-color: #007bff; color: white; border: none; padding: 12px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 20px; width: 100%; font-size: 16px; }
 
-        #splashScreen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: #ffffff;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-        }
-
-        .ppl-logo {
-            font-size: 100px;
-            font-weight: 900;
-            color: #007bff;
-            margin: 0;
-            letter-spacing: 5px;
-        }
-
-        .spinning-bolt {
-            font-size: 60px;
-            animation: spin 2s linear infinite;
-            margin-top: 10px;
-        }
-
-        .loading-text {
-            margin-top: 20px;
-            color: #666;
-            font-size: 18px;
-            font-weight: bold;
-            letter-spacing: 2px;
-        }
-
-        @keyframes spin {
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-
-        #loginOverlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: #2c3e50;
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-
-        .login-box {
-            background: white;
-            padding: 40px;
-            border-radius: 10px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-            text-align: center;
-            width: 90%;
-            max-width: 300px;
-        }
-
-        .login-box input {
-            width: 90%;
-            padding: 10px;
-            margin: 20px 0;
-            border: 2px solid #ddd;
-            border-radius: 5px;
-            font-size: 16px;
-        }
-
-        .login-box button {
-            background-color: #007bff;
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
-            width: 100%;
-            font-weight: bold;
-        }
-
-        #mainDashboard {
-            display: none;
-        }
-
-        h1 {
-            text-align: center;
-            color: #007bff;
-            margin-bottom: 20px;
-        }
-
-        .dashboard-container {
-            display: flex;
-            gap: 20px;
-            max-width: 1500px;
-            margin: 0 auto;
-        }
-
-        .card {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .inventory-section {
-            flex: 2;
-            min-width: 0; /* Prevents flex items from overflowing */
-        }
-
-        .transaction-section {
-            flex: 1.2;
-            min-width: 0;
-        }
-
-        h2 {
-            border-bottom: 2px solid #eee;
-            padding-bottom: 10px;
-            margin-top: 0;
-            color: #444;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .search-container {
-            display: flex; 
-            gap: 10px; 
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        .search-box {
-            padding: 8px 12px;
-            font-size: 14px;
-            border: 2px solid #007bff;
-            border-radius: 6px;
-            outline: none;
-        }
-
-        .export-btn,
-        .logout-btn,
-        .add-btn {
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 14px;
-        }
-
-        .export-btn {
-            background-color: #28a745;
-        }
-
-        .logout-btn {
-            background-color: #dc3545;
-            position: absolute;
-            top: 20px;
-            right: 20px;
-        }
-
-        .add-btn {
-            background-color: #007bff;
-        }
-
-        .table-wrapper {
-            max-height: 700px; 
-            overflow-y: auto; 
-            overflow-x: auto; /* Makes table swipeable horizontally */
-            width: 100%;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-            min-width: 600px; /* Forces scroll on very small screens instead of squishing */
-        }
-
-        th,
-        td {
-            padding: 10px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-            font-size: 14px;
-        }
-
-        th {
-            background-color: #007bff;
-            color: white;
-            position: sticky;
-            top: 0;
-            z-index: 1;
-        }
-
-        .stock-val {
-            font-weight: bold;
-            font-size: 1.1em;
-        }
-
-        .type-inward {
-            color: #28a745;
-            font-weight: bold;
-        }
-
-        .type-dispatch {
-            color: #dc3545;
-            font-weight: bold;
-        }
-
-        .status-dot {
-            height: 12px;
-            width: 12px;
-            background-color: #28a745;
-            border-radius: 50%;
-            display: inline-block;
-            margin-right: 8px;
-        }
-
-        .date-text {
-            font-weight: bold;
-            display: block;
-        }
-
-        .time-text {
-            color: #666;
-            font-size: 0.85em;
-        }
-
-        .user-tag {
-            color: #555;
-            font-size: 0.85em;
-            margin-top: 4px;
-            display: block;
-        }
-
-        .low-stock {
-            background-color: #ffebee !important;
-        }
-
-        .low-stock-text {
-            color: #d32f2f !important;
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 2000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.6);
-            justify-content: center;
-            align-items: center;
-            padding: 10px;
-            box-sizing: border-box;
-        }
-
-        .modal-content {
-            background-color: white;
-            padding: 30px;
-            border-radius: 10px;
-            width: 100%;
-            max-width: 400px;
-            position: relative;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-
-        .close-btn {
-            position: absolute;
-            top: 15px;
-            right: 20px;
-            font-size: 24px;
-            cursor: pointer;
-            color: #888;
-            font-weight: bold;
-        }
-
-        .close-btn:hover {
-            color: #dc3545;
-        }
-
-        .form-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-top: 20px;
-        }
-
-        .form-grid input {
-            padding: 12px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            font-size: 14px;
-            width: 100%;
-            box-sizing: border-box;
-        }
-
-        .full-width {
-            grid-column: 1 / -1;
-        }
-
-        .save-btn {
-            background-color: #007bff;
-            color: white;
-            border: none;
-            padding: 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            margin-top: 20px;
-            width: 100%;
-            font-size: 16px;
-        }
-
-        .save-btn:hover {
-            background-color: #0056b3;
-        }
-
-        /* =========================================
-           📱 MOBILE RESPONSIVENESS MEDIA QUERIES
-           ========================================= */
         @media (max-width: 768px) {
-            body {
-                padding: 10px;
-            }
-
-            .dashboard-container {
-                flex-direction: column; /* Stack cards vertically */
-            }
-
-            .logout-btn {
-                position: static;
-                display: block;
-                width: 100%;
-                margin-bottom: 15px;
-            }
-
-            .search-container {
-                flex-direction: column;
-                width: 100%;
-                align-items: stretch;
-            }
-
-            .search-box {
-                width: 100% !important;
-            }
-
-            .add-btn, .export-btn {
-                width: 100%;
-            }
-
-            .form-grid {
-                grid-template-columns: 1fr; /* Make modal inputs single column */
-            }
-
-            .full-width {
-                grid-column: 1 / -1;
-            }
+            .dashboard-container { flex-direction: column; }
+            .logout-btn { position: static; display: block; width: 100%; margin-bottom: 15px; }
+            .search-container { flex-direction: column; width: 100%; align-items: stretch; }
+            .search-box { width: 100% !important; }
+            .form-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -412,29 +86,30 @@
     <div id="splashScreen">
         <h1 class="ppl-logo">PPL</h1>
         <div class="spinning-bolt">⚙️</div>
-        <div class="loading-text">LOADING SYSTEM...</div>
+        <div class="loading-text">LOADING ERP SYSTEM...</div>
     </div>
 
     <div id="loginOverlay">
         <div class="login-box">
-            <h2 style="justify-content: center; border: none;">Warehouse Access</h2>
+            <h2 style="justify-content: center; border: none;">ERP Access</h2>
+            <input type="text" id="usernameInput" placeholder="Enter Username" autoCapitalize="none">
             <input type="password" id="passwordInput" placeholder="Enter Password">
             <button onclick="attemptLogin()">Log In</button>
-            <p id="loginError" style="color: red; display: none; font-size: 14px; margin-top: 10px;">Incorrect Password</p>
+            <p id="loginError" style="color: red; display: none; font-size: 14px; margin-top: 10px;">Incorrect Credentials</p>
         </div>
     </div>
 
     <div id="mainDashboard">
         <button class="logout-btn" onclick="logout()">Log Out</button>
-        <h1><span class="status-dot"></span>Live Warehouse Dashboard</h1>
+        <h1><span class="status-dot"></span>Live ERP Dashboard <span id="roleDisplay" class="role-badge"></span></h1>
 
         <div class="dashboard-container">
             <div class="card inventory-section">
                 <h2>
-                    Live Stock
+                    Finished Goods Stock
                     <div class="search-container">
-                        <input type="text" id="searchInput" class="search-box" style="width: 220px;" onkeyup="filterInventory()" placeholder="🔍 Search anything (Grade, Type...)">
-                        <button class="add-btn" onclick="openModal()">➕ Add Product</button>
+                        <input type="text" id="searchInput" class="search-box" style="width: 220px;" onkeyup="filterInventory()" placeholder="🔍 Search (Grade, Type...)">
+                        <button class="add-btn" id="addBtnUI" onclick="openModal()">➕ Add Product</button>
                         <button class="export-btn" onclick="exportTableToCSV('productsTable', 'Live_Stock_Inventory.csv')">⬇️ Excel</button>
                     </div>
                 </h2>
@@ -450,14 +125,10 @@
                                 <th>A/F</th>
                                 <th>Wt/Pc</th>
                                 <th>Current Stock</th>
-                                <th>Actions</th>
+                                <th class="admin-actions">Actions</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <tr>
-                                <td colspan="9">Loading data...</td>
-                            </tr>
-                        </tbody>
+                        <tbody><tr><td colspan="9">Loading data...</td></tr></tbody>
                     </table>
                 </div>
             </div>
@@ -482,11 +153,7 @@
                                 <th>Balance</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <tr>
-                                <td colspan="5">Loading data...</td>
-                            </tr>
-                        </tbody>
+                        <tbody><tr><td colspan="5">Loading data...</td></tr></tbody>
                     </table>
                 </div>
             </div>
@@ -494,60 +161,235 @@
     </div>
 
     <script>
-    const API_URL = 'https://ppl-warehouserender-wkdp.on.com/api';
-    let currentUser = { username: '', role: '' };
+        const API_URL = 'https://ppl-warehouse-wkdp.onrender.com/api';
+        let refreshInterval;
+        let currentUser = null;
 
-    // Login checks both username and password now
-    async function attemptLogin() {
-        const username = document.getElementById('usernameInput').value; // You'll need to add a username input to your HTML login box
-        const password = document.getElementById('passwordInput').value;
-        
-        try {
-            const response = await fetch(`${API_URL}/login`, { 
-                method: 'POST', 
-                headers: { 'Content-Type': 'application/json' }, 
-                body: JSON.stringify({ username, password }) 
-            });
-            const data = await response.json();
-            
-            if (data.success) { 
-                localStorage.setItem("warehouseAuth", JSON.stringify(data)); 
-                unlockDashboard(data); 
+        // 1. SPLASH SCREEN LOGIC
+        setTimeout(() => {
+            document.getElementById('splashScreen').style.display = 'none';
+            const savedAuth = localStorage.getItem("warehouseAuth");
+            if (savedAuth) {
+                unlockDashboard(JSON.parse(savedAuth));
             } else {
-                document.getElementById('loginError').style.display = 'block';
+                document.getElementById('loginOverlay').style.display = 'flex';
             }
-        } catch (error) { alert("Cannot connect to server."); }
-    }
+        }, 3000); // Wait 3 seconds then hide splash
 
-    function unlockDashboard(userData) {
-        currentUser = userData;
-        document.getElementById('loginOverlay').style.display = 'none';
-        document.getElementById('mainDashboard').style.display = 'block';
-        
-        // UI Control based on Role
-        document.getElementById('roleDisplay').innerText = `Role: ${currentUser.role} | User: ${currentUser.username}`;
-        
-        if(currentUser.role !== 'ADMIN') {
-            // Hide the Add Product button if not admin
-            document.querySelector('.add-btn').style.display = 'none';
+        // 2. LOGIN LOGIC
+        async function attemptLogin() {
+            const username = document.getElementById('usernameInput').value.trim().toLowerCase();
+            const password = document.getElementById('passwordInput').value;
+            
+            if(!username || !password) return alert("Enter both username and password");
+
+            try {
+                const response = await fetch(`${API_URL}/login`, { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify({ username, password }) 
+                });
+                const data = await response.json();
+                
+                if (data.success) { 
+                    localStorage.setItem("warehouseAuth", JSON.stringify(data)); 
+                    unlockDashboard(data); 
+                } else {
+                    document.getElementById('loginError').style.display = 'block';
+                }
+            } catch (error) { alert("Cannot connect to server."); }
         }
 
-        refreshDashboard();
-    }
+        // 3. UNLOCK DASHBOARD & SET ROLES
+        function unlockDashboard(userData) {
+            currentUser = userData;
+            document.getElementById('loginOverlay').style.display = 'none';
+            document.getElementById('mainDashboard').style.display = 'block';
+            
+            // Set Badge
+            document.getElementById('roleDisplay').innerText = `👤 ${currentUser.username} (${currentUser.role})`;
 
-    // Checking saved login on page load
-    window.onload = () => {
-        const savedAuth = localStorage.getItem("warehouseAuth");
-        if (savedAuth) {
-            unlockDashboard(JSON.parse(savedAuth));
-        } else {
-            document.getElementById('loginOverlay').style.display = 'flex';
+            // Hide Admin controls if not Admin
+            if(currentUser.role !== 'ADMIN') {
+                document.getElementById('addBtnUI').style.display = 'none';
+                // Hide action columns
+                const style = document.createElement('style');
+                style.innerHTML = '.admin-actions { display: none !important; }';
+                document.head.appendChild(style);
+            }
+
+            refreshDashboard();
+            refreshInterval = setInterval(refreshDashboard, 5000); // Refresh every 5s
         }
-    };
-    
-    // You will need to build out the UI cards for Production and Sales in HTML, 
-    // and map them to the new API routes (e.g., fetch('/api/production/batch'))
-</script>
+
+        function logout() { 
+            localStorage.removeItem("warehouseAuth"); 
+            clearInterval(refreshInterval); 
+            window.location.reload(); 
+        }
+
+        // 4. INVENTORY LOGIC
+        async function loadInventory() {
+            try {
+                const response = await fetch(`${API_URL}/products`);
+                const products = await response.json();
+                const tbody = document.querySelector('#productsTable tbody');
+                tbody.innerHTML = '';
+                
+                products.forEach(p => {
+                    const currentStock = p.currentStock || 0;
+                    const isLowStock = currentStock <= 10;
+                    
+                    const tr = document.createElement('tr');
+                    if (isLowStock) tr.className = "low-stock";
+
+                    let actionHTML = '';
+                    if(currentUser && currentUser.role === 'ADMIN') {
+                        actionHTML = `
+                        <td class="admin-actions" style="display:flex; flex-direction:column; gap:5px;">
+                            <input type="number" id="stock-${p._id}" value="${currentStock}" style="width: 70px; text-align: center; border: 1px solid #ccc; border-radius: 4px; padding: 4px; margin-bottom: 5px;">
+                            <button onclick="updateStock('${p._id}')" style="background: #28a745; color: white; border: none; padding: 5px; border-radius: 4px; cursor: pointer;">Save</button>
+                            <button onclick="deleteProduct('${p._id}')" style="background: #dc3545; color: white; border: none; padding: 5px; border-radius: 4px; cursor: pointer;">Delete</button>
+                        </td>`;
+                    }
+
+                    tr.innerHTML = `
+                        <td><strong>${p.productCode || 'N/A'}</strong></td>
+                        <td>${p.sector || '-'}</td>
+                        <td>${p.type || '-'}</td>
+                        <td>${p.grade || '-'}</td>
+                        <td>${p.length ? p.length + ' mm' : '-'}</td>
+                        <td>${p.af !== undefined && p.af !== null ? p.af : '-'}</td>
+                        <td>${p.weightPerPc || '0'}g</td>
+                        <td class="stock-val ${isLowStock ? 'low-stock-text' : ''}">${currentStock}</td>
+                        ${actionHTML}
+                    `;
+                    tbody.appendChild(tr);
+                });
+                filterInventory();
+            } catch (error) { console.error("Error loading inventory"); }
+        }
+
+        // 5. TRANSACTION LOGIC
+        async function loadTransactions() {
+            try {
+                const response = await fetch(`${API_URL}/transactions`);
+                const transactions = await response.json();
+                const tbody = document.querySelector('#transactionsTable tbody');
+                tbody.innerHTML = '';
+                
+                transactions.forEach(tx => {
+                    const txDate = new Date(tx.date);
+                    const isoDate = txDate.toISOString().split('T')[0];
+                    
+                    let typeColor = '#333';
+                    let sign = '';
+                    if(tx.type === 'INWARD' || tx.type === 'PRODUCTION') { typeColor = '#28a745'; sign = '+'; }
+                    if(tx.type === 'DISPATCH') { typeColor = '#dc3545'; sign = '-'; }
+
+                    const tr = document.createElement('tr');
+                    tr.setAttribute("data-date", isoDate);
+                    tr.innerHTML = `
+                        <td><span class="date-text">${txDate.toLocaleDateString()}</span><span class="time-text">${txDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span></td>
+                        <td><strong>${tx.barcode}</strong></td>
+                        <td style="color: ${typeColor}; font-weight: bold;">${tx.type}<span class="user-tag">👤 ${tx.user || 'Unknown'}</span></td>
+                        <td><strong>${sign}${tx.quantity}</strong></td>
+                        <td style="color: #007bff; font-weight: bold;">${tx.resultingStock !== undefined ? tx.resultingStock : '-'}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+                applyTxFilters();
+            } catch (error) { console.error("Error loading tx"); }
+        }
+
+        function refreshDashboard() { loadInventory(); loadTransactions(); }
+
+        // 6. ADMIN OVERRIDE FUNCTIONS
+        async function updateStock(productId) {
+            const newStock = document.getElementById(`stock-${productId}`).value;
+            try {
+                const response = await fetch(`${API_URL}/inventory/${productId}`, {
+                    method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ stock: Number(newStock) })
+                });
+                if (response.ok) { alert('Stock updated!'); loadInventory(); }
+            } catch (error) { alert('Server error.'); }
+        }
+
+        async function deleteProduct(productId) {
+            if (!confirm('Completely remove this product?')) return;
+            try {
+                const response = await fetch(`${API_URL}/inventory/${productId}`, { method: 'DELETE' });
+                if (response.ok) { loadInventory(); }
+            } catch (error) { console.error(error); }
+        }
+
+        // 7. ADD NEW PRODUCT MODAL
+        function openModal() { document.getElementById('addProductModal').style.display = 'flex'; }
+        function closeModal() { document.getElementById('addProductModal').style.display = 'none'; }
+        
+        async function submitNewProduct() {
+            const productCode = document.getElementById('newProdCode').value;
+            if (!productCode) return alert("Product Code required!");
+
+            const newProd = {
+                productCode: productCode,
+                sector: document.getElementById('newSector').value,
+                type: document.getElementById('newType').value,
+                grade: document.getElementById('newGrade').value,
+                length: parseFloat(document.getElementById('newLength').value) || null,
+                af: parseFloat(document.getElementById('newAF').value) || null,
+                weightPerPc: parseFloat(document.getElementById('newWeight').value) || 0,
+                currentStock: parseInt(document.getElementById('newStock').value) || 0
+            };
+
+            try {
+                const response = await fetch(`${API_URL}/products`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newProd)
+                });
+                const data = await response.json();
+                if (data.success) { alert("✅ Added!"); closeModal(); refreshDashboard(); } 
+                else { alert("❌ Error: " + data.message); }
+            } catch (error) { alert("Failed to connect."); }
+        }
+
+        // Filters and Export
+        function filterInventory() {
+            const filter = document.getElementById('searchInput').value.toUpperCase();
+            const tr = document.getElementById('productsTable').getElementsByTagName("tr");
+            for (let i = 1; i < tr.length; i++) {
+                if (tr[i].cells.length === 1) continue;
+                tr[i].style.display = (tr[i].textContent || tr[i].innerText).toUpperCase().indexOf(filter) > -1 ? "" : "none";
+            }
+        }
+        function applyTxFilters() {
+            const text = document.getElementById("searchTxInput").value.toUpperCase();
+            const date = document.getElementById("dateSearchInput").value;
+            const tr = document.getElementById("transactionsTable").getElementsByTagName("tr");
+            for (let i = 1; i < tr.length; i++) {
+                if (tr[i].cells.length === 1) continue;
+                let itemCode = tr[i].getElementsByTagName("td")[1].textContent.toUpperCase();
+                let rowDate = tr[i].getAttribute("data-date");
+                tr[i].style.display = (itemCode.includes(text) && (!date || rowDate === date)) ? "" : "none";
+            }
+        }
+        function exportTableToCSV(tableId, filename) {
+            let csv = [];
+            let rows = document.querySelectorAll(`#${tableId} tr`);
+            for (let i = 0; i < rows.length; i++) {
+                if (rows[i].style.display === "none") continue;
+                let row = [], cols = rows[i].querySelectorAll("td:not(.admin-actions), th:not(.admin-actions)");
+                for (let j = 0; j < cols.length; j++) row.push('"' + cols[j].innerText.replace(/(\r\n|\n|\r)/gm, " ").trim() + '"');
+                csv.push(row.join(","));
+            }
+            let downloadLink = document.createElement("a");
+            downloadLink.download = filename;
+            downloadLink.href = window.URL.createObjectURL(new Blob([csv.join("\n")], { type: "text/csv" }));
+            downloadLink.style.display = "none";
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+        }
+    </script>
 </body>
-
 </html>
