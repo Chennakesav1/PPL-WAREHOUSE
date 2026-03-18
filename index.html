@@ -494,233 +494,60 @@
     </div>
 
     <script>
-        const API_URL = 'https://ppl-warehouse-wkdp.onrender.com/api';
-        let refreshInterval;
+    const API_URL = 'https://ppl-warehouse-wkdp.onrender.com/api';
+    let currentUser = { username: '', role: '' };
 
-        setTimeout(() => {
-            document.getElementById('splashScreen').style.display = 'none';
-            if (localStorage.getItem("warehouseAuth") === "true") unlockDashboard();
-            else document.getElementById('loginOverlay').style.display = 'flex';
-        }, 5000);
-
-        async function attemptLogin() {
-            const password = document.getElementById('passwordInput').value;
-            try {
-                const response = await fetch(`${API_URL}/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password }) });
-                const data = await response.json();
-                if (data.success) { localStorage.setItem("warehouseAuth", "true"); unlockDashboard(); }
-                else document.getElementById('loginError').style.display = 'block';
-            } catch (error) { alert("Cannot connect to server."); }
-        }
-
-        function unlockDashboard() {
-            document.getElementById('loginOverlay').style.display = 'none';
-            document.getElementById('mainDashboard').style.display = 'block';
-            refreshDashboard();
-            refreshInterval = setInterval(refreshDashboard, 5000);
-        }
-
-        function logout() { localStorage.removeItem("warehouseAuth"); clearInterval(refreshInterval); window.location.reload(); }
-
-        function openModal() { document.getElementById('addProductModal').style.display = 'flex'; }
-
-        function closeModal() {
-            document.getElementById('addProductModal').style.display = 'none';
-            document.getElementById('newProdCode').value = '';
-            document.getElementById('newSector').value = '';
-            document.getElementById('newType').value = '';
-            document.getElementById('newGrade').value = '';
-            document.getElementById('newLength').value = '';
-            document.getElementById('newAF').value = '';
-            document.getElementById('newWeight').value = '';
-            document.getElementById('newStock').value = '';
-        }
-
-        async function submitNewProduct() {
-            const productCode = document.getElementById('newProdCode').value;
-            if (!productCode) return alert("Product Code is required!");
-
-            const newProductData = {
-                productCode: productCode,
-                sector: document.getElementById('newSector').value,
-                type: document.getElementById('newType').value,
-                grade: document.getElementById('newGrade').value,
-                length: parseFloat(document.getElementById('newLength').value) || null,
-                af: parseFloat(document.getElementById('newAF').value) || null,
-                weightPerPc: parseFloat(document.getElementById('newWeight').value) || 0,
-                currentStock: parseInt(document.getElementById('newStock').value) || 0
-            };
-
-            try {
-                const response = await fetch(`${API_URL}/products`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(newProductData)
-                });
-                const data = await response.json();
-                if (data.success) {
-                    alert("✅ Product Added Successfully!");
-                    closeModal();
-                    refreshDashboard();
-                } else {
-                    alert("❌ Error: " + data.message);
-                }
-            } catch (error) { alert("Failed to connect to server."); }
-        }
-
-        function filterInventory() {
-            const filter = document.getElementById('searchInput').value.toUpperCase();
-            const tr = document.getElementById('productsTable').getElementsByTagName("tr");
+    // Login checks both username and password now
+    async function attemptLogin() {
+        const username = document.getElementById('usernameInput').value; // You'll need to add a username input to your HTML login box
+        const password = document.getElementById('passwordInput').value;
+        
+        try {
+            const response = await fetch(`${API_URL}/login`, { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json' }, 
+                body: JSON.stringify({ username, password }) 
+            });
+            const data = await response.json();
             
-            for (let i = 1; i < tr.length; i++) {
-                if (tr[i].cells.length === 1 && tr[i].cells[0].innerText.includes("Loading")) continue;
-                let rowText = tr[i].textContent || tr[i].innerText;
-                if (rowText.toUpperCase().indexOf(filter) > -1) {
-                    tr[i].style.display = "";
-                } else {
-                    tr[i].style.display = "none";
-                }
+            if (data.success) { 
+                localStorage.setItem("warehouseAuth", JSON.stringify(data)); 
+                unlockDashboard(data); 
+            } else {
+                document.getElementById('loginError').style.display = 'block';
             }
+        } catch (error) { alert("Cannot connect to server."); }
+    }
+
+    function unlockDashboard(userData) {
+        currentUser = userData;
+        document.getElementById('loginOverlay').style.display = 'none';
+        document.getElementById('mainDashboard').style.display = 'block';
+        
+        // UI Control based on Role
+        document.getElementById('roleDisplay').innerText = `Role: ${currentUser.role} | User: ${currentUser.username}`;
+        
+        if(currentUser.role !== 'ADMIN') {
+            // Hide the Add Product button if not admin
+            document.querySelector('.add-btn').style.display = 'none';
         }
 
-        function applyTxFilters() {
-            const textFilter = document.getElementById("searchTxInput").value.toUpperCase();
-            const dateFilter = document.getElementById("dateSearchInput").value;
-            const tr = document.getElementById("transactionsTable").getElementsByTagName("tr");
+        refreshDashboard();
+    }
 
-            for (let i = 1; i < tr.length; i++) {
-                if (tr[i].cells.length === 1 && tr[i].cells[0].innerText.includes("Loading")) continue;
-                let itemCodeTd = tr[i].getElementsByTagName("td")[1];
-                let rowDate = tr[i].getAttribute("data-date");
-                let matchesText = textFilter && itemCodeTd ? (itemCodeTd.textContent || itemCodeTd.innerText).toUpperCase().indexOf(textFilter) > -1 : true;
-                let matchesDate = dateFilter ? (rowDate === dateFilter) : true;
-                tr[i].style.display = (matchesText && matchesDate) ? "" : "none";
-            }
+    // Checking saved login on page load
+    window.onload = () => {
+        const savedAuth = localStorage.getItem("warehouseAuth");
+        if (savedAuth) {
+            unlockDashboard(JSON.parse(savedAuth));
+        } else {
+            document.getElementById('loginOverlay').style.display = 'flex';
         }
-
-        function exportTableToCSV(tableId, filename) {
-            let csv = [];
-            let rows = document.querySelectorAll(`#${tableId} tr`);
-            for (let i = 0; i < rows.length; i++) {
-                let row = [], cols = rows[i].querySelectorAll("td, th");
-                if (cols.length === 1 && cols[0].innerText.includes("Loading")) continue;
-                if (rows[i].style.display === "none") continue;
-                for (let j = 0; j < cols.length; j++) row.push('"' + cols[j].innerText.replace(/(\r\n|\n|\r)/gm, " ").trim() + '"');
-                csv.push(row.join(","));
-            }
-            let downloadLink = document.createElement("a");
-            downloadLink.download = filename;
-            downloadLink.href = window.URL.createObjectURL(new Blob([csv.join("\n")], { type: "text/csv" }));
-            downloadLink.style.display = "none";
-            document.body.appendChild(downloadLink);
-            downloadLink.click();
-        }
-
-        async function loadInventory() {
-            try {
-                const response = await fetch(`${API_URL}/products`);
-                const products = await response.json();
-                const tbody = document.querySelector('#productsTable tbody');
-                tbody.innerHTML = '';
-                products.forEach(p => {
-                    const tr = document.createElement('tr');
-                    const currentStock = p.currentStock || 0;
-                    const isLowStock = currentStock <= 10;
-                    if (isLowStock) tr.className = "low-stock";
-
-                    tr.innerHTML = `
-                        <td><strong>${p.productCode || 'N/A'}</strong></td>
-                        <td>${p.sector || '-'}</td>
-                        <td>${p.type || '-'}</td>
-                        <td>${p.grade || '-'}</td>
-                        <td>${p.length ? p.length + ' mm' : '-'}</td>
-                        <td>${p.af !== undefined && p.af !== null && p.af !== 0 ? p.af : '-'}</td>
-                        <td>${p.weightPerPc || '0'}g</td>
-                        <td class="stock-val ${isLowStock ? 'low-stock-text' : ''}">
-                            <input type="number" id="stock-${p._id}" value="${currentStock}" style="width: 70px; text-align: center; border: 1px solid #ccc; border-radius: 4px; padding: 4px; font-weight: bold;">
-                        </td>
-                        <td style="display:flex; flex-direction:column; gap:5px;">
-                            <button onclick="updateStock('${p._id}')" style="background: #28a745; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Update</button>
-                            <button onclick="deleteProduct('${p._id}')" style="background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Delete</button>
-                        </td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-                filterInventory();
-            } catch (error) { console.error("Error loading inventory:", error); }
-        }
-
-        async function updateStock(productId) {
-            const newStock = document.getElementById(`stock-${productId}`).value;
-            try {
-                const response = await fetch(`${API_URL}/inventory/${productId}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ stock: Number(newStock) })
-                });
-
-                if (response.ok) {
-                    alert('Stock updated successfully!');
-                    loadInventory(); 
-                } else {
-                    alert('Failed to update stock.');
-                }
-            } catch (error) {
-                console.error('Error updating stock:', error);
-                alert('Server connection error.');
-            }
-        }
-
-        async function deleteProduct(productId) {
-            if (!confirm('Are you sure you want to completely remove this product?')) return;
-            try {
-                const response = await fetch(`${API_URL}/inventory/${productId}`, {
-                    method: 'DELETE'
-                });
-
-                if (response.ok) {
-                    alert('Product removed!');
-                    loadInventory(); 
-                } else {
-                    alert('Failed to delete product.');
-                }
-            } catch (error) {
-                console.error('Error deleting product:', error);
-            }
-        }
-
-        async function loadTransactions() {
-            try {
-                const response = await fetch(`${API_URL}/transactions`);
-                const transactions = await response.json();
-                const tbody = document.querySelector('#transactionsTable tbody');
-                tbody.innerHTML = '';
-                transactions.forEach(tx => {
-                    const txDate = new Date(tx.date);
-                    const isoDate = txDate.toISOString().split('T')[0];
-                    const typeClass = tx.type === 'INWARD' ? 'type-inward' : 'type-dispatch';
-                    const sign = tx.type === 'INWARD' ? '+' : '-';
-                    const user = tx.user || "Unknown";
-
-                    const tr = document.createElement('tr');
-                    tr.setAttribute("data-date", isoDate);
-                    tr.innerHTML = `
-                        <td><span class="date-text">${txDate.toLocaleDateString()}</span><span class="time-text">${txDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span></td>
-                        <td><strong>${tx.barcode}</strong></td>
-                        <td class="${typeClass}">${tx.type}<span class="user-tag">👤 ${user}</span></td>
-                        <td><strong>${sign}${tx.quantity}</strong></td>
-                        <td style="color: #007bff; font-weight: bold;">${tx.resultingStock !== undefined ? tx.resultingStock : '-'}</td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-                applyTxFilters();
-            } catch (error) { console.error("Error loading transactions:", error); }
-        }
-
-        function refreshDashboard() { loadInventory(); loadTransactions(); }
-    </script>
+    };
+    
+    // You will need to build out the UI cards for Production and Sales in HTML, 
+    // and map them to the new API routes (e.g., fetch('/api/production/batch'))
+</script>
 </body>
 
 </html>

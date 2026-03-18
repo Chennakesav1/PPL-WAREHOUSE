@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Text, View, StyleSheet, TouchableOpacity, Alert, TextInput, ScrollView, SafeAreaView, ActivityIndicator } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import axios from 'axios';
 
-// UPDATE TO YOUR LAPTOP'S IP ADDRESS
+// UPDATE TO YOUR RENDER URL OR LAPTOP IP
 const API_URL = "https://ppl-warehouse-wkdp.onrender.com/api";
 
 export default function App() {
@@ -11,38 +11,112 @@ export default function App() {
   
   // Authentication & Splash States
   const [showSplash, setShowSplash] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [user, setUser] = useState(null); // Replaces isAuthenticated. Stores { username, role }
+  const [usernameInput, setUsernameInput] = useState('');
+  const [passwordInput, setPasswordInput] = useState('');
 
-  // App States
+  // App States (Scanning & Products)
   const [scanned, setScanned] = useState(false);
   const [product, setProduct] = useState(null);
   const [quantity, setQuantity] = useState('1');
   const [manualCode, setManualCode] = useState('');
 
+  // Extra States for Production Department
+  const [rawMaterialCode, setRawMaterialCode] = useState('');
+  const [rawMaterialKg, setRawMaterialKg] = useState('');
+
+  // 1. Splash Screen Timer
   useEffect(() => {
     const timer = setTimeout(() => { setShowSplash(false); }, 5000);
     return () => clearTimeout(timer);
   }, []);
 
-  // --- 1. LOGIN FUNCTION (FIXED MEMORY) ---
+  // 2. Role-Based Login
   const handleLogin = async () => {
-    if (!username || !password) return Alert.alert("Error", "Please enter credentials");
+    if (!usernameInput || !passwordInput) return Alert.alert("Error", "Please enter credentials");
     try {
-      const res = await axios.post(`${API_URL}/app-login`, {
-        username: username.toLowerCase().trim(),
-        password: password.trim()
+      const res = await axios.post(`${API_URL}/login`, {
+        username: usernameInput.toLowerCase().trim(),
+        password: passwordInput.trim()
       });
       if (res.data.success) {
-        setIsAuthenticated(true);
-        // We only clear the password now! We KEEP the username so we know who is scanning.
-        setPassword(''); 
+        setUser({ username: res.data.username, role: res.data.role });
+        setPasswordInput(''); // Clear password for security
       }
     } catch (err) {
       Alert.alert("Access Denied ❌", "Incorrect username or password.");
     }
   };
+
+  // 3. Search / Scan Product
+  const handleSearch = async (searchCode) => {
+    if (!searchCode) return Alert.alert("Error", "Please enter a code");
+    setScanned(true); 
+    try {
+      const res = await axios.get(`${API_URL}/product/${searchCode.trim()}`);
+      setProduct(res.data);
+      setManualCode(''); 
+    } catch (err) {
+      Alert.alert("Not Found", `Code ${searchCode} is not in the system.`, [{ text: "OK", onPress: () => setScanned(false) }]);
+    }
+  };
+
+  // 4. ADMIN & PURCHASE: Standard Stock Update (Inward / Dispatch)
+  const handleStandardUpdate = async (type) => {
+    if (!quantity || isNaN(parseInt(quantity)) || parseInt(quantity) <= 0) return Alert.alert("Error", "Enter a valid quantity");
+    try {
+      const res = await axios.post(`${API_URL}/stock`, {
+        barcode: product.barcode || product.productCode, 
+        type: type, 
+        quantity: parseInt(quantity),
+        username: user.username 
+      });
+      Alert.alert("Success! ✅", `${type} recorded.\nNew Stock: ${res.data.newStock}`, [{ text: "Scan Next", onPress: resetApp }]);
+    } catch (err) { Alert.alert("Failed", "Server Error."); }
+  };
+
+  // 5. PRODUCTION: Record a batch and consume raw steel
+  const handleProduction = async () => {
+    if (!quantity || !rawMaterialCode || !rawMaterialKg) return Alert.alert("Error", "Fill all production fields");
+    try {
+      await axios.post(`${API_URL}/production/batch`, {
+        productBarcode: product.barcode || product.productCode,
+        quantityProduced: parseInt(quantity),
+        rawMaterialCode: rawMaterialCode.trim(),
+        rawMaterialConsumedKg: parseFloat(rawMaterialKg),
+        username: user.username
+      });
+      Alert.alert("Success! 🏭", "Batch produced & Steel consumed!", [{ text: "Scan Next", onPress: resetApp }]);
+    } catch (err) {
+      Alert.alert("Failed", err.response?.data?.message || "Production Error");
+    }
+  };
+
+  // 6. SALES: Dispatch an order
+  const handleSales = async () => {
+    if (!quantity || isNaN(parseInt(quantity)) || parseInt(quantity) <= 0) return Alert.alert("Error", "Enter a valid quantity");
+    try {
+      await axios.post(`${API_URL}/sales/order`, {
+        productBarcode: product.barcode || product.productCode,
+        quantitySold: parseInt(quantity),
+        customerName: "Walk-in Customer / App Order",
+        username: user.username
+      });
+      Alert.alert("Success! 📦", "Order Dispatched!", [{ text: "Scan Next", onPress: resetApp }]);
+    } catch (err) {
+      Alert.alert("Failed", err.response?.data?.message || "Sales Error");
+    }
+  };
+
+  // Reset Scanner
+  const resetApp = () => { 
+    setScanned(false); setProduct(null); setQuantity('1'); 
+    setRawMaterialCode(''); setRawMaterialKg(''); 
+  };
+
+  const handleLogout = () => { setUser(null); setUsernameInput(''); };
+
+  // --- UI RENDER BLOCKS ---
 
   if (!permission?.granted) {
     return (
@@ -58,56 +132,23 @@ export default function App() {
       <View style={styles.splashContainer}>
         <Text style={styles.splashLogo}>PPL</Text>
         <ActivityIndicator size="large" color="#007bff" style={{ marginTop: 20, transform: [{ scale: 1.5 }] }} />
-        <Text style={styles.splashText}>LOADING SYSTEM...</Text>
+        <Text style={styles.splashText}>LOADING ERP SYSTEM...</Text>
       </View>
     );
   }
 
-  if (!isAuthenticated) {
+  if (!user) {
     return (
       <SafeAreaView style={styles.loginContainer}>
         <View style={styles.loginCard}>
-          <Text style={styles.loginTitle}>Warehouse App</Text>
+          <Text style={styles.loginTitle}>PPL ERP App</Text>
           <Text style={styles.loginSubtitle}>Authorized Personnel Only</Text>
-          <TextInput style={styles.loginInput} placeholder="Username" value={username} onChangeText={setUsername} autoCapitalize="none" />
-          <TextInput style={styles.loginInput} placeholder="Password" value={password} onChangeText={setPassword} secureTextEntry={true} />
+          <TextInput style={styles.loginInput} placeholder="Username" value={usernameInput} onChangeText={setUsernameInput} autoCapitalize="none" />
+          <TextInput style={styles.loginInput} placeholder="Password" value={passwordInput} onChangeText={setPasswordInput} secureTextEntry={true} />
           <TouchableOpacity style={styles.loginBtn} onPress={handleLogin}><Text style={styles.btnText}>Login Securely</Text></TouchableOpacity>
         </View>
       </SafeAreaView>
     );
-  }
-
-  const handleSearch = async (searchCode) => {
-    if (!searchCode) return Alert.alert("Error", "Please enter a code");
-    setScanned(true); 
-    try {
-      const res = await axios.get(`${API_URL}/product/${searchCode.trim()}`);
-      setProduct(res.data);
-      setManualCode(''); 
-    } catch (err) {
-      Alert.alert("Not Found", `Code ${searchCode} is not in the system.`, [{ text: "OK", onPress: () => setScanned(false) }]);
-    }
-  };
-
-  // --- 2. UPDATE FUNCTION (NOW SENDS USERNAME) ---
-  const handleUpdate = async (type) => {
-    if (!quantity || isNaN(parseInt(quantity)) || parseInt(quantity) <= 0) return Alert.alert("Error", "Enter a valid quantity");
-    try {
-      const res = await axios.post(`${API_URL}/stock`, {
-        barcode: product.barcode || product.productCode, 
-        type: type, 
-        quantity: parseInt(quantity),
-        username: username // <--- Sends the saved username to the server!
-      });
-      Alert.alert("Success! ✅", `${type} recorded.\nNew Stock: ${res.data.newStock}`, [{ text: "Scan Next", onPress: resetApp }]);
-    } catch (err) { Alert.alert("Failed", "Server Error."); }
-  };
-
-  const resetApp = () => { setScanned(false); setProduct(null); setQuantity('1'); };
-
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-    setUsername(''); // Clear username when they actually log out
   }
 
   return (
@@ -115,7 +156,10 @@ export default function App() {
       {!scanned ? (
         <View style={{flex: 1}}>
           <View style={styles.header}>
-            <Text style={styles.headerText}>Inventory Tools</Text>
+            <View>
+              <Text style={styles.headerText}>{user.role} Tools</Text>
+              <Text style={{color: '#e0e0e0', fontSize: 12}}>User: {user.username}</Text>
+            </View>
             <TouchableOpacity onPress={handleLogout} style={styles.logoutBtn}><Text style={{color: 'white', fontWeight: 'bold'}}>Logout</Text></TouchableOpacity>
           </View>
           
@@ -143,13 +187,40 @@ export default function App() {
                 <View style={styles.infoRow}><Text style={styles.label}>Stock:</Text><Text style={[styles.val, {color: '#007bff', fontSize: 18}]}>{String(product.currentStock || 0)}</Text></View>
               </View>
 
-              <Text style={styles.qtyLabel}>Movement Quantity:</Text>
-              <TextInput style={styles.input} keyboardType="numeric" value={quantity} onChangeText={setQuantity} autoFocus={true} />
+              <Text style={styles.qtyLabel}>Quantity (Bolts):</Text>
+              <TextInput style={styles.inputBig} keyboardType="numeric" value={quantity} onChangeText={setQuantity} autoFocus={true} />
 
-              <View style={styles.btnRow}>
-                <TouchableOpacity style={styles.btnGreen} onPress={() => handleUpdate('INWARD')}><Text style={styles.btnText}>+ INWARD</Text></TouchableOpacity>
-                <TouchableOpacity style={styles.btnRed} onPress={() => handleUpdate('DISPATCH')}><Text style={styles.btnText}>- DISPATCH</Text></TouchableOpacity>
-              </View>
+              {/* DYNAMIC ROLE-BASED CONTROLS */}
+              
+              {/* 1. PRODUCTION ROLE */}
+              {user.role === 'PRODUCTION' && (
+                <View style={styles.roleBox}>
+                  <Text style={styles.roleBoxTitle}>🏭 Raw Material Consumed</Text>
+                  <TextInput style={styles.inputSmall} placeholder="Steel Code (e.g., STL-10MM)" value={rawMaterialCode} onChangeText={setRawMaterialCode} />
+                  <TextInput style={styles.inputSmall} placeholder="Weight Used (Kg)" keyboardType="numeric" value={rawMaterialKg} onChangeText={setRawMaterialKg} />
+                  <TouchableOpacity style={styles.btnGreen} onPress={handleProduction}><Text style={styles.btnText}>Record Production Batch</Text></TouchableOpacity>
+                </View>
+              )}
+
+              {/* 2. SALES ROLE */}
+              {user.role === 'SALES' && (
+                <View style={styles.roleBox}>
+                  <Text style={styles.roleBoxTitle}>📦 Order Fulfillment</Text>
+                  <TouchableOpacity style={styles.btnBlue} onPress={handleSales}><Text style={styles.btnText}>Dispatch Sales Order</Text></TouchableOpacity>
+                </View>
+              )}
+
+              {/* 3. ADMIN OR PURCHASE ROLE */}
+              {(user.role === 'ADMIN' || user.role === 'PURCHASE') && (
+                <View style={styles.roleBox}>
+                  <Text style={styles.roleBoxTitle}>⚙️ Manual Stock Adjustment</Text>
+                  <View style={styles.btnRow}>
+                    <TouchableOpacity style={styles.btnGreen} onPress={() => handleStandardUpdate('INWARD')}><Text style={styles.btnText}>+ INWARD</Text></TouchableOpacity>
+                    <TouchableOpacity style={styles.btnRed} onPress={() => handleStandardUpdate('DISPATCH')}><Text style={styles.btnText}>- DISPATCH</Text></TouchableOpacity>
+                  </View>
+                </View>
+              )}
+
               <TouchableOpacity style={styles.cancelBtn} onPress={resetApp}><Text style={styles.cancelText}>Cancel & Rescan</Text></TouchableOpacity>
             </View>
           )}
@@ -171,26 +242,30 @@ const styles = StyleSheet.create({
   loginSubtitle: { fontSize: 14, color: '#666', marginBottom: 25 },
   loginInput: { width: '100%', borderWidth: 1, borderColor: '#ccc', borderRadius: 8, padding: 15, marginBottom: 15, fontSize: 16, backgroundColor: '#f9f9f9' },
   loginBtn: { backgroundColor: '#007bff', width: '100%', padding: 15, borderRadius: 8, alignItems: 'center', marginTop: 10 },
-  header: { padding: 30, backgroundColor: '#007bff', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', position: 'relative' },
-  headerText: { color: 'white', fontSize: 20, fontWeight: 'bold' },
-  logoutBtn: { position: 'absolute', right: 20, top: 35 },
+  header: { padding: 30, paddingTop: 50, backgroundColor: '#007bff', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  headerText: { color: 'white', fontSize: 22, fontWeight: 'bold' },
+  logoutBtn: { backgroundColor: 'rgba(255,255,255,0.2)', padding: 8, borderRadius: 5 },
   searchContainer: { flexDirection: 'row', padding: 15, backgroundColor: 'white', elevation: 2, zIndex: 10 },
   searchInput: { flex: 1, borderWidth: 1, borderColor: '#ccc', borderRadius: 8, padding: 12, fontSize: 16, backgroundColor: '#f9f9f9' },
   searchBtn: { backgroundColor: '#333', justifyContent: 'center', paddingHorizontal: 20, borderRadius: 8, marginLeft: 10 },
   searchBtnText: { color: 'white', fontWeight: 'bold', fontSize: 16 },
   cameraContainer: { flex: 1, margin: 20, borderRadius: 20, overflow: 'hidden', backgroundColor: 'black' },
   detailsBox: { padding: 20, alignItems: 'center' },
-  itemTitle: { fontSize: 28, fontWeight: 'bold', marginBottom: 15 },
+  itemTitle: { fontSize: 28, fontWeight: 'bold', marginBottom: 15, textAlign: 'center' },
   card: { backgroundColor: 'white', width: '100%', padding: 15, borderRadius: 10, elevation: 3, marginBottom: 20 },
   infoRow: { flexDirection: 'row', justifyContent: 'space-between', borderBottomWidth: 1, borderColor: '#eee', paddingVertical: 8 },
   label: { color: '#666', fontWeight: 'bold' },
   val: { fontWeight: 'bold', color: '#333' },
-  qtyLabel: { fontSize: 18, fontWeight: 'bold', marginBottom: 10 },
-  input: { borderBottomWidth: 3, borderColor: '#007bff', width: 120, fontSize: 36, textAlign: 'center', marginBottom: 20 },
+  qtyLabel: { fontSize: 18, fontWeight: 'bold', marginBottom: 5 },
+  inputBig: { borderBottomWidth: 3, borderColor: '#007bff', width: 120, fontSize: 36, textAlign: 'center', marginBottom: 20, alignSelf: 'center' },
+  roleBox: { backgroundColor: '#fff', padding: 15, borderRadius: 10, borderWidth: 1, borderColor: '#ddd', width: '100%', marginBottom: 15 },
+  roleBoxTitle: { fontSize: 16, fontWeight: 'bold', color: '#444', marginBottom: 15, textAlign: 'center' },
+  inputSmall: { borderWidth: 1, borderColor: '#ccc', borderRadius: 8, padding: 12, marginBottom: 10, fontSize: 16, backgroundColor: '#f9f9f9' },
   btnRow: { flexDirection: 'row', justifyContent: 'space-between', width: '100%' },
-  btnGreen: { flex: 1, backgroundColor: '#28a745', padding: 18, borderRadius: 10, alignItems: 'center', marginHorizontal: 5 },
-  btnRed: { flex: 1, backgroundColor: '#dc3545', padding: 18, borderRadius: 10, alignItems: 'center', marginHorizontal: 5 },
+  btnGreen: { flex: 1, backgroundColor: '#28a745', padding: 18, borderRadius: 10, alignItems: 'center', marginHorizontal: 2 },
+  btnRed: { flex: 1, backgroundColor: '#dc3545', padding: 18, borderRadius: 10, alignItems: 'center', marginHorizontal: 2 },
+  btnBlue: { width: '100%', backgroundColor: '#007bff', padding: 18, borderRadius: 10, alignItems: 'center' },
   btnText: { color: 'white', fontWeight: 'bold', fontSize: 16 },
-  cancelBtn: { marginTop: 30 },
-  cancelText: { color: '#007bff', fontSize: 16, fontWeight: 'bold' }
+  cancelBtn: { marginTop: 20, alignSelf: 'center' },
+  cancelText: { color: '#666', fontSize: 16, fontWeight: 'bold' }
 });

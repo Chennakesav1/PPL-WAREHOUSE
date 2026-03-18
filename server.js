@@ -8,186 +8,141 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-
-const { Product, Transaction, User, RawMaterial, Order, ProductionBatch, Invoice } = require('./models');
-
-// ==========================================
-// 🌟 SERVE THE WEB DASHBOARD
-// ==========================================
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
-});
+const { Product, Transaction, RawMaterial, ProductionBatch, SalesOrder } = require('./models');
 
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB Connected"))
   .catch(err => console.log(err));
 
 // ==========================================
-// 1. WEB DASHBOARD LOGIN ROUTE
+// 1. ROLE-BASED LOGIN (Web & App)
 // ==========================================
+const USERS = {
+    "admin": { pass: "admin123", role: "ADMIN" },
+    "buyer": { pass: "buy123", role: "PURCHASE" },
+    "maker": { pass: "make123", role: "PRODUCTION" },
+    "seller": { pass: "sell123", role: "SALES" }
+};
+
 app.post('/api/login', (req, res) => {
-    const { password } = req.body;
-    
-    // 👉 THIS IS THE PASSWORD FOR THE WEBSITE
-    const SECRET_PASSWORD = 'Admin12345'; 
-
-    if (password === SECRET_PASSWORD) {
-        res.json({ success: true, message: "Welcome to the Dashboard" });
-    } else {
-        res.status(401).json({ success: false, message: "Incorrect Password" });
-    }
-});
-
-// ==========================================
-// 2. MOBILE APP LOGIN ROUTE
-// ==========================================
-app.post('/api/app-login', (req, res) => {
     const { username, password } = req.body;
-
-    // 👉 THESE ARE THE USERNAMES & PASSWORDS FOR THE MOBILE APP
-    const allowedUsers = {
-        "admin": "admin123",
-        "worker1": "bolt1234",
-        "worker2": "bolt4567"
-    };
-
-    if (allowedUsers[username] && allowedUsers[username] === password) {
-        res.json({ success: true, message: "App login successful" });
+    if (USERS[username] && USERS[username].pass === password) {
+        res.json({ success: true, role: USERS[username].role, username: username });
     } else {
         res.status(401).json({ success: false, message: "Invalid credentials" });
     }
 });
 
+// ==========================================
+// 2. PURCHASE DEPT: Manage Raw Materials
+// ==========================================
+app.get('/api/raw-materials', async (req, res) => {
+    const materials = await RawMaterial.find();
+    res.json(materials);
+});
 
-// ==========================================
-// UPDATE STOCK ROUTE
-// ==========================================
-app.put('/api/inventory/:id', async (req, res) => {
+app.post('/api/raw-materials/receive', async (req, res) => {
+    const { materialCode, addedKg } = req.body;
     try {
-        console.log(`Attempting to update stock for ID: ${req.params.id} to ${req.body.stock}`);
-        
-        // IMPORTANT: Ensure 'Product' matches the name of your Mongoose model!
-        const updatedItem = await Product.findByIdAndUpdate(
-            req.params.id, 
-            { currentStock: req.body.stock }, // <-- FIXED: Changed to 'currentStock' to match your DB
-            { new: true }
-        );
-        
-        if (!updatedItem) {
-            console.log("Item not found in database.");
-            return res.status(404).json({ message: "Item not found" });
+        let material = await RawMaterial.findOne({ materialCode });
+        if (!material) {
+            // Create new if it doesn't exist
+            material = new RawMaterial({ materialCode, materialName: "New Steel", currentStockKg: addedKg });
+        } else {
+            material.currentStockKg += Number(addedKg);
         }
-        
-        console.log("Stock updated successfully!");
-        res.status(200).json(updatedItem);
-    } catch (error) {
-        console.error("Error updating stock:", error);
-        res.status(500).json({ message: "Server error updating stock" });
-    }
+        await material.save();
+        res.json({ success: true, message: "Raw material updated", stock: material.currentStockKg });
+    } catch (err) { res.status(500).json({ error: "Server error" }); }
 });
 
 // ==========================================
-// DELETE PRODUCT ROUTE
+// 3. PRODUCTION DEPT: Create Finished Goods
 // ==========================================
-app.delete('/api/inventory/:id', async (req, res) => {
+app.post('/api/production/batch', async (req, res) => {
+    const { productBarcode, quantityProduced, rawMaterialCode, rawMaterialConsumedKg, username } = req.body;
+    
     try {
-        console.log(`Attempting to delete product ID: ${req.params.id}`);
-        
-        const deletedItem = await Product.findByIdAndDelete(req.params.id);
-        
-        if (!deletedItem) {
-            return res.status(404).json({ message: "Item not found" });
+        // 1. Deduct Raw Material
+        const material = await RawMaterial.findOne({ materialCode: rawMaterialCode });
+        if (!material || material.currentStockKg < rawMaterialConsumedKg) {
+            return res.status(400).json({ message: "Not enough raw material in stock!" });
         }
-        
-        console.log("Product deleted successfully!");
-        res.status(200).json({ message: "Item deleted successfully" });
-    } catch (error) {
-        console.error("Error deleting item:", error);
-        res.status(500).json({ message: "Server error deleting item" });
-    }
-});
+        material.currentStockKg -= Number(rawMaterialConsumedKg);
+        await material.save();
 
-// ==========================================
-// 3. INVENTORY & TRANSACTION ROUTES
-// ==========================================
+        // 2. Add to Finished Goods
+        const product = await Product.findOne({ barcode: productBarcode });
+        if (!product) return res.status(404).json({ message: "Finished product code not found." });
+        product.currentStock += Number(quantityProduced);
+        await product.save();
 
-// Get Single Product for Mobile Scanner
-app.get('/api/product/:barcode', async (req, res) => {
-    try {
-        const product = await Product.findOne({ barcode: req.params.barcode.trim() });
-        if (!product) return res.status(404).json({ message: "Product not found" });
-        res.json(product);
-    } catch (error) {
-        res.status(500).json({ error: "Server error" });
-    }
-});
-
-// Get All Products for Web Dashboard
-app.get('/api/products', async (req, res) => {
-    try {
-        const products = await Product.find().sort({ productCode: 1 });
-        res.json(products);
-    } catch (error) {
-        res.status(500).json({ error: "Server error fetching products" });
-    }
-});
-
-// Get Recent Movements for Web Dashboard
-app.get('/api/transactions', async (req, res) => {
-    try {
-        const transactions = await Transaction.find().sort({ date: -1 }).limit(100);
-        res.json(transactions);
-    } catch (error) {
-        res.status(500).json({ error: "Server error fetching transactions" });
-    }
-});
-// ==========================================
-// 🌟 ADD A NEW PRODUCT ROUTE (Updated with Length & Grade)
-// ==========================================
-app.post('/api/products', async (req, res) => {
-    try {
-        // 👇 NEW: Added length and grade to the incoming data
-        const { productCode, sector, type, grade, af, length, weightPerPc, currentStock } = req.body;
-        
-        const barcode = productCode.trim();
-
-        const existing = await Product.findOne({ barcode });
-        if (existing) {
-            return res.status(400).json({ success: false, message: "Product Code already exists!" });
-        }
-
-        // 👇 NEW: Save length and grade to the database
-        const newProduct = new Product({
-            barcode: barcode,
-            productCode: barcode,
-            sector: sector,
-            type: type,
-            grade: grade, 
-            af: af || null,
-            length: length || null, 
-            weightPerPc: weightPerPc || 0,
-            currentStock: currentStock || 0
+        // 3. Log the Batch
+        const batch = new ProductionBatch({
+            batchId: `BATCH-${Date.now()}`,
+            productBarcode,
+            quantityProduced,
+            rawMaterialUsedCode: rawMaterialCode,
+            rawMaterialConsumedKg,
+            producedBy: username
         });
+        await batch.save();
 
-        await newProduct.save();
+        // 4. Log the Transaction
+        await new Transaction({ barcode: productBarcode, type: 'PRODUCTION', quantity: quantityProduced, resultingStock: product.currentStock, user: username }).save();
 
-        if (currentStock > 0) {
-            const tx = new Transaction({
-                barcode: barcode,
-                type: 'INWARD',
-                quantity: currentStock,
-                resultingStock: currentStock,
-                user: "Admin (New Item)" 
-            });
-            await tx.save();
-        }
-
-        res.json({ success: true, message: "Product Added Successfully!" });
-    } catch (error) {
-        res.status(500).json({ success: false, message: "Server Error saving product." });
-    }
+        res.json({ success: true, message: "Batch recorded successfully!" });
+    } catch (err) { res.status(500).json({ error: "Production error" }); }
 });
-// Update Stock and Save Movement History
+
+// ==========================================
+// 4. SALES DEPT: Dispatch Goods
+// ==========================================
+app.post('/api/sales/order', async (req, res) => {
+    const { productBarcode, quantitySold, customerName, username } = req.body;
+    
+    try {
+        const product = await Product.findOne({ barcode: productBarcode });
+        if (!product || product.currentStock < quantitySold) {
+            return res.status(400).json({ message: "Not enough finished goods in stock!" });
+        }
+        
+        // Deduct Stock
+        product.currentStock -= Number(quantitySold);
+        await product.save();
+
+        // Create Order
+        const order = new SalesOrder({
+            orderId: `ORD-${Date.now()}`,
+            customerName,
+            productBarcode,
+            quantitySold,
+            soldBy: username
+        });
+        await order.save();
+
+        // Log Transaction
+        await new Transaction({ barcode: productBarcode, type: 'DISPATCH', quantity: quantitySold, resultingStock: product.currentStock, user: username }).save();
+
+        res.json({ success: true, message: "Order processed and dispatched!" });
+    } catch (err) { res.status(500).json({ error: "Sales error" }); }
+});
+
+// ==========================================
+// Keep your existing product GET routes here
+// ==========================================
+app.get('/api/products', async (req, res) => {
+    const products = await Product.find().sort({ productCode: 1 });
+    res.json(products);
+});
+app.get('/api/product/:barcode', async (req, res) => {
+    const product = await Product.findOne({ barcode: req.params.barcode.trim() });
+    res.json(product);
+});
+
+// ==========================================
+// 5. ADMIN/PURCHASE: Standard Stock Adjustment
+// ==========================================
 app.post('/api/stock', async (req, res) => {
     const { barcode, type, quantity, username } = req.body; 
     try {
@@ -209,7 +164,7 @@ app.post('/api/stock', async (req, res) => {
             type: type, 
             quantity: qty,
             resultingStock: product.currentStock,
-            user: username || "Unknown" // Logs who made the change
+            user: username || "Unknown"
         });
         await transaction.save();
 
@@ -219,5 +174,65 @@ app.post('/api/stock', async (req, res) => {
     }
 });
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// ==========================================
+// 6. WEB DASHBOARD ROUTES
+// ==========================================
+
+// Serve the HTML file
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// Get all transactions for the dashboard table
+app.get('/api/transactions', async (req, res) => {
+    try {
+        const transactions = await Transaction.find().sort({ date: -1 }).limit(100);
+        res.json(transactions);
+    } catch (error) {
+        res.status(500).json({ error: "Server error fetching transactions" });
+    }
+});
+
+// Add a brand new product from the Web Dashboard
+app.post('/api/products', async (req, res) => {
+    try {
+        const { productCode, sector, type, grade, af, length, weightPerPc, currentStock } = req.body;
+        const barcode = productCode.trim();
+
+        const existing = await Product.findOne({ barcode });
+        if (existing) return res.status(400).json({ success: false, message: "Product Code already exists!" });
+
+        const newProduct = new Product({
+            barcode, productCode: barcode, sector, type, grade, af, length, weightPerPc, currentStock: currentStock || 0
+        });
+        await newProduct.save();
+
+        if (currentStock > 0) {
+            await new Transaction({ barcode, type: 'INWARD', quantity: currentStock, resultingStock: currentStock, user: "Admin (New Item)" }).save();
+        }
+        res.json({ success: true, message: "Product Added Successfully!" });
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Server Error saving product." });
+    }
+});
+
+// Manual override edit from Web Dashboard
+app.put('/api/inventory/:id', async (req, res) => {
+    try {
+        const updatedItem = await Product.findByIdAndUpdate(
+            req.params.id, { currentStock: req.body.stock }, { new: true }
+        );
+        if (!updatedItem) return res.status(404).json({ message: "Item not found" });
+        res.status(200).json(updatedItem);
+    } catch (error) { res.status(500).json({ message: "Server error updating stock" }); }
+});
+
+// Delete a product from Web Dashboard
+app.delete('/api/inventory/:id', async (req, res) => {
+    try {
+        const deletedItem = await Product.findByIdAndDelete(req.params.id);
+        if (!deletedItem) return res.status(404).json({ message: "Item not found" });
+        res.status(200).json({ message: "Item deleted successfully" });
+    } catch (error) { res.status(500).json({ message: "Server error deleting item" }); }
+});
+app.listen(process.env.PORT || 5000, () => console.log("ERP Server Running"));
