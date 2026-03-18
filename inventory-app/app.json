@@ -32,9 +32,9 @@
     "plugins": [
       "expo-router",
       [
-        "expo-barcode-scanner",
+        "expo-camera",
         {
-          "barcodeScannerPermission": "Allow PPL Warehouse to scan barcodes."
+          "cameraPermission": "Allow PPL Warehouse to scan barcodes."
         }
       ]
     ],
