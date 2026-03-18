@@ -52,10 +52,24 @@ const purchaseOrderSchema = new mongoose.Schema({
   receivedDate: Date
 });
 
-// Export ALL models
+// 5. Define Multi-Stage Production Batch Schema
+const productionBatchSchema = new mongoose.Schema({
+  workOrderNo: String,
+  productBarcode: String,
+  stage: { type: String, enum: ['FORGING', 'ROLLING', 'SEC_OP'], required: true },
+  machineName: String,
+  operator: String,
+  acceptedQty: Number,
+  rejectedQty: Number,
+  rawMaterialConsumedKg: Number, // Only needed for Forging
+  date: { type: Date, default: Date.now }
+});
+
+// Add it to your exports at the bottom:
 module.exports = {
   Product: mongoose.model('Product', productSchema),
   Transaction: mongoose.model('Transaction', transactionSchema),
   RawMaterial: mongoose.model('RawMaterial', rawMaterialSchema),
-  PurchaseOrder: mongoose.model('PurchaseOrder', purchaseOrderSchema)
+  PurchaseOrder: mongoose.model('PurchaseOrder', purchaseOrderSchema),
+  ProductionBatch: mongoose.model('ProductionBatch', productionBatchSchema) // NEW
 };

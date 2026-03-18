@@ -45,7 +45,7 @@ app.post('/api/login', (req, res) => {
     
     // Check if they are a Dashboard User
     if (DASHBOARD_USERS[username] && DASHBOARD_USERS[username].pass === password) {
-        res.json({ success: true, role: DASHBOARD_USERS[username].role, username: username });
+        res.json({ success: true, role: DASHBOARD_USERS[usernam].role, username: username });
     } else {
         res.status(401).json({ success: false, message: "Access Denied: Dashboard credentials required." });
     }
@@ -219,6 +219,57 @@ app.post('/api/products', async (req, res) => {
         }
         res.json({ success: true, message: "Product Added Successfully!" });
     } catch (error) { res.status(500).json({ success: false, message: "Server Error saving product." }); }
+});
+
+// ==========================================
+// PRODUCTION DEPT: Multi-Stage Tracking
+// ==========================================
+app.post('/api/production/batch', async (req, res) => {
+    const { 
+        productBarcode, stage, machineName, acceptedQty, rejectedQty, 
+        rawMaterialCode, rawMaterialConsumedKg, username 
+    } = req.body;
+    
+    try {
+        // 1. If this is FORGING (Stage 1), deduct the Raw Steel
+        if (stage === 'FORGING') {
+            const material = await RawMaterial.findOne({ materialCode: rawMaterialCode.toUpperCase() });
+            if (!material || material.currentStockKg < rawMaterialConsumedKg) {
+                return res.status(400).json({ message: "Not enough raw steel in stock!" });
+            }
+            material.currentStockKg -= Number(rawMaterialConsumedKg);
+            await material.save();
+        }
+
+        // 2. Save the Batch Record (Matches your Excel Columns!)
+        const newBatch = new ProductionBatch({
+            productBarcode,
+            stage,
+            machineName: machineName || "Unknown",
+            operator: username,
+            acceptedQty: Number(acceptedQty),
+            rejectedQty: Number(rejectedQty) || 0,
+            rawMaterialConsumedKg: stage === 'FORGING' ? Number(rawMaterialConsumedKg) : 0
+        });
+        await newBatch.save();
+
+        // 3. If this is the FINAL stage (e.g., SEC_OP or ROLLING), add to Finished Goods
+        // (You can adjust this logic based on which stage finishes your specific bolts)
+        if (stage === 'SEC_OP' || stage === 'ROLLING') {
+            const product = await Product.findOne({ barcode: productBarcode });
+            if (product) {
+                product.currentStock += Number(acceptedQty);
+                await product.save();
+                
+                await new Transaction({ 
+                    barcode: productBarcode, type: 'PRODUCTION', 
+                    quantity: acceptedQty, resultingStock: product.currentStock, user: username 
+                }).save();
+            }
+        }
+
+        res.json({ success: true, message: `${stage} batch recorded successfully!` });
+    } catch (err) { res.status(500).json({ error: "Production error" }); }
 });
 
 app.post('/api/stock', async (req, res) => {

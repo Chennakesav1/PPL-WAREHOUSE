@@ -12,6 +12,11 @@ const API_URL = "https://ppl-warehouse-wkdp.onrender.com/api";
 
 export default function App() {
   const [permission, requestPermission] = useCameraPermissions();
+
+
+  const [prodStage, setProdStage] = useState('FORGING'); // 'FORGING', 'ROLLING', 'SEC_OP'
+  const [machineName, setMachineName] = useState('');
+  const [rejectedQty, setRejectedQty] = useState('');
   
   // --- 1. SESSION & AUTH STATES ---
   const [isReady, setIsReady] = useState(false); 
@@ -123,18 +128,25 @@ export default function App() {
     } catch (err) { Alert.alert("Failed", "Server Error."); }
   };
 
-  // --- 8. PRODUCTION LOGIC ---
+// --- 8. MULTI-STAGE PRODUCTION LOGIC ---
   const handleProduction = async () => {
-    if (!quantity || !rawMaterialCode || !rawMaterialKg) return Alert.alert("Error", "Fill all production fields");
+    if (!quantity) return Alert.alert("Error", "Enter accepted quantity");
+    if (prodStage === 'FORGING' && (!rawMaterialCode || !rawMaterialKg)) {
+        return Alert.alert("Error", "Forging requires Raw Material details");
+    }
+
     try {
       await axios.post(`${API_URL}/production/batch`, {
         productBarcode: product.barcode || product.productCode,
-        quantityProduced: parseInt(quantity),
+        stage: prodStage,
+        machineName: machineName.trim(),
+        acceptedQty: parseInt(quantity),
+        rejectedQty: parseInt(rejectedQty) || 0,
         rawMaterialCode: rawMaterialCode.trim(),
-        rawMaterialConsumedKg: parseFloat(rawMaterialKg),
+        rawMaterialConsumedKg: parseFloat(rawMaterialKg) || 0,
         username: user.username
       });
-      Alert.alert("Success! 🏭", "Batch produced & Steel consumed!", [{ text: "Scan Next", onPress: resetApp }]);
+      Alert.alert("Success! 🏭", `${prodStage} recorded successfully!`, [{ text: "Scan Next", onPress: resetApp }]);
     } catch (err) {
       Alert.alert("Failed", err.response?.data?.message || "Production Error");
     }
@@ -238,13 +250,39 @@ export default function App() {
               <Text style={styles.qtyLabel}>Quantity (Bolts):</Text>
               <TextInput style={styles.inputBig} keyboardType="numeric" value={quantity} onChangeText={setQuantity} autoFocus={true} />
 
-              {/* DYNAMIC ROLE-BASED CONTROLS */}
+              {/* 1. UPGRADED PRODUCTION ROLE (Multi-Stage) */}
               {user.role === 'PRODUCTION' && (
                 <View style={styles.roleBox}>
-                  <Text style={styles.roleBoxTitle}>🏭 Raw Material Consumed</Text>
-                  <TextInput style={styles.inputSmall} placeholder="Steel Code (e.g., STL-10MM)" value={rawMaterialCode} onChangeText={setRawMaterialCode} />
-                  <TextInput style={styles.inputSmall} placeholder="Weight Used (Kg)" keyboardType="numeric" value={rawMaterialKg} onChangeText={setRawMaterialKg} />
-                  <TouchableOpacity style={styles.btnGreen} onPress={handleProduction}><Text style={styles.btnText}>Record Production Batch</Text></TouchableOpacity>
+                  <Text style={styles.roleBoxTitle}>🏭 Production Stage</Text>
+                  
+                  {/* Stage Selector Toggle */}
+                  <View style={{flexDirection: 'row', marginBottom: 15, borderRadius: 8, overflow: 'hidden', borderWidth: 1, borderColor: '#ddd'}}>
+                    <TouchableOpacity style={[styles.toggleBtn, prodStage === 'FORGING' && {backgroundColor: '#007bff'}]} onPress={() => setProdStage('FORGING')}>
+                      <Text style={{color: prodStage === 'FORGING' ? 'white' : '#666', fontWeight: 'bold'}}>FORGING</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={[styles.toggleBtn, prodStage === 'ROLLING' && {backgroundColor: '#007bff'}]} onPress={() => setProdStage('ROLLING')}>
+                      <Text style={{color: prodStage === 'ROLLING' ? 'white' : '#666', fontWeight: 'bold'}}>ROLLING</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={[styles.toggleBtn, prodStage === 'SEC_OP' && {backgroundColor: '#007bff'}]} onPress={() => setProdStage('SEC_OP')}>
+                      <Text style={{color: prodStage === 'SEC_OP' ? 'white' : '#666', fontWeight: 'bold'}}>SEC. OP</Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  <TextInput style={styles.inputSmall} placeholder="Machine (e.g., CH5, TK250)" value={machineName} onChangeText={setMachineName} autoCapitalize="characters" />
+                  <TextInput style={styles.inputSmall} placeholder="Rejected Qty (PCS)" keyboardType="numeric" value={rejectedQty} onChangeText={setRejectedQty} />
+                  
+                  {/* Only ask for Raw Steel during Forging */}
+                  {prodStage === 'FORGING' && (
+                    <View style={{backgroundColor: '#eef2f5', padding: 10, borderRadius: 8, marginBottom: 10}}>
+                        <Text style={{fontSize: 12, fontWeight: 'bold', marginBottom: 5, color: '#555'}}>RAW MATERIAL CONSUMED</Text>
+                        <TextInput style={[styles.inputSmall, {backgroundColor: 'white'}]} placeholder="Steel Code (e.g., STL-10MM)" value={rawMaterialCode} onChangeText={setRawMaterialCode} />
+                        <TextInput style={[styles.inputSmall, {backgroundColor: 'white', marginBottom: 0}]} placeholder="Weight Used (Kg)" keyboardType="numeric" value={rawMaterialKg} onChangeText={setRawMaterialKg} />
+                    </View>
+                  )}
+
+                  <TouchableOpacity style={styles.btnBlue} onPress={handleProduction}>
+                      <Text style={styles.btnText}>Record {prodStage}</Text>
+                  </TouchableOpacity>
                 </View>
               )}
 
