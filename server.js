@@ -57,13 +57,17 @@ app.get('/api/purchase-orders', async (req, res) => {
     } catch (err) { res.status(500).json({ error: "Server error" }); }
 });
 
+// Create a new PO (Pending)
 app.post('/api/purchase-orders', async (req, res) => {
-    const { supplierName, materialCode, expectedKg, costPerKg, username } = req.body;
+    // NEW: We now extract grade and scope from the frontend request
+    const { supplierName, materialCode, grade, scope, expectedKg, costPerKg, username } = req.body;
     try {
         const newPO = new PurchaseOrder({
             poNumber: `PO-${Date.now()}`,
             supplierName,
             materialCode: materialCode.toUpperCase(),
+            grade: grade || "Standard", // NEW
+            scope: scope || "General Inventory", // NEW
             expectedKg: Number(expectedKg),
             costPerKg: Number(costPerKg),
             totalCost: Number(expectedKg) * Number(costPerKg),

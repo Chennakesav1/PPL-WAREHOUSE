@@ -36,11 +36,13 @@ const rawMaterialSchema = new mongoose.Schema({
   lastUpdate: { type: Date, default: Date.now }
 });
 
-// 4. Define Purchase Order Schema (THE FIX)
+// 4. Define Purchase Order Schema
 const purchaseOrderSchema = new mongoose.Schema({
   poNumber: { type: String, required: true, unique: true },
   supplierName: String,
   materialCode: String,
+  grade: String,   // NEW: Track the steel grade
+  scope: String,   // NEW: Track the project scope or remarks
   expectedKg: Number,
   costPerKg: Number,
   totalCost: Number,
