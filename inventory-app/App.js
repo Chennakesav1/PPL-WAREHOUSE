@@ -31,20 +31,32 @@ export default function App() {
     return () => clearTimeout(timer);
   }, []);
 
-  // 2. Role-Based Login
-  const handleLogin = async () => {
-    if (!usernameInput || !passwordInput) return Alert.alert("Error", "Please enter credentials");
+ const handleLogin = async () => {
+    // .trim() removes accidental spaces, .toLowerCase() fixes auto-caps
+    const cleanUser = username.trim().toLowerCase();
+    const cleanPass = password.trim();
+
+    if (!cleanUser || !cleanPass) return Alert.alert("Error", "Enter credentials");
+    
+    setLoading(true);
     try {
-      const res = await axios.post(`${API_URL}/login`, {
-        username: usernameInput.toLowerCase().trim(),
-        password: passwordInput.trim()
+      const res = await fetch(`${API_URL}/app-login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: cleanUser, password: cleanPass })
       });
-      if (res.data.success) {
-        setUser({ username: res.data.username, role: res.data.role });
-        setPasswordInput(''); // Clear password for security
+      const data = await res.json();
+      
+      if (data.success) {
+        setUser(data);
+        await AsyncStorage.setItem('workerUser', JSON.stringify(data));
+      } else {
+        Alert.alert("Login Failed", "Check Worker Username/Password");
       }
-    } catch (err) {
-      Alert.alert("Access Denied ❌", "Incorrect username or password.");
+    } catch (e) {
+      Alert.alert("Connection Error", "Check if your Render server is awake!");
+    } finally {
+      setLoading(false);
     }
   };
 

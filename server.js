@@ -16,34 +16,56 @@ mongoose.connect(process.env.MONGO_URI)
   .catch(err => console.log(err));
 
 // ==========================================
-// 1. ROLE-BASED LOGIN (Web & App)
+// 1. ROLE-BASED LOGIN (Split for Security)
 // ==========================================
-const USERS = {
-    "admin": { pass: "admin123", role: "ADMIN" },
-    "buyer": { pass: "buy123", role: "PURCHASE" },
-    "maker": { pass: "make123", role: "PRODUCTION" },
-    "seller": { pass: "sell123", role: "SALES" }
+
+// 🟢 DEPARTMENT HEADS: Allowed on the main Web Dashboard (index.html)
+const DASHBOARD_USERS = {
+    "admin":  { pass: "admin123",  role: "ADMIN" },
+    "buyer":  { pass: "buy123",    role: "PURCHASE" },
+    "maker":  { pass: "make123",   role: "PRODUCTION" }, // Production Manager
+    "seller": { pass: "sell123",   role: "SALES" }       // Sales Manager
 };
 
+// 🔵 FLOOR WORKERS: Allowed ONLY on the Mobile Scanner App (worker.html)
+const WORKER_USERS = {
+    "worker1": { pass: "work123", role: "PRODUCTION" }, // Floor Worker 1
+    "worker2": { pass: "work456", role: "PRODUCTION" }  // Floor Worker 2
+};
+
+// --- WEB DASHBOARD LOGIN ROUTE ---
 app.post('/api/login', (req, res) => {
-    const { username, password } = req.body;
-    // Allow old 'password-only' login for admin temporarily, or new role-based login
+    const username = req.body.username ? req.body.username.toLowerCase().trim() : '';
+    const password = req.body.password ? req.body.password.trim() : '';
+
+    // Master override for setup
     if (password === 'Admin12345' && !username) {
         return res.json({ success: true, role: "ADMIN", username: "Admin" });
     }
-    if (USERS[username] && USERS[username].pass === password) {
-        res.json({ success: true, role: USERS[username].role, username: username });
+    
+    // Check if they are a Dashboard User
+    if (DASHBOARD_USERS[username] && DASHBOARD_USERS[username].pass === password) {
+        res.json({ success: true, role: DASHBOARD_USERS[username].role, username: username });
     } else {
-        res.status(401).json({ success: false, message: "Invalid credentials" });
+        res.status(401).json({ success: false, message: "Access Denied: Dashboard credentials required." });
     }
 });
 
+// --- MOBILE APP LOGIN ROUTE ---
 app.post('/api/app-login', (req, res) => {
-    const { username, password } = req.body;
-    if (USERS[username] && USERS[username].pass === password) {
-        res.json({ success: true, role: USERS[username].role, username: username });
+    const username = req.body.username ? req.body.username.toLowerCase().trim() : '';
+    const password = req.body.password ? req.body.password.trim() : '';
+
+    // Allow the Admin to log into the scanner app for testing/overrides
+    if (username === 'admin' && password === DASHBOARD_USERS['admin'].pass) {
+         return res.json({ success: true, role: "ADMIN", username: "admin" });
+    }
+
+    // Check if they are a Floor Worker
+    if (WORKER_USERS[username] && WORKER_USERS[username].pass === password) {
+        res.json({ success: true, role: WORKER_USERS[username].role, username: username });
     } else {
-        res.status(401).json({ success: false, message: "Invalid credentials" });
+        res.status(401).json({ success: false, message: "Access Denied: Worker credentials required." });
     }
 });
 
