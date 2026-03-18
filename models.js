@@ -1,45 +1,61 @@
 const mongoose = require('mongoose');
 
-// 1. RAW MATERIALS (Used by Purchase & Production)
-const rawMaterialSchema = new mongoose.Schema({
-  materialName: String, // e.g., Steel Rod 10mm
-  grade: String,        // e.g., Grade 8.8 Steel
-  currentStock: { type: Number, default: 0 },
-  unit: { type: String, default: 'kg' }
+// 1. Finished Goods (Bolts)
+const productSchema = new mongoose.Schema({
+  barcode: { type: String, required: true, unique: true },
+  productCode: String,
+  sector: String,
+  type: String, 
+  grade: String,
+  length: Number,
+  af: Number,
+  weightPerPc: Number,
+  currentStock: { type: Number, default: 0 }
 });
 
-// 2. PURCHASE ORDERS (Used by Purchase Dept)
-const purchaseOrderSchema = new mongoose.Schema({
-  poNumber: String,
-  supplier: String,
-  items: [{ materialId: mongoose.Schema.Types.ObjectId, quantity: Number, price: Number }],
-  status: { type: String, enum: ['PENDING', 'RECEIVED'], default: 'PENDING' },
+// 2. Transaction History
+const transactionSchema = new mongoose.Schema({
+  barcode: String,
+  type: { type: String, enum: ['INWARD', 'DISPATCH', 'PRODUCTION', 'ADJUSTMENT'] },
+  quantity: Number,
+  resultingStock: Number, 
+  user: String,
   date: { type: Date, default: Date.now }
 });
 
-// 3. PRODUCTION BATCHES (Used by Production Dept)
-const productionSchema = new mongoose.Schema({
-  productCode: String,
-  quantityProduced: Number,
-  rawMaterialUsed: Number, // kg
-  workerName: String,
-  timestamp: { type: Date, default: Date.now }
+// 3. Raw Materials (Steel Rods, Wire, etc.)
+const rawMaterialSchema = new mongoose.Schema({
+  materialCode: { type: String, required: true, unique: true },
+  materialName: String,
+  grade: String,
+  currentStockKg: { type: Number, default: 0 }
 });
 
-// 4. SALES ORDERS (Used by Sales Dept)
+// 4. Production Batches (Connecting Raw Material to Finished Goods)
+const productionBatchSchema = new mongoose.Schema({
+  batchId: { type: String, required: true, unique: true },
+  productBarcode: String,
+  quantityProduced: Number, // How many bolts made
+  rawMaterialUsedCode: String, 
+  rawMaterialConsumedKg: Number, // How much steel used
+  producedBy: String,
+  date: { type: Date, default: Date.now }
+});
+
+// 5. Sales Orders
 const salesOrderSchema = new mongoose.Schema({
-  orderId: String,
+  orderId: { type: String, required: true, unique: true },
   customerName: String,
-  items: [{ productCode: String, qty: Number, rate: Number }],
-  totalAmount: Number,
-  status: { type: String, enum: ['OPEN', 'SHIPPED', 'PAID'], default: 'OPEN' }
+  productBarcode: String,
+  quantitySold: Number,
+  soldBy: String,
+  date: { type: Date, default: Date.now }
 });
 
 module.exports = {
-  Product: mongoose.model('Product', require('./productSchema')), // Keep your existing one
-  Transaction: mongoose.model('Transaction', require('./txSchema')), // Keep your existing one
+  Product: mongoose.model('Product', productSchema),
+  Transaction: mongoose.model('Transaction', transactionSchema),
   RawMaterial: mongoose.model('RawMaterial', rawMaterialSchema),
-  PurchaseOrder: mongoose.model('PurchaseOrder', purchaseOrderSchema),
-  ProductionBatch: mongoose.model('ProductionBatch', productionSchema),
+  ProductionBatch: mongoose.model('ProductionBatch', productionBatchSchema),
   SalesOrder: mongoose.model('SalesOrder', salesOrderSchema)
 };
