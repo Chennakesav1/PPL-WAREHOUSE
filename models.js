@@ -52,32 +52,65 @@ const purchaseOrderSchema = new mongoose.Schema({
   receivedDate: Date
 });
 
-
 const productionBatchSchema = new mongoose.Schema({
   date: { type: Date, default: Date.now },
   stage: { type: String, enum: ['FORGING', 'ROLLING', 'SEC_OP'], required: true },
-  operation: String,          
-  machineName: String,        
-  operator: String,           
-  shift: String,              
-  workOrderNo: String,        
-  productBarcode: String,     
   
-  // EXCEL COLUMNS (NEW)
-  pieceWeight: { type: Number, default: 0 },
-  speedRpm: { type: Number, default: 0 },
+  // 1. General & Part Info
+  machineName: String,
+  operator: String,
+  shift: String,
+  partNo: String,
+  workOrderNo: String,
+  partSize: String,
+  pitch: String,
+  length: Number,
+  partName: String,
+  af: String,
+  productGrade: String,
+  operation: String, 
+  
+  // 2. Material Details
+  rawMaterialCode: String,
+  heatNo: String,
+  rawMaterialConsumedKg: { type: Number, default: 0 },
+  pieceWeightKg: { type: Number, default: 0 },
+  
+  // 3. Planning & Targets
   scheduleHours: { type: Number, default: 0 },
-  targetQty: { type: Number, default: 0 },
-
+  jobChangeHours: { type: Number, default: 0 },
+  prodPlannedHours: { type: Number, default: 0 },
+  speedRpm: { type: Number, default: 0 },
+  shiftTargetQty: { type: Number, default: 0 },
+  
+  // 4. Production & Rejections
   acceptedQty: { type: Number, default: 0 },
   rejectedQty: { type: Number, default: 0 },
-  rejectionReason: String,    
-  rawMaterialCode: String,
-  rawMaterialConsumedKg: { type: Number, default: 0 },
-  heatNo: String,             
-  downtimeMinutes: { type: Number, default: 0 },
-  downtimeReason: String,     
+  rejectionKg: { type: Number, default: 0 }, // Process Rejection & Setting Rejection in KGS
+  rejectionReason: String, // From Sec Op
   remarks: String,
+  
+  // 5. Downtime / Losses Breakdown (IN MINUTES)
+  lossMajorJC: { type: Number, default: 0 },
+  lossMinorJC: { type: Number, default: 0 },
+  lossSetting: { type: Number, default: 0 },
+  lossMcClean: { type: Number, default: 0 },
+  lossToolRework: { type: Number, default: 0 },
+  lossNoTool: { type: Number, default: 0 },
+  lossNoLoad: { type: Number, default: 0 },
+  lossNoOperator: { type: Number, default: 0 },
+  lossMMnt: { type: Number, default: 0 },
+  lossEMnt: { type: Number, default: 0 },
+  lossNoPower: { type: Number, default: 0 },
+  lossNoAirOil: { type: Number, default: 0 },
+  lossNoRm: { type: Number, default: 0 },
+  lossRmLoading: { type: Number, default: 0 },
+  lossQaApproval: { type: Number, default: 0 },
+  lossCoilChange: { type: Number, default: 0 },
+  lossNoPlan: { type: Number, default: 0 },
+  lossNpdTeam: { type: Number, default: 0 },
+  lossUnknown: { type: Number, default: 0 },
+
   loggedBy: String
 });
 

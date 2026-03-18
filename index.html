@@ -6,12 +6,9 @@
     <title>Warehouse ERP Dashboard 📦</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; color: #333; }
-        #splashScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #ffffff; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; }
-        .ppl-logo { font-size: 100px; font-weight: 900; color: #007bff; margin: 0; letter-spacing: 5px; }
-        .spinning-bolt { font-size: 60px; animation: spin 2s linear infinite; margin-top: 10px; }
-        .loading-text { margin-top: 20px; color: #666; font-size: 18px; font-weight: bold; letter-spacing: 2px; }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
-        #loginOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #2c3e50; display: none; justify-content: center; align-items: center; z-index: 1000; }
+        #splashScreen, #loginOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; }
+        #splashScreen { background-color: #ffffff; }
+        #loginOverlay { background-color: #2c3e50; display: none; }
         .login-box { background: white; padding: 40px; border-radius: 10px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5); text-align: center; width: 90%; max-width: 300px; }
         .login-box input { width: 90%; padding: 10px; margin: 10px 0; border: 2px solid #ddd; border-radius: 5px; font-size: 16px; }
         .login-box button { background-color: #007bff; color: white; border: none; padding: 12px 20px; border-radius: 5px; font-size: 16px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 10px; }
@@ -19,43 +16,36 @@
         h1 { text-align: center; color: #007bff; margin-bottom: 20px; position: relative; }
         .role-badge { font-size: 14px; background: #28a745; color: white; padding: 5px 10px; border-radius: 20px; vertical-align: middle; margin-left: 10px; }
         .dashboard-container { display: flex; flex-wrap: wrap; gap: 20px; max-width: 1500px; margin: 0 auto; }
-        .inventory-section { flex: 2; min-width: 500px; }
-        .transaction-section { flex: 1.2; min-width: 350px; }
-        .full-width-card { flex: 1 1 100% !important; margin-top: 10px; }
-        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
+        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); flex: 1 1 100%; }
         h2 { border-bottom: 2px solid #eee; padding-bottom: 10px; margin-top: 0; color: #444; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
-        .search-container { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-        .search-box { padding: 8px 12px; font-size: 14px; border: 2px solid #007bff; border-radius: 6px; outline: none; }
         .export-btn, .logout-btn, .add-btn { color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; }
         .export-btn { background-color: #28a745; }
         .logout-btn { background-color: #dc3545; position: absolute; top: 20px; right: 20px; }
         .add-btn { background-color: #007bff; }
         .table-wrapper { max-height: 700px; overflow-y: auto; overflow-x: auto; width: 100%; }
         table { width: 100%; border-collapse: collapse; margin-top: 15px; min-width: 600px; }
-        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; font-size: 14px; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; font-size: 14px; white-space: nowrap; }
         th { background-color: #007bff; color: white; position: sticky; top: 0; z-index: 1; }
-        .low-stock { background-color: #ffebee !important; }
-        .low-stock-text { color: #d32f2f !important; }
-        .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.6); justify-content: center; align-items: center; padding: 10px; box-sizing: border-box; }
-        .modal-content { background-color: white; padding: 30px; border-radius: 10px; width: 100%; max-width: 400px; position: relative; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); max-height: 90vh; overflow-y: auto; }
-        .close-btn { position: absolute; top: 15px; right: 20px; font-size: 24px; cursor: pointer; color: #888; font-weight: bold; }
-        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
-        .form-grid input { padding: 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; width: 100%; box-sizing: border-box; }
-        .full-width { grid-column: 1 / -1; }
-        .save-btn { background-color: #007bff; color: white; border: none; padding: 12px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 20px; width: 100%; font-size: 16px; }
-        .toast { visibility: hidden; min-width: 250px; background-color: #28a745; color: #fff; text-align: center; border-radius: 8px; padding: 16px; position: fixed; z-index: 3000; left: 50%; transform: translateX(-50%); bottom: 30px; font-size: 16px; font-weight: bold; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3); }
-        .toast.show { visibility: visible; animation: fadein 0.5s, fadeout 0.5s 2.5s; }
-        .toast.error { background-color: #dc3545; }
-        @keyframes fadein { from { bottom: 0; opacity: 0; } to { bottom: 30px; opacity: 1; } }
-        @keyframes fadeout { from { bottom: 30px; opacity: 1; } to { bottom: 0; opacity: 0; } }
-
-        /* NEW STYLES FOR PRODUCTION TABS & FORMS */
-        .prod-input { padding: 10px; border: 1px solid #ccc; border-radius: 5px; outline: none; }
+        
+        /* Form Styles */
+        .form-section { background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #007bff; }
+        .form-section-title { font-size: 13px; font-weight: bold; color: #007bff; margin-bottom: 10px; text-transform: uppercase; }
+        .form-grid-multi { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; }
+        .prod-input { padding: 8px; border: 1px solid #ccc; border-radius: 5px; outline: none; font-size: 13px; width: 100%; box-sizing: border-box; }
         .prod-input:focus { border-color: #ff9800; }
+        
+        /* Downtime Grid */
+        .downtime-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; background: #fff3e0; padding: 15px; border-radius: 8px; border-left: 4px solid #dc3545; }
+        .downtime-grid div { display: flex; flex-direction: column; }
+        .downtime-grid label { font-size: 11px; font-weight: bold; color: #dc3545; margin-bottom: 3px; }
+        
+        /* Tabs */
         .tab-btn { padding: 10px 20px; border: none; background: #eee; cursor: pointer; border-radius: 8px 8px 0 0; font-weight: bold; margin-right: 5px; font-size: 15px; color: #555;}
         .tab-btn.active { background: #ff9800; color: white; }
         .tab-container { border-bottom: 3px solid #ff9800; display: flex; margin-top: 15px; }
-        .stage-group { display: none; gap: 15px; flex-wrap: wrap; background: #fff; padding: 10px; border-radius: 5px; margin-bottom: 15px; border-left: 4px solid #ff9800; }
+
+        .toast { visibility: hidden; min-width: 250px; background-color: #28a745; color: #fff; text-align: center; border-radius: 8px; padding: 16px; position: fixed; z-index: 3000; left: 50%; transform: translateX(-50%); bottom: 30px; font-size: 16px; font-weight: bold; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3); }
+        .toast.show { visibility: visible; }
     </style>
 </head>
 <body>
@@ -64,13 +54,12 @@
 
     <div id="splashScreen">
         <h1 class="ppl-logo">PPL</h1>
-        <div class="spinning-bolt">⚙️</div>
-        <div class="loading-text">LOADING ERP SYSTEM...</div>
+        <h3 style="color: #666;">Complete MES ERP</h3>
     </div>
 
     <div id="loginOverlay">
         <div class="login-box">
-            <h2 style="justify-content: center; border: none;">ERP Access</h2>
+            <h2 style="border: none;">ERP Access</h2>
             <input type="text" id="usernameInput" placeholder="Enter Username" autocapitalize="none">
             <input type="password" id="passwordInput" placeholder="Enter Password">
             <button onclick="attemptLogin()">Log In</button>
@@ -84,103 +73,135 @@
 
         <div class="dashboard-container">
             
-            <div class="card full-width-card" id="productionCard" style="display: none; margin-bottom: 20px;">
-                <h2 style="color: #ff9800; border-bottom: 2px solid #ff9800; padding-bottom: 10px;">
-                    🏭 Production Data Entry (Digital Logbook)
-                </h2>
+            <div class="card" id="productionCard" style="display: none;">
+                <h2 style="color: #ff9800; border-bottom: 2px solid #ff9800;">🏭 Production Data Entry (Full Sheet)</h2>
                 
-                <div style="background: #fff3e0; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #ffe0b2;">
+                <div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #ddd;">
                     
-                    <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 15px;">
-                        <select id="prodStage" class="prod-input" style="flex: 1; font-weight: bold; border-color: #ff9800; background-color: white;" onchange="toggleStageFields()">
+                    <div style="display: flex; gap: 15px; margin-bottom: 15px;">
+                        <select id="prodStage" class="prod-input" style="flex: 1; font-weight: bold; border: 2px solid #ff9800; font-size: 16px;" onchange="toggleStageFields()">
                             <option value="FORGING">1. FORGING</option>
                             <option value="ROLLING">2. ROLLING</option>
-                            <option value="SEC_OP">3. SEC. OP. (Lathe/Pointing)</option>
+                            <option value="SEC_OP">3. SEC. OP.</option>
                         </select>
-                        <input type="text" id="prodShift" class="prod-input" placeholder="Shift (A, B, G, S2)" style="flex: 1;">
-                        <input type="text" id="prodWO" class="prod-input" placeholder="Work Order No." style="flex: 1;">
+                        <input type="date" id="prodDate" class="prod-input" style="flex: 1;" title="Date">
                     </div>
 
-                    <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 15px;">
-                        <input type="text" id="prodMachine" class="prod-input" placeholder="* Machine Name (e.g., CH5)" style="flex: 1;" required>
-                        <input type="text" id="prodOperator" class="prod-input" placeholder="Operator Name" style="flex: 1;">
-                        <input type="text" id="prodCode" class="prod-input" placeholder="* Product / Part Size" style="flex: 1;" required>
-                    </div>
-
-                    <div id="forgingFields" class="stage-group" style="display: flex; flex-direction: column; background: #fff; padding: 15px; border-radius: 5px; margin-bottom: 15px; border-left: 4px solid #ff9800;">
-                        <div style="font-size: 12px; font-weight: bold; color: #ff9800; margin-bottom: 10px;">FORGING EXCEL COLUMNS</div>
-                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                            <input type="text" id="forgeRMCode" class="prod-input" placeholder="Coil / RM Code" style="flex: 1;">
-                            <input type="text" id="forgeHeatNo" class="prod-input" placeholder="Coil Heat No." style="flex: 1;">
-                            <input type="number" id="forgeRMKg" class="prod-input" placeholder="RM Consumed (Kg)" style="flex: 1;">
-                        </div>
-                        <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px;">
-                            <input type="number" step="0.001" id="forgePieceWt" class="prod-input" placeholder="Piece Weight (Kg)" style="flex: 1;">
-                            <input type="number" id="forgeSpeed" class="prod-input" placeholder="Speed (RPM)" style="flex: 1;">
-                            <input type="number" id="forgeSchHrs" class="prod-input" placeholder="Schedule Hours" style="flex: 1;">
-                            <input type="number" id="forgeTarget" class="prod-input" placeholder="Shift Target Qty" style="flex: 1;">
-                        </div>
-                    </div>
-
-                    <div id="rollingFields" class="stage-group" style="display: none; flex-direction: column; background: #fff; padding: 15px; border-radius: 5px; margin-bottom: 15px; border-left: 4px solid #17a2b8;">
-                        <div style="font-size: 12px; font-weight: bold; color: #17a2b8; margin-bottom: 10px;">ROLLING EXCEL COLUMNS</div>
-                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                            <input type="text" id="rollHeatNo" class="prod-input" placeholder="Blank Heat No." style="flex: 1;">
-                            <input type="number" step="0.001" id="rollPieceWt" class="prod-input" placeholder="Piece Weight (Kg)" style="flex: 1;">
-                        </div>
-                        <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px;">
-                            <input type="number" id="rollSpeed" class="prod-input" placeholder="Speed (RPM)" style="flex: 1;">
-                            <input type="number" id="rollSchHrs" class="prod-input" placeholder="Schedule Hours" style="flex: 1;">
-                            <input type="number" id="rollTarget" class="prod-input" placeholder="Shift Target Qty" style="flex: 1;">
-                        </div>
-                    </div>
-
-                    <div id="secOpFields" class="stage-group" style="display: none; flex-direction: column; background: #fff; padding: 15px; border-radius: 5px; margin-bottom: 15px; border-left: 4px solid #28a745;">
-                        <div style="font-size: 12px; font-weight: bold; color: #28a745; margin-bottom: 10px;">SEC. OP. EXCEL COLUMNS</div>
-                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                            <select id="secOpType" class="prod-input" style="flex: 1;">
-                                <option value="">-- Select Operation --</option>
+                    <div class="form-section">
+                        <div class="form-section-title">1. Shift & Machine Details</div>
+                        <div class="form-grid-multi">
+                            <select id="prodShift" class="prod-input">
+                                <option value="">- Select Shift -</option>
+                                <option value="A">A Shift</option>
+                                <option value="B">B Shift</option>
+                                <option value="G">G Shift (General)</option>
+                                <option value="S2">S2 Shift</option>
+                            </select>
+                            <select id="prodMachine" class="prod-input">
+                                <option value="">- Select Machine -</option>
+                                <option value="CH5">CH5</option>
+                                <option value="TK250">TK250</option>
+                                <option value="64S">64S</option>
+                                <option value="84S">84S</option>
+                                <option value="6L4S">6L4S</option>
+                                <option value="164S">164S</option>
+                                <option value="254LL">254LL</option>
+                                <option value="Lathe">Lathe</option>
+                                <option value="PO-2">PO-2</option>
+                            </select>
+                            <input type="text" id="prodOperator" class="prod-input" placeholder="Operator Name">
+                            <select id="prodOperation" class="prod-input">
+                                <option value="">- Select Process -</option>
+                                <option value="COLD FORGING">Cold Forging</option>
+                                <option value="THREAD ROLLING">Thread Rolling</option>
                                 <option value="TURNNING">Turning</option>
                                 <option value="POINTING">Pointing</option>
                                 <option value="DRILLING">Drilling</option>
                             </select>
-                            <input type="number" id="secOpSchHrs" class="prod-input" placeholder="Schedule Hours" style="flex: 1;">
-                            <input type="number" id="secOpTarget" class="prod-input" placeholder="Shift Target Qty" style="flex: 1;">
+                        </div>
+                        
+                        <div class="form-section-title" style="margin-top: 15px;">2. Part Details</div>
+                        <div class="form-grid-multi">
+                            <input type="text" id="prodWO" class="prod-input" placeholder="Work Order No.">
+                            <input type="text" id="prodPartNo" class="prod-input" placeholder="Part No (Barcode)">
+                            <select id="prodPartName" class="prod-input">
+                                <option value="">- Part Name -</option>
+                                <option value="FLG">FLG</option>
+                                <option value="HEX">HEX</option>
+                                <option value="SOC">SOC</option>
+                                <option value="OTHER">Other</option>
+                            </select>
+                            <input type="text" id="prodSize" class="prod-input" placeholder="Size (e.g., M10)">
+                            <input type="text" id="prodPitch" class="prod-input" placeholder="Pitch (e.g., 1.25)">
+                            <input type="number" id="prodLength" class="prod-input" placeholder="Length (mm)">
+                            <input type="text" id="prodAF" class="prod-input" placeholder="A/F">
+                            <input type="text" id="prodGrade" class="prod-input" placeholder="Grade (e.g., 8.8, PLAIN)">
                         </div>
                     </div>
 
-                    <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 15px; background: white; padding: 10px; border-radius: 5px;">
-                        <input type="number" id="prodAccepted" class="prod-input" placeholder="✅ Accepted Qty (PCS)" style="flex: 1; border-color: #28a745;">
-                        <input type="number" id="prodRejected" class="prod-input" placeholder="❌ Rejected Qty (PCS)" style="flex: 1; border-color: #dc3545;">
-                        <input type="text" id="prodRejReason" class="prod-input" placeholder="Rejection Reason (e.g., Tool Chip Out)" style="flex: 2;">
+                    <div class="form-section" id="planningSection">
+                        <div class="form-section-title">3. Material & Planning</div>
+                        <div class="form-grid-multi">
+                            <input type="text" id="prodRMCode" class="prod-input dyn-fr" placeholder="R.M Details / Code">
+                            <input type="text" id="prodHeatNo" class="prod-input dyn-fr" placeholder="Heat No.">
+                            <input type="number" id="prodRMKg" class="prod-input dyn-f" placeholder="RM Consumed (Kg)">
+                            <input type="number" step="0.001" id="prodPieceWt" class="prod-input dyn-fr" placeholder="Piece Weight (KG)">
+                            
+                            <input type="number" id="prodSchHrs" class="prod-input" placeholder="Schedule Hours">
+                            <input type="number" id="prodJcHrs" class="prod-input dyn-fr" placeholder="Job Change Hours">
+                            <input type="number" id="prodPlannedHrs" class="prod-input dyn-fr" placeholder="Prod Planned Hours">
+                            <input type="number" id="prodSpeed" class="prod-input dyn-fr" placeholder="Speed (RPM)">
+                            <input type="number" id="prodTarget" class="prod-input" placeholder="Shift Target Qty">
+                        </div>
                     </div>
 
-                    <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 15px; background: white; padding: 10px; border-radius: 5px;">
-                        <input type="number" id="prodDowntime" class="prod-input" placeholder="⏳ Total Down Time (Mins)" style="flex: 1;">
-                        <select id="prodDownReason" class="prod-input" style="flex: 2;">
-                            <option value="">-- Select Downtime Reason --</option>
-                            <option value="TOOL CHANGE">Tool Change / Setting</option>
-                            <option value="NO RM">No Raw Material</option>
-                            <option value="MAINTENANCE">Maintenance (M/MNT or E/MNT)</option>
-                            <option value="QA APPROVAL">QA Approval</option>
-                            <option value="NO OPERATOR">No Operator</option>
-                            <option value="NO POWER">No Power / Air / Oil</option>
-                        </select>
+                    <div class="form-section" style="border-left-color: #28a745;">
+                        <div class="form-section-title" style="color: #28a745;">4. Production Output</div>
+                        <div class="form-grid-multi">
+                            <input type="number" id="prodAccepted" class="prod-input" placeholder="✅ Accepted Qty (Nos)" style="border-color: #28a745; font-weight: bold;">
+                            <input type="number" id="prodRejected" class="prod-input" placeholder="❌ Rejection Qty (PCS)" style="border-color: #dc3545;">
+                            <input type="number" step="0.01" id="prodRejKg" class="prod-input dyn-fr" placeholder="Process/Set Rejection (KGS)" style="border-color: #dc3545;">
+                            <input type="text" id="prodRejReason" class="prod-input dyn-s" placeholder="Rejection Reason (e.g., Tool Chip Out)">
+                            <input type="text" id="prodRemarks" class="prod-input" placeholder="Remarks / Notes">
+                        </div>
                     </div>
 
-                    <button onclick="submitProductionForm()" style="background: #ff9800; color: white; padding: 15px; width: 100%; font-size: 18px; font-weight: bold; border: none; border-radius: 8px; margin-top: 10px; cursor: pointer;">
-                        💾 Save to Master Database
+                    <div class="downtime-grid dyn-fr">
+                        <div style="grid-column: 1 / -1; font-size: 13px; font-weight: bold; color: #dc3545; margin-bottom: 5px;">5. DOWNTIME LOSSES (ENTER MINUTES)</div>
+                        <div><label>Major J/C (1)</label><input type="number" id="l_MajorJC" class="prod-input"></div>
+                        <div><label>Minor J/C (2)</label><input type="number" id="l_MinorJC" class="prod-input"></div>
+                        <div><label>Tool Setting (3)</label><input type="number" id="l_Setting" class="prod-input"></div>
+                        <div><label>M/C Clean</label><input type="number" id="l_McClean" class="prod-input"></div>
+                        <div><label>Tool Rework (5)</label><input type="number" id="l_ToolRework" class="prod-input"></div>
+                        <div><label>No Tool (6)</label><input type="number" id="l_NoTool" class="prod-input"></div>
+                        <div><label>No Load</label><input type="number" id="l_NoLoad" class="prod-input"></div>
+                        <div><label>No Operator (7)</label><input type="number" id="l_NoOperator" class="prod-input"></div>
+                        <div><label>M/MNT (8)</label><input type="number" id="l_MMnt" class="prod-input"></div>
+                        <div><label>E/MNT (9)</label><input type="number" id="l_EMnt" class="prod-input"></div>
+                        <div><label>No Power (10)</label><input type="number" id="l_NoPower" class="prod-input"></div>
+                        <div><label>No Air/Oil (11)</label><input type="number" id="l_NoAirOil" class="prod-input"></div>
+                        <div><label>No RM (12)</label><input type="number" id="l_NoRm" class="prod-input"></div>
+                        <div><label>RM Loading</label><input type="number" id="l_RmLoading" class="prod-input"></div>
+                        <div><label>QA Approval</label><input type="number" id="l_QaApproval" class="prod-input"></div>
+                        <div><label>Coil Change (13)</label><input type="number" id="l_CoilChange" class="prod-input"></div>
+                        <div><label>No Plan (14)</label><input type="number" id="l_NoPlan" class="prod-input"></div>
+                        <div><label>NPD Team (9F)</label><input type="number" id="l_NpdTeam" class="prod-input"></div>
+                        <div><label>Unknown</label><input type="number" id="l_Unknown" class="prod-input"></div>
+                    </div>
+
+                    <button onclick="submitProductionForm()" style="background: #ff9800; color: white; padding: 15px; width: 100%; font-size: 18px; font-weight: bold; border: none; border-radius: 8px; margin-top: 20px; cursor: pointer;">
+                        💾 Save Full Production Log
                     </button>
                 </div>
 
-                <div style="display: flex; justify-content: space-between; align-items: flex-end;">
-                    <div class="tab-container">
-                        <button class="tab-btn active" id="tab-ALL" onclick="filterLogs('ALL')">All Logs</button>
-                        <button class="tab-btn" id="tab-FORGING" onclick="filterLogs('FORGING')">Forging</button>
-                        <button class="tab-btn" id="tab-ROLLING" onclick="filterLogs('ROLLING')">Rolling</button>
-                        <button class="tab-btn" id="tab-SEC_OP" onclick="filterLogs('SEC_OP')">Sec. Ops</button>
-                    </div>
-                    <button class="export-btn" style="margin-bottom: 5px;" onclick="exportTableToCSV('productionTable', 'Production_Report.csv')">⬇️ Excel</button>
+                <div class="tab-container">
+                    <button class="tab-btn active" id="tab-ALL" onclick="filterLogs('ALL')">All Logs</button>
+                    <button class="tab-btn" id="tab-FORGING" onclick="filterLogs('FORGING')">Forging</button>
+                    <button class="tab-btn" id="tab-ROLLING" onclick="filterLogs('ROLLING')">Rolling</button>
+                    <button class="tab-btn" id="tab-SEC_OP" onclick="filterLogs('SEC_OP')">Sec. Ops</button>
+                </div>
+                <div style="display: flex; justify-content: flex-end; margin-top: -40px; margin-bottom: 10px;">
+                    <button class="export-btn" onclick="exportTableToCSV('productionTable', 'Full_Production_Report.csv')">⬇️ Export Full Excel</button>
                 </div>
 
                 <div class="table-wrapper">
@@ -188,108 +209,31 @@
                         <thead style="background-color: #ff9800;">
                             <tr>
                                 <th>Date/Shift</th>
-                                <th>Stage</th>
-                                <th>Machine / Oper.</th>
-                                <th>Part / WO</th>
-                                <th>Qty (Acc/Rej)</th>
-                                <th>Losses (Mins)</th>
+                                <th>Stage / M/c</th>
+                                <th>Part No / WO</th>
+                                <th>Acc Qty</th>
+                                <th>Rej Qty</th>
+                                <th>Speed/Hrs</th>
+                                <th>Total Loss Mins</th>
+                                <th>RM/Heat</th>
                             </tr>
                         </thead>
-                        <tbody><tr><td colspan="6">Loading...</td></tr></tbody>
+                        <tbody><tr><td colspan="8">Loading...</td></tr></tbody>
                     </table>
                 </div>
             </div>
-
-            <div class="card inventory-section">
-                <h2>Finished Goods Stock
-                    <div class="search-container">
-                        <input type="text" id="searchInput" class="search-box" style="width: 220px;" onkeyup="filterInventory()" placeholder="🔍 Search (Grade, Type...)">
-                        <button class="add-btn" id="addBtnUI" onclick="openModal()">➕ Add Product</button>
-                        <button class="export-btn" onclick="exportTableToCSV('productsTable', 'Live_Stock_Inventory.csv')">⬇️ Excel</button>
-                    </div>
-                </h2>
-                <div class="table-wrapper">
-                    <table id="productsTable">
-                        <thead>
-                            <tr>
-                                <th>Product Code</th>
-                                <th>Sector</th> <th>Type</th> <th>Grade</th>
-                                <th>Length</th> <th>A/F</th> <th>Wt/Pc</th>
-                                <th>Current Stock</th>
-                                <th class="admin-actions">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody><tr><td colspan="9">Loading data...</td></tr></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div class="card transaction-section">
-                <h2>Recent Movements
-                    <div class="search-container">
-                        <input type="text" id="searchTxInput" class="search-box" style="width: 150px;" onkeyup="applyTxFilters()" placeholder="🔍 Item...">
-                    </div>
-                </h2>
-                <div class="table-wrapper">
-                    <table id="transactionsTable">
-                        <thead>
-                            <tr>
-                                <th>Date & Time</th> <th>Item Code</th> <th>Type & User</th>
-                                <th>Qty</th> <th>Balance</th>
-                            </tr>
-                        </thead>
-                        <tbody><tr><td colspan="5">Loading data...</td></tr></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div class="card full-width-card" id="rawMaterialCard" style="display: none;">
-                <h2>Raw Materials (Steel) <button class="add-btn" onclick="openReceiveModal()">📥 Receive Stock</button></h2>
-                <div class="table-wrapper">
-                    <table id="rawMaterialsTable">
-                        <thead>
-                            <tr>
-                                <th>Material Code</th> <th>Name</th> <th>Stock (Kg)</th>
-                                <th>Last Received By</th> <th>Date & Time</th>
-                            </tr>
-                        </thead>
-                        <tbody><tr><td colspan="5">Loading...</td></tr></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div class="card full-width-card" id="poCard" style="display: none;">
-                <h2>Purchase Orders
-                    <div class="search-container">
-                        <input type="text" id="searchPOInput" class="search-box" style="width: 200px;" onkeyup="filterPOs()" placeholder="🔍 Search POs...">
-                        <button class="add-btn" onclick="openPOModal()" style="background-color: #ff9800;">📝 Create PO</button>
-                    </div>
-                </h2>
-                <div class="table-wrapper">
-                    <table id="poTable">
-                        <thead>
-                            <tr>
-                                <th>PO Number</th> <th>Supplier</th> <th>Material</th> <th>Grade</th>
-                                <th>Scope</th> <th>Qty (Kg)</th> <th>Total Cost (₹)</th>
-                                <th>Status</th> <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody><tr><td colspan="9">Loading...</td></tr></tbody>
-                    </table>
-                </div>
+            
+            <div class="card inventory-section" id="invCard" style="display: none;">
+                <h2>Finished Goods Stock <button class="export-btn" onclick="exportTableToCSV('productsTable', 'Live_Stock_Inventory.csv')">⬇️ Excel</button></h2>
+                <div class="table-wrapper"><table id="productsTable"><thead><tr><th>Product Code</th><th>Sector</th><th>Type</th><th>Grade</th><th>Current Stock</th></tr></thead><tbody></tbody></table></div>
             </div>
         </div>
     </div>
 
-    <div id="addProductModal" class="modal"><div class="modal-content"><span class="close-btn" onclick="closeModal()">×</span><h2 style="color: #007bff; margin-bottom: 0;">Add Product</h2><div class="form-grid"><input type="text" id="newProdCode" class="full-width" placeholder="* Product Code" required><input type="text" id="newSector" placeholder="Sector"><input type="text" id="newType" placeholder="Type"><input type="text" id="newGrade" placeholder="Grade"><input type="number" id="newLength" placeholder="Length"><input type="number" id="newAF" placeholder="A/F"><input type="number" id="newWeight" placeholder="Wt/Piece"><input type="number" id="newStock" class="full-width" placeholder="Initial Stock"></div><button class="save-btn" onclick="submitNewProduct()">Save</button></div></div>
-    <div id="receiveStockModal" class="modal"><div class="modal-content"><span class="close-btn" onclick="closeReceiveModal()">×</span><h2 style="color: #007bff; margin-bottom: 0;">📥 Receive Steel</h2><div class="form-grid" style="grid-template-columns: 1fr;"><input type="text" id="rawCodeInput" placeholder="* Steel Code" required><input type="text" id="rawNameInput" placeholder="* Name" required><input type="number" id="rawKgInput" placeholder="* Amount (Kg)" required></div><button class="save-btn" id="receiveSubmitBtn" onclick="submitRawMaterial()">Add to Stock</button></div></div>
-    <div id="poModal" class="modal"><div class="modal-content"><span class="close-btn" onclick="closePOModal()">×</span><h2 style="color: #ff9800; margin-bottom: 0;">📝 Create PO</h2><div class="form-grid"><input type="text" id="poSupplier" class="full-width" placeholder="* Supplier" required><input type="text" id="poMaterialCode" placeholder="* Material Code" required><input type="text" id="poGrade" placeholder="Grade"><input type="number" id="poExpectedKg" placeholder="* Expected Kg" required><input type="number" id="poCostPerKg" placeholder="* Cost per Kg" required><input type="text" id="poScope" class="full-width" placeholder="Scope / Remarks"></div><button class="save-btn" style="background-color: #ff9800;" id="poSubmitBtn" onclick="submitPO()">Generate PO</button></div></div>
-
     <script>
         const API_URL = 'https://ppl-warehouse-wkdp.onrender.com/api';
-        let refreshInterval;
         let currentUser = null;
-        let currentLogFilter = 'ALL'; // Keeps track of which tab is active
+        let currentLogFilter = 'ALL';
 
         function showToast(message, isError = false) {
             const toast = document.getElementById("toastNotification");
@@ -303,24 +247,16 @@
             const savedAuth = localStorage.getItem("warehouseAuth");
             if (savedAuth) unlockDashboard(JSON.parse(savedAuth));
             else document.getElementById('loginOverlay').style.display = 'flex';
-        }, 1500);
+        }, 1000);
 
         async function attemptLogin() {
             const username = document.getElementById('usernameInput').value.trim().toLowerCase();
             const password = document.getElementById('passwordInput').value;
-            if(!username || !password) return alert("Enter credentials");
-
             try {
-                const response = await fetch(`${API_URL}/login`, { 
-                    method: 'POST', headers: { 'Content-Type': 'application/json' }, 
-                    body: JSON.stringify({ username, password }) 
-                });
+                const response = await fetch(`${API_URL}/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password }) });
                 const data = await response.json();
-                
-                if (data.success) { 
-                    localStorage.setItem("warehouseAuth", JSON.stringify(data)); 
-                    unlockDashboard(data); 
-                } else document.getElementById('loginError').style.display = 'block';
+                if (data.success) { localStorage.setItem("warehouseAuth", JSON.stringify(data)); unlockDashboard(data); } 
+                else document.getElementById('loginError').style.display = 'block';
             } catch (error) { alert("Cannot connect to server."); }
         }
 
@@ -330,137 +266,117 @@
             document.getElementById('mainDashboard').style.display = 'block';
             document.getElementById('roleDisplay').innerText = `👤 ${currentUser.username} (${currentUser.role})`;
 
-            if(currentUser.role !== 'ADMIN') {
-                document.getElementById('addBtnUI').style.display = 'none';
-                const style = document.createElement('style');
-                style.innerHTML = '.admin-actions { display: none !important; }';
-                document.head.appendChild(style);
-            }
-
-            // ONLY PRODUCTION CAN SEE THE NEW FORM
             if(currentUser.role === 'PRODUCTION') {
                 document.getElementById('productionCard').style.display = 'block';
-                toggleStageFields(); // Initialize form fields
-            }
-
-            if(currentUser.role === 'ADMIN' || currentUser.role === 'PURCHASE') {
-                document.getElementById('rawMaterialCard').style.display = 'block';
-                document.getElementById('poCard').style.display = 'block';
-            }
-
-            refreshDashboard();
-            refreshInterval = setInterval(refreshDashboard, 5000); 
-        }
-
-        function logout() { 
-            localStorage.removeItem("warehouseAuth"); 
-            clearInterval(refreshInterval); 
-            window.location.reload(); 
-        }
-
-        function refreshDashboard() { 
-            loadInventory(); 
-            loadTransactions(); 
-            if(currentUser && currentUser.role === 'PRODUCTION') loadProductionBatches();
-            if(currentUser && (currentUser.role === 'ADMIN' || currentUser.role === 'PURCHASE')) {
-                loadRawMaterials(); loadPOs();
+                document.getElementById('prodDate').valueAsDate = new Date();
+                toggleStageFields();
+                loadProductionBatches();
+            } else {
+                document.getElementById('invCard').style.display = 'block';
             }
         }
+
+        function logout() { localStorage.removeItem("warehouseAuth"); window.location.reload(); }
 
         // ==========================================
-        // DYNAMIC PRODUCTION LOGIC
+        // SMART UI TOGGLING
         // ==========================================
-        
-       // 1. Toggles specific fields in the form based on Stage
         function toggleStageFields() {
             const stage = document.getElementById('prodStage').value;
             
-            // First, hide all of them
-            document.getElementById('forgingFields').style.display = 'none';
-            document.getElementById('rollingFields').style.display = 'none';
-            document.getElementById('secOpFields').style.display = 'none';
-            
-            // Then, show only the one that matches the dropdown
-            if (stage === 'FORGING') {
-                document.getElementById('forgingFields').style.display = 'flex';
-            } else if (stage === 'ROLLING') {
-                document.getElementById('rollingFields').style.display = 'flex';
-            } else if (stage === 'SEC_OP') {
-                document.getElementById('secOpFields').style.display = 'flex';
-            }
+            // Hide/Show classes based on Stage
+            const dynFR = document.querySelectorAll('.dyn-fr'); // Forging & Rolling
+            const dynF = document.querySelectorAll('.dyn-f');   // Forging only
+            const dynS = document.querySelectorAll('.dyn-s');   // Sec Op only
+
+            dynFR.forEach(el => el.style.display = (stage === 'FORGING' || stage === 'ROLLING') ? '' : 'none');
+            dynF.forEach(el => el.style.display = (stage === 'FORGING') ? '' : 'none');
+            dynS.forEach(el => el.style.display = (stage === 'SEC_OP') ? '' : 'none');
+
+            // Downtime Grid
+            document.querySelector('.downtime-grid').style.display = (stage === 'FORGING' || stage === 'ROLLING') ? 'grid' : 'none';
         }
-        // 2. Toggles the tabs above the table
+
         function filterLogs(stage) {
             currentLogFilter = stage;
-            
-            // Update Tab UI Colors
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             document.getElementById('tab-' + stage).classList.add('active');
-            
-            // Reload Table Data
             loadProductionBatches();
         }
 
+        // ==========================================
+        // SUBMIT MASSIVE DATA
+        // ==========================================
         async function submitProductionForm() {
-            const stage = document.getElementById('prodStage').value;
-            
-            // Base Data (Always collected)
             const data = {
-                stage: stage,
+                stage: document.getElementById('prodStage').value,
+                date: document.getElementById('prodDate').value,
+                shift: document.getElementById('prodShift').value,
                 machineName: document.getElementById('prodMachine').value,
                 operator: document.getElementById('prodOperator').value,
-                shift: document.getElementById('prodShift').value,
+                operation: document.getElementById('prodOperation').value,
                 workOrderNo: document.getElementById('prodWO').value,
-                productBarcode: document.getElementById('prodCode').value,
+                partNo: document.getElementById('prodPartNo').value,
+                partName: document.getElementById('prodPartName').value,
+                partSize: document.getElementById('prodSize').value,
+                pitch: document.getElementById('prodPitch').value,
+                length: document.getElementById('prodLength').value,
+                af: document.getElementById('prodAF').value,
+                productGrade: document.getElementById('prodGrade').value,
+                
+                rawMaterialCode: document.getElementById('prodRMCode').value,
+                heatNo: document.getElementById('prodHeatNo').value,
+                rawMaterialConsumedKg: document.getElementById('prodRMKg').value,
+                pieceWeightKg: document.getElementById('prodPieceWt').value,
+                
+                scheduleHours: document.getElementById('prodSchHrs').value,
+                jobChangeHours: document.getElementById('prodJcHrs').value,
+                prodPlannedHours: document.getElementById('prodPlannedHrs').value,
+                speedRpm: document.getElementById('prodSpeed').value,
+                shiftTargetQty: document.getElementById('prodTarget').value,
+                
                 acceptedQty: document.getElementById('prodAccepted').value,
                 rejectedQty: document.getElementById('prodRejected').value,
+                rejectionKg: document.getElementById('prodRejKg').value,
                 rejectionReason: document.getElementById('prodRejReason').value,
-                downtimeMinutes: document.getElementById('prodDowntime').value,
-                downtimeReason: document.getElementById('prodDownReason').value,
-                username: currentUser.username,
-                // Default empty values for dynamic fields
-                operation: '', heatNo: '', pieceWeight: 0, speedRpm: 0, scheduleHours: 0, targetQty: 0, rawMaterialCode: '', rawMaterialConsumedKg: 0
+                remarks: document.getElementById('prodRemarks').value,
+                
+                lossMajorJC: document.getElementById('l_MajorJC').value,
+                lossMinorJC: document.getElementById('l_MinorJC').value,
+                lossSetting: document.getElementById('l_Setting').value,
+                lossMcClean: document.getElementById('l_McClean').value,
+                lossToolRework: document.getElementById('l_ToolRework').value,
+                lossNoTool: document.getElementById('l_NoTool').value,
+                lossNoLoad: document.getElementById('l_NoLoad').value,
+                lossNoOperator: document.getElementById('l_NoOperator').value,
+                lossMMnt: document.getElementById('l_MMnt').value,
+                lossEMnt: document.getElementById('l_EMnt').value,
+                lossNoPower: document.getElementById('l_NoPower').value,
+                lossNoAirOil: document.getElementById('l_NoAirOil').value,
+                lossNoRm: document.getElementById('l_NoRm').value,
+                lossRmLoading: document.getElementById('l_RmLoading').value,
+                lossQaApproval: document.getElementById('l_QaApproval').value,
+                lossCoilChange: document.getElementById('l_CoilChange').value,
+                lossNoPlan: document.getElementById('l_NoPlan').value,
+                lossNpdTeam: document.getElementById('l_NpdTeam').value,
+                lossUnknown: document.getElementById('l_Unknown').value,
+                
+                loggedBy: currentUser.username
             };
 
-            // Grab the specific columns based on the Stage selected
-            if(stage === 'FORGING') {
-                data.operation = "COLD FORGING";
-                data.rawMaterialCode = document.getElementById('forgeRMCode').value;
-                data.heatNo = document.getElementById('forgeHeatNo').value;
-                data.rawMaterialConsumedKg = document.getElementById('forgeRMKg').value;
-                data.pieceWeight = document.getElementById('forgePieceWt').value;
-                data.speedRpm = document.getElementById('forgeSpeed').value;
-                data.scheduleHours = document.getElementById('forgeSchHrs').value;
-                data.targetQty = document.getElementById('forgeTarget').value;
-            } else if(stage === 'ROLLING') {
-                data.operation = "THREAD ROLLING";
-                data.heatNo = document.getElementById('rollHeatNo').value;
-                data.pieceWeight = document.getElementById('rollPieceWt').value;
-                data.speedRpm = document.getElementById('rollSpeed').value;
-                data.scheduleHours = document.getElementById('rollSchHrs').value;
-                data.targetQty = document.getElementById('rollTarget').value;
-            } else if(stage === 'SEC_OP') {
-                data.operation = document.getElementById('secOpType').value;
-                data.scheduleHours = document.getElementById('secOpSchHrs').value;
-                data.targetQty = document.getElementById('secOpTarget').value;
-            }
-
-            if (!data.machineName || !data.productBarcode || !data.acceptedQty) {
-                return showToast("Machine, Part Code, and Accepted Qty are required!", true);
-            }
+            if (!data.machineName || !data.partNo) return showToast("Machine and Part No are required!", true);
 
             try {
                 const response = await fetch(`${API_URL}/production/batch`, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
+                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
                 });
                 const result = await response.json();
                 if (result.success) {
-                    showToast("✅ Log Saved Successfully!");
-                    // Clear the variable fields for the next entry
-                    document.getElementById('prodAccepted').value = '';
-                    document.getElementById('prodRejected').value = '';
-                    document.getElementById('prodDowntime').value = '';
+                    showToast("✅ Full Log Saved!");
+                    // Clear variable numeric fields
+                    ['prodAccepted','prodRejected','prodRejKg','prodRMKg','l_MajorJC','l_MinorJC','l_Setting','l_McClean','l_ToolRework','l_NoTool','l_NoLoad','l_NoOperator','l_MMnt','l_EMnt','l_NoPower','l_NoAirOil','l_NoRm','l_RmLoading','l_QaApproval','l_CoilChange','l_NoPlan','l_NpdTeam','l_Unknown'].forEach(id => {
+                        if(document.getElementById(id)) document.getElementById(id).value = '';
+                    });
                     loadProductionBatches();
                 } else showToast("❌ Error: " + result.message, true);
             } catch (err) { showToast("❌ Server Error", true); }
@@ -473,218 +389,36 @@
                 const tbody = document.querySelector('#productionTable tbody');
                 tbody.innerHTML = '';
                 
-                if (batches.length === 0) return tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No logs found.</td></tr>';
-
-                let count = 0;
                 batches.forEach(b => {
-                    // TAB FILTERING LOGIC
                     if (currentLogFilter !== 'ALL' && b.stage !== currentLogFilter) return;
-                    count++;
-
+                    
                     let stageColor = b.stage === 'FORGING' ? '#ff9800' : (b.stage === 'ROLLING' ? '#17a2b8' : '#28a745');
                     const dt = new Date(b.date);
                     
-                    let specificDetail = '';
-                    if(b.stage === 'FORGING' && b.rawMaterialCode) specificDetail = `<br><span style="color:#555; font-size:11px;">RM: ${b.rawMaterialCode} (${b.rawMaterialConsumedKg}kg)</span>`;
-                    if(b.stage === 'ROLLING' && b.heatNo) specificDetail = `<br><span style="color:#555; font-size:11px;">Heat: ${b.heatNo}</span>`;
-                    
+                    // Calculate total loss automatically for display
+                    const totalLoss = (b.lossMajorJC||0)+(b.lossMinorJC||0)+(b.lossSetting||0)+(b.lossMcClean||0)+(b.lossToolRework||0)+(b.lossNoTool||0)+(b.lossNoLoad||0)+(b.lossNoOperator||0)+(b.lossMMnt||0)+(b.lossEMnt||0)+(b.lossNoPower||0)+(b.lossNoAirOil||0)+(b.lossNoRm||0)+(b.lossRmLoading||0)+(b.lossQaApproval||0)+(b.lossCoilChange||0)+(b.lossNoPlan||0)+(b.lossNpdTeam||0)+(b.lossUnknown||0);
+
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
-                        <td><strong>${dt.toLocaleDateString()}</strong><br><span style="color:#666; font-size:12px;">Shift: ${b.shift || '-'}</span></td>
-                        <td><span style="background:${stageColor}; color:white; padding:4px 8px; border-radius:4px; font-weight:bold; font-size:12px;">${b.stage}</span><br><small>${b.operation || ''}</small></td>
-                        <td><strong>${b.machineName || '-'}</strong><br><span style="color:#666; font-size:12px;">👤 ${b.operator || '-'}</span></td>
-                        <td><strong>${b.productBarcode || '-'}</strong><br><span style="color:#666; font-size:12px;">WO: ${b.workOrderNo || '-'}</span>${specificDetail}</td>
-                        <td><span style="color:green; font-weight:bold;">${b.acceptedQty} ✅</span><br><span style="color:red; font-size:12px;">${b.rejectedQty} ❌ ${b.rejectionReason ? '('+b.rejectionReason+')' : ''}</span></td>
-                        <td>${b.downtimeMinutes > 0 ? `<span style="color:#dc3545; font-weight:bold;">${b.downtimeMinutes}m</span><br><span style="font-size:11px;">${b.downtimeReason || ''}</span>` : '<span style="color:#28a745;">0m</span>'}</td>
+                        <td><strong>${dt.toLocaleDateString()}</strong><br><span style="color:#666; font-size:11px;">Sh: ${b.shift||'-'}</span></td>
+                        <td><span style="background:${stageColor}; color:white; padding:3px 6px; border-radius:3px; font-weight:bold; font-size:11px;">${b.stage}</span><br><strong>${b.machineName||'-'}</strong></td>
+                        <td><strong>${b.partNo||'-'}</strong><br><span style="color:#666; font-size:11px;">WO: ${b.workOrderNo||'-'}</span></td>
+                        <td style="color:green; font-weight:bold;">${b.acceptedQty}</td>
+                        <td style="color:red; font-weight:bold;">${b.rejectedQty} ${b.rejectionKg ? '('+b.rejectionKg+'kg)' : ''}</td>
+                        <td>${b.speedRpm||0} RPM<br>${b.scheduleHours||0} Hrs</td>
+                        <td style="color:#dc3545; font-weight:bold;">${totalLoss} Mins</td>
+                        <td><span style="font-size:11px;">RM: ${b.rawMaterialCode||'-'}</span><br><span style="font-size:11px;">Heat: ${b.heatNo||'-'}</span></td>
                     `;
                     tbody.appendChild(tr);
                 });
-
-                if(count === 0) tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No logs found for this stage.</td></tr>';
-
-            } catch (error) { console.error("Error loading production batches"); }
+            } catch (error) { console.error("Error loading"); }
         }
 
-        // ==========================================
-        // OTHER INVENTORY LOGIC (Kept exactly as requested)
-        // ==========================================
-        async function loadInventory() {
-            try {
-                const response = await fetch(`${API_URL}/products`);
-                const products = await response.json();
-                const tbody = document.querySelector('#productsTable tbody');
-                tbody.innerHTML = '';
-                if (!Array.isArray(products) || products.length === 0) return tbody.innerHTML = '<tr><td colspan="9" style="text-align: center;">No finished goods found.</td></tr>';
-
-                products.forEach(p => {
-                    const currentStock = p.currentStock || 0;
-                    const isLowStock = currentStock <= 10;
-                    const tr = document.createElement('tr');
-                    if (isLowStock) tr.className = "low-stock";
-
-                    let actionHTML = '';
-                    if(currentUser && currentUser.role === 'ADMIN') {
-                        actionHTML = `<td class="admin-actions" style="display:flex; flex-direction:column; gap:5px;">
-                            <input type="number" id="stock-${p._id}" value="${currentStock}" style="width: 70px; text-align: center; border: 1px solid #ccc; border-radius: 4px; padding: 4px; margin-bottom: 5px;">
-                            <button onclick="updateStock('${p._id}')" style="background: #28a745; color: white; border: none; padding: 5px; border-radius: 4px; cursor: pointer;">Save</button>
-                            <button onclick="deleteProduct('${p._id}')" style="background: #dc3545; color: white; border: none; padding: 5px; border-radius: 4px; cursor: pointer;">Delete</button>
-                        </td>`;
-                    }
-
-                    tr.innerHTML = `<td><strong>${p.productCode || 'N/A'}</strong></td><td>${p.sector || '-'}</td><td>${p.type || '-'}</td><td>${p.grade || '-'}</td>
-                        <td>${p.length ? p.length + ' mm' : '-'}</td><td>${p.af !== undefined && p.af !== null ? p.af : '-'}</td><td>${p.weightPerPc || '0'}g</td>
-                        <td class="stock-val ${isLowStock ? 'low-stock-text' : ''}">${currentStock}</td>${actionHTML}`;
-                    tbody.appendChild(tr);
-                });
-                filterInventory();
-            } catch (error) { document.querySelector('#productsTable tbody').innerHTML = '<tr><td colspan="9" style="color: red; text-align: center;">❌ Failed to connect to server.</td></tr>'; }
-        }
-
-        async function updateStock(productId) {
-            const newStock = document.getElementById(`stock-${productId}`).value;
-            try {
-                const response = await fetch(`${API_URL}/inventory/${productId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ stock: Number(newStock) }) });
-                if (response.ok) { showToast('✅ Stock updated!'); loadInventory(); }
-            } catch (error) { showToast('❌ Server error.', true); }
-        }
-        async function deleteProduct(productId) {
-            if (!confirm('Completely remove this product?')) return;
-            try { const response = await fetch(`${API_URL}/inventory/${productId}`, { method: 'DELETE' }); if (response.ok) loadInventory(); } catch (error) {}
-        }
-        function openModal() { document.getElementById('addProductModal').style.display = 'flex'; }
-        function closeModal() { document.getElementById('addProductModal').style.display = 'none'; }
-        async function submitNewProduct() {
-            const productCode = document.getElementById('newProdCode').value;
-            if (!productCode) return alert("Product Code required!");
-            const newProd = { productCode: productCode, sector: document.getElementById('newSector').value, type: document.getElementById('newType').value, grade: document.getElementById('newGrade').value, length: parseFloat(document.getElementById('newLength').value) || null, af: parseFloat(document.getElementById('newAF').value) || null, weightPerPc: parseFloat(document.getElementById('newWeight').value) || 0, currentStock: parseInt(document.getElementById('newStock').value) || 0 };
-            try {
-                const response = await fetch(`${API_URL}/products`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newProd) });
-                const data = await response.json();
-                if (data.success) { showToast("✅ Added!"); closeModal(); refreshDashboard(); } else showToast("❌ Error: " + data.message, true);
-            } catch (error) { showToast("❌ Failed to connect.", true); }
-        }
-
-        async function loadTransactions() {
-            try {
-                const response = await fetch(`${API_URL}/transactions`);
-                const transactions = await response.json();
-                const tbody = document.querySelector('#transactionsTable tbody');
-                tbody.innerHTML = '';
-                transactions.forEach(tx => {
-                    const txDate = new Date(tx.date);
-                    let typeColor = '#333'; let sign = '';
-                    if(tx.type === 'INWARD' || tx.type === 'PRODUCTION') { typeColor = '#28a745'; sign = '+'; }
-                    if(tx.type === 'DISPATCH') { typeColor = '#dc3545'; sign = '-'; }
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `<td><span class="date-text">${txDate.toLocaleDateString()}</span><span class="time-text">${txDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span></td>
-                        <td><strong>${tx.barcode}</strong></td><td style="color: ${typeColor}; font-weight: bold;">${tx.type}<span class="user-tag">👤 ${tx.user || 'Unknown'}</span></td>
-                        <td><strong>${sign}${tx.quantity}</strong></td><td style="color: #007bff; font-weight: bold;">${tx.resultingStock !== undefined ? tx.resultingStock : '-'}</td>`;
-                    tbody.appendChild(tr);
-                });
-                applyTxFilters();
-            } catch (error) {}
-        }
-
-        async function loadRawMaterials() {
-            try {
-                const response = await fetch(`${API_URL}/raw-materials`);
-                const materials = await response.json();
-                const tbody = document.querySelector('#rawMaterialsTable tbody');
-                tbody.innerHTML = '';
-                materials.forEach(m => {
-                    const tr = document.createElement('tr');
-                    const isLow = m.currentStockKg < 100;
-                    if(isLow) tr.className = "low-stock";
-                    let dateStr = "N/A", timeStr = "";
-                    if(m.lastUpdate) { const dt = new Date(m.lastUpdate); dateStr = dt.toLocaleDateString(); timeStr = dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); }
-                    tr.innerHTML = `<td><strong>${m.materialCode}</strong></td><td>${m.materialName || 'Steel Stock'}</td>
-                        <td class="${isLow ? 'low-stock-text' : ''}" style="font-weight: bold; font-size: 1.1em; color: #007bff;">${m.currentStockKg} Kg</td>
-                        <td><span class="user-tag" style="font-size: 14px;">👤 ${m.lastUpdatedBy || '-'}</span></td><td><span class="date-text">${dateStr}</span><span class="time-text">${timeStr}</span></td>`;
-                    tbody.appendChild(tr);
-                });
-            } catch (error) {}
-        }
-
-        function openReceiveModal() { document.getElementById('receiveStockModal').style.display = 'flex'; }
-        function closeReceiveModal() { document.getElementById('receiveStockModal').style.display = 'none'; document.getElementById('rawCodeInput').value = ''; document.getElementById('rawNameInput').value = ''; document.getElementById('rawKgInput').value = ''; }
-        async function submitRawMaterial() {
-            const code = document.getElementById('rawCodeInput').value.trim().toUpperCase(); const name = document.getElementById('rawNameInput').value.trim(); const kg = document.getElementById('rawKgInput').value;
-            if (!code || !kg || isNaN(kg) || Number(kg) <= 0) return showToast("Enter valid code and amount.", true);
-            try {
-                const response = await fetch(`${API_URL}/raw-materials/receive`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ materialCode: code, materialName: name, addedKg: Number(kg), username: currentUser.username }) });
-                const data = await response.json();
-                if(data.success) { showToast(`✅ Received ${kg}kg`); closeReceiveModal(); loadRawMaterials(); loadTransactions(); } else showToast("❌ Error: " + data.message, true);
-            } catch (err) {}
-        }
-
-        async function loadPOs() {
-            try {
-                const response = await fetch(`${API_URL}/purchase-orders`);
-                const pos = await response.json();
-                const tbody = document.querySelector('#poTable tbody');
-                tbody.innerHTML = '';
-                pos.forEach(po => {
-                    const isPending = po.status === 'PENDING';
-                    const actionBtn = isPending ? `<button onclick="receivePO('${po._id}')" style="background:#28a745; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-weight:bold;">📥 Mark Received</button>` : `<span style="color:#666; font-size:12px;">Received on<br>${new Date(po.receivedDate).toLocaleDateString()}</span>`;
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `<td><strong>${po.poNumber}</strong><br><span style="font-size:11px; color:#666;">👤 ${po.orderedBy}</span></td><td>${po.supplierName}</td><td><strong>${po.materialCode}</strong></td><td>${po.grade || '-'}</td>
-                        <td><span style="font-size:12px; color:#555;">${po.scope || '-'}</span></td><td><strong>${po.expectedKg} Kg</strong></td><td>₹${po.totalCost.toLocaleString()}</td>
-                        <td style="color:${isPending ? '#ff9800' : '#28a745'}; font-weight:bold;">${po.status}</td><td>${actionBtn}</td>`;
-                    tbody.appendChild(tr);
-                });
-                filterPOs();
-            } catch (error) {}
-        }
-
-        function openPOModal() { document.getElementById('poModal').style.display = 'flex'; }
-        function closePOModal() { document.getElementById('poModal').style.display = 'none'; document.getElementById('poSupplier').value = ''; document.getElementById('poMaterialCode').value = ''; document.getElementById('poExpectedKg').value = ''; document.getElementById('poCostPerKg').value = ''; }
-        async function submitPO() {
-            const supplierName = document.getElementById('poSupplier').value.trim(); const materialCode = document.getElementById('poMaterialCode').value.trim(); const grade = document.getElementById('poGrade').value.trim(); const scope = document.getElementById('poScope').value.trim(); const expectedKg = document.getElementById('poExpectedKg').value; const costPerKg = document.getElementById('poCostPerKg').value;
-            if (!supplierName || !materialCode || !expectedKg || !costPerKg) return showToast("Fill all required fields", true);
-            try {
-                const res = await fetch(`${API_URL}/purchase-orders`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ supplierName, materialCode, grade, scope, expectedKg, costPerKg, username: currentUser.username }) });
-                const data = await res.json(); 
-                if (res.ok && data.success) { showToast("✅ PO Generated!"); closePOModal(); refreshDashboard(); } else showToast("❌ Error", true);
-            } catch(e) {}
-        }
-        async function receivePO(poId) {
-            if(!confirm("Are you sure the truck arrived?")) return;
-            try {
-                const res = await fetch(`${API_URL}/purchase-orders/${poId}/receive`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: currentUser.username }) });
-                if(res.ok) { showToast("📦 Stock added to Raw Materials!"); refreshDashboard(); }
-            } catch(e) {}
-        }
-
-        function filterInventory() {
-            const filter = document.getElementById('searchInput').value.toUpperCase();
-            const tr = document.getElementById('productsTable').getElementsByTagName("tr");
-            for (let i = 1; i < tr.length; i++) {
-                if (tr[i].cells.length === 1) continue;
-                tr[i].style.display = (tr[i].textContent || tr[i].innerText).toUpperCase().indexOf(filter) > -1 ? "" : "none";
-            }
-        }
-        function applyTxFilters() {
-            const text = document.getElementById("searchTxInput").value.toUpperCase();
-            const tr = document.getElementById("transactionsTable").getElementsByTagName("tr");
-            for (let i = 1; i < tr.length; i++) {
-                if (tr[i].cells.length === 1) continue;
-                let itemCode = tr[i].getElementsByTagName("td")[1].textContent.toUpperCase();
-                tr[i].style.display = itemCode.includes(text) ? "" : "none";
-            }
-        }
-        function filterPOs() {
-            const searchText = document.getElementById('searchPOInput').value.toUpperCase();
-            const tr = document.getElementById('poTable').getElementsByTagName("tr");
-            for (let i = 1; i < tr.length; i++) {
-                if (tr[i].cells.length === 1) continue;
-                tr[i].style.display = tr[i].textContent.toUpperCase().includes(searchText) ? "" : "none";
-            }
-        }
         function exportTableToCSV(tableId, filename) {
             let csv = []; let rows = document.querySelectorAll(`#${tableId} tr`);
             for (let i = 0; i < rows.length; i++) {
                 if (rows[i].style.display === "none") continue;
-                let row = [], cols = rows[i].querySelectorAll("td:not(.admin-actions), th:not(.admin-actions)");
+                let row = [], cols = rows[i].querySelectorAll("td, th");
                 for (let j = 0; j < cols.length; j++) row.push('"' + cols[j].innerText.replace(/(\r\n|\n|\r)/gm, " ").trim() + '"');
                 csv.push(row.join(","));
             }

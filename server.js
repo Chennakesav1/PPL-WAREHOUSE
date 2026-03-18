@@ -69,47 +69,60 @@ app.get('/api/production/batches', async (req, res) => {
         res.json(batches);
     } catch (err) { res.status(500).json({ error: "Server error fetching batches" }); }
 });
-
+// ==========================================
+// PRODUCTION DEPT: Massive Form Submit
+// ==========================================
 app.post('/api/production/batch', async (req, res) => {
-    const { 
-        stage, operation, machineName, operator, shift, workOrderNo, productBarcode, 
-        pieceWeight, speedRpm, scheduleHours, targetQty, // NEW FIELDS
-        acceptedQty, rejectedQty, rejectionReason, rawMaterialCode, rawMaterialConsumedKg, 
-        heatNo, downtimeMinutes, downtimeReason, remarks, username 
-    } = req.body;
-    
     try {
-        if (stage === 'FORGING' && rawMaterialCode && rawMaterialConsumedKg > 0) {
-            const material = await RawMaterial.findOne({ materialCode: rawMaterialCode.toUpperCase() });
-            if (material && material.currentStockKg >= rawMaterialConsumedKg) {
-                material.currentStockKg -= Number(rawMaterialConsumedKg);
+        // Only deduct RM if Forging
+        if (req.body.stage === 'FORGING' && req.body.rawMaterialCode && req.body.rawMaterialConsumedKg > 0) {
+            const material = await RawMaterial.findOne({ materialCode: req.body.rawMaterialCode.toUpperCase() });
+            if (material && material.currentStockKg >= req.body.rawMaterialConsumedKg) {
+                material.currentStockKg -= Number(req.body.rawMaterialConsumedKg);
                 await material.save();
             }
         }
 
+        // Map all 40+ fields directly from the request
         const newBatch = new ProductionBatch({
-            stage, operation, machineName, operator, shift, workOrderNo, productBarcode,
-            pieceWeight: Number(pieceWeight) || 0,
-            speedRpm: Number(speedRpm) || 0,
-            scheduleHours: Number(scheduleHours) || 0,
-            targetQty: Number(targetQty) || 0,
-            acceptedQty: Number(acceptedQty) || 0, 
-            rejectedQty: Number(rejectedQty) || 0, 
-            rejectionReason, rawMaterialCode, 
-            rawMaterialConsumedKg: Number(rawMaterialConsumedKg) || 0,
-            heatNo, downtimeMinutes: Number(downtimeMinutes) || 0, downtimeReason, remarks, loggedBy: username
+            ...req.body,
+            date: req.body.date ? new Date(req.body.date) : new Date(),
+            // Ensure numbers are saved as numbers
+            length: Number(req.body.length) || 0,
+            rawMaterialConsumedKg: Number(req.body.rawMaterialConsumedKg) || 0,
+            pieceWeightKg: Number(req.body.pieceWeightKg) || 0,
+            scheduleHours: Number(req.body.scheduleHours) || 0,
+            jobChangeHours: Number(req.body.jobChangeHours) || 0,
+            prodPlannedHours: Number(req.body.prodPlannedHours) || 0,
+            speedRpm: Number(req.body.speedRpm) || 0,
+            shiftTargetQty: Number(req.body.shiftTargetQty) || 0,
+            acceptedQty: Number(req.body.acceptedQty) || 0,
+            rejectedQty: Number(req.body.rejectedQty) || 0,
+            rejectionKg: Number(req.body.rejectionKg) || 0,
+            // Losses
+            lossMajorJC: Number(req.body.lossMajorJC) || 0, lossMinorJC: Number(req.body.lossMinorJC) || 0,
+            lossSetting: Number(req.body.lossSetting) || 0, lossMcClean: Number(req.body.lossMcClean) || 0,
+            lossToolRework: Number(req.body.lossToolRework) || 0, lossNoTool: Number(req.body.lossNoTool) || 0,
+            lossNoLoad: Number(req.body.lossNoLoad) || 0, lossNoOperator: Number(req.body.lossNoOperator) || 0,
+            lossMMnt: Number(req.body.lossMMnt) || 0, lossEMnt: Number(req.body.lossEMnt) || 0,
+            lossNoPower: Number(req.body.lossNoPower) || 0, lossNoAirOil: Number(req.body.lossNoAirOil) || 0,
+            lossNoRm: Number(req.body.lossNoRm) || 0, lossRmLoading: Number(req.body.lossRmLoading) || 0,
+            lossQaApproval: Number(req.body.lossQaApproval) || 0, lossCoilChange: Number(req.body.lossCoilChange) || 0,
+            lossNoPlan: Number(req.body.lossNoPlan) || 0, lossNpdTeam: Number(req.body.lossNpdTeam) || 0,
+            lossUnknown: Number(req.body.lossUnknown) || 0
         });
+        
         await newBatch.save();
 
-        if (stage === 'SEC_OP' || stage === 'ROLLING') {
-            const product = await Product.findOne({ barcode: productBarcode });
+        if (req.body.stage === 'SEC_OP' || req.body.stage === 'ROLLING') {
+            const product = await Product.findOne({ barcode: req.body.partNo }); // Linking by partNo
             if (product) {
-                product.currentStock += Number(acceptedQty);
+                product.currentStock += Number(req.body.acceptedQty);
                 await product.save();
-                await new Transaction({ barcode: productBarcode, type: 'PRODUCTION', quantity: acceptedQty, resultingStock: product.currentStock, user: username }).save();
+                await new Transaction({ barcode: req.body.partNo, type: 'PRODUCTION', quantity: req.body.acceptedQty, resultingStock: product.currentStock, user: req.body.loggedBy }).save();
             }
         }
-        res.json({ success: true, message: `Production Logged for ${machineName}!` });
+        res.json({ success: true, message: `Production Logged!` });
     } catch (err) { res.status(500).json({ error: "Production error" }); }
 });
 
