@@ -1,73 +1,63 @@
 import React, { useState, useEffect } from 'react';
-import { Text, View, StyleSheet, TouchableOpacity, Alert, TextInput, ScrollView, SafeAreaView, ActivityIndicator } from 'react-native';
+import { 
+  Text, View, StyleSheet, TouchableOpacity, Alert, TextInput, 
+  ScrollView, SafeAreaView, ActivityIndicator, KeyboardAvoidingView, Platform 
+} from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 
-// UPDATE TO YOUR RENDER URL OR LAPTOP IP
+// UPDATE TO YOUR RENDER URL
 const API_URL = "https://ppl-warehouse-wkdp.onrender.com/api";
 
 export default function App() {
   const [permission, requestPermission] = useCameraPermissions();
   
-  // Authentication & Splash States
-  const [showSplash, setShowSplash] = useState(true);
-  const [user, setUser] = useState(null); // Replaces isAuthenticated. Stores { username, role }
+  // --- 1. SESSION & AUTH STATES ---
+  const [isReady, setIsReady] = useState(false); 
+  const [user, setUser] = useState(null);
   const [usernameInput, setUsernameInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  // App States (Scanning & Products)
+  // --- 2. APP FUNCTIONAL STATES ---
   const [scanned, setScanned] = useState(false);
   const [product, setProduct] = useState(null);
   const [quantity, setQuantity] = useState('1');
   const [manualCode, setManualCode] = useState('');
-
-  // Extra States for Production Department
   const [rawMaterialCode, setRawMaterialCode] = useState('');
   const [rawMaterialKg, setRawMaterialKg] = useState('');
 
-// --- 1. RUN THIS AS SOON AS APP OPENS ---
+  // --- 3. IMPROVED INITIALIZATION (STAY LOGGED IN) ---
   useEffect(() => {
-    const initializeApp = async () => {
-      await checkLogin();
+    const restoreSession = async () => {
+      try {
+        const savedUser = await AsyncStorage.getItem('workerUser');
+        if (savedUser) {
+          const userData = JSON.parse(savedUser);
+          setUser(userData);
+          console.log("✅ Session Restored:", userData.username);
+        }
+      } catch (e) {
+        console.error("❌ Storage Error:", e);
+      } finally {
+        // 🛠️ Wait for splash effect for 2 seconds then show app
+        setTimeout(() => setIsReady(true), 2000); 
+      }
     };
-    initializeApp();
+    restoreSession();
   }, []);
 
-  // --- 2. THE LOGIC TO STAY LOGGED IN ---
-  const checkLogin = async () => {
-    try {
-      const savedUser = await AsyncStorage.getItem('workerUser');
-      console.log("Checking storage for user...", savedUser);
-
-      if (savedUser !== null) {
-        // Convert the string back into an object
-        const userData = JSON.parse(savedUser);
-        
-        // CRITICAL: This tells the UI to switch to the Scanner screen
-        setUser(userData); 
-        
-        console.log("Session Restored for:", userData.username);
-      } else {
-        console.log("No user found in storage. Staying on Login.");
-      }
-    } catch (e) { 
-      console.error("AsyncStorage Error:", e); 
-      // If there's an error, force a logout just in case
-      setUser(null);
-    }
-  };
-
- // --- UPDATED LOGIN (Clears old data first) ---
+  // --- 4. LOGIN LOGIC ---
   const handleLogin = async () => {
-    const cleanUser = username.trim().toLowerCase();
-    const cleanPass = password.trim();
+    const cleanUser = usernameInput.trim().toLowerCase();
+    const cleanPass = passwordInput.trim();
 
     if (!cleanUser || !cleanPass) return Alert.alert("Error", "Enter credentials");
     
     setLoading(true);
     try {
-      // 1. Force clear ANY existing data before trying a new login
-      await AsyncStorage.clear(); 
+      await AsyncStorage.clear(); // Wipe old ghosts
 
       const res = await fetch(`${API_URL}/app-login`, {
         method: 'POST',
@@ -77,12 +67,10 @@ export default function App() {
       const data = await res.json();
       
       if (data.success) {
-        // 2. Save the fresh user data
         await AsyncStorage.setItem('workerUser', JSON.stringify(data));
         setUser(data);
-        // 3. Clear the input fields so the next person doesn't see them
-        setUsername('');
-        setPassword('');
+        setUsernameInput('');
+        setPasswordInput('');
       } else {
         Alert.alert("Login Failed", "Invalid Worker Credentials");
       }
@@ -93,27 +81,22 @@ export default function App() {
     }
   };
 
-  // --- UPDATED LOGOUT (Total Wipeout) ---
+  // --- 5. LOGOUT LOGIC ---
   const handleLogout = async () => {
     try {
       setLoading(true);
-      // 1. Completely wipe the phone's storage
       await AsyncStorage.clear();
-      // 2. Reset the app state
       setUser(null);
-      setBarcode('');
-      setQuantity('');
-      setUsername('');
-      setPassword('');
+      resetApp();
       Alert.alert("Logged Out", "Session cleared successfully.");
     } catch (e) {
-      console.error("Logout Error", e);
+      console.error("Logout Error:", e);
     } finally {
       setLoading(false);
     }
   };
 
-  // 3. Search / Scan Product
+  // --- 6. PRODUCT SEARCH / SCAN ---
   const handleSearch = async (searchCode) => {
     if (!searchCode) return Alert.alert("Error", "Please enter a code");
     setScanned(true); 
@@ -126,7 +109,7 @@ export default function App() {
     }
   };
 
-  // 4. ADMIN & PURCHASE: Standard Stock Update (Inward / Dispatch)
+  // --- 7. STOCK UPDATES (ADMIN/PURCHASE) ---
   const handleStandardUpdate = async (type) => {
     if (!quantity || isNaN(parseInt(quantity)) || parseInt(quantity) <= 0) return Alert.alert("Error", "Enter a valid quantity");
     try {
@@ -140,7 +123,7 @@ export default function App() {
     } catch (err) { Alert.alert("Failed", "Server Error."); }
   };
 
-  // 5. PRODUCTION: Record a batch and consume raw steel
+  // --- 8. PRODUCTION LOGIC ---
   const handleProduction = async () => {
     if (!quantity || !rawMaterialCode || !rawMaterialKg) return Alert.alert("Error", "Fill all production fields");
     try {
@@ -157,14 +140,13 @@ export default function App() {
     }
   };
 
-  // 6. SALES: Dispatch an order
+  // --- 9. SALES LOGIC ---
   const handleSales = async () => {
     if (!quantity || isNaN(parseInt(quantity)) || parseInt(quantity) <= 0) return Alert.alert("Error", "Enter a valid quantity");
     try {
       await axios.post(`${API_URL}/sales/order`, {
         productBarcode: product.barcode || product.productCode,
         quantitySold: parseInt(quantity),
-        customerName: "Walk-in Customer / App Order",
         username: user.username
       });
       Alert.alert("Success! 📦", "Order Dispatched!", [{ text: "Scan Next", onPress: resetApp }]);
@@ -173,49 +155,50 @@ export default function App() {
     }
   };
 
-  // Reset Scanner
   const resetApp = () => { 
     setScanned(false); setProduct(null); setQuantity('1'); 
     setRawMaterialCode(''); setRawMaterialKg(''); 
   };
 
-
-
-  // --- UI RENDER BLOCKS ---
-
-  if (!permission?.granted) {
-    return (
-      <View style={styles.centered}>
-        <Text style={{marginBottom: 20}}>Camera permission required.</Text>
-        <TouchableOpacity style={styles.btnGreen} onPress={requestPermission}><Text style={styles.btnText}>Enable Camera</Text></TouchableOpacity>
-      </View>
-    );
-  }
-
-  if (showSplash) {
+  // --- RENDER SPLASH/READY STATE ---
+  if (!isReady) {
     return (
       <View style={styles.splashContainer}>
         <Text style={styles.splashLogo}>PPL</Text>
-        <ActivityIndicator size="large" color="#007bff" style={{ marginTop: 20, transform: [{ scale: 1.5 }] }} />
-        <Text style={styles.splashText}>LOADING ERP SYSTEM...</Text>
+        <ActivityIndicator size="large" color="#007bff" style={{ marginTop: 20 }} />
+        <Text style={styles.splashText}>RESUMING SESSION...</Text>
       </View>
     );
   }
 
+  // --- RENDER PERMISSION SCREEN ---
+  if (!permission?.granted) {
+    return (
+      <View style={styles.centered}>
+        <Text style={{marginBottom: 20}}>Camera permission required to scan.</Text>
+        <TouchableOpacity style={styles.btnBlue} onPress={requestPermission}><Text style={styles.btnText}>Enable Camera</Text></TouchableOpacity>
+      </View>
+    );
+  }
+
+  // --- RENDER LOGIN SCREEN ---
   if (!user) {
     return (
-      <SafeAreaView style={styles.loginContainer}>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.loginContainer}>
         <View style={styles.loginCard}>
           <Text style={styles.loginTitle}>PPL ERP App</Text>
           <Text style={styles.loginSubtitle}>Authorized Personnel Only</Text>
           <TextInput style={styles.loginInput} placeholder="Username" value={usernameInput} onChangeText={setUsernameInput} autoCapitalize="none" />
           <TextInput style={styles.loginInput} placeholder="Password" value={passwordInput} onChangeText={setPasswordInput} secureTextEntry={true} />
-          <TouchableOpacity style={styles.loginBtn} onPress={handleLogin}><Text style={styles.btnText}>Login Securely</Text></TouchableOpacity>
+          <TouchableOpacity style={styles.loginBtn} onPress={handleLogin}>
+            {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnText}>Login Securely</Text>}
+          </TouchableOpacity>
         </View>
-      </SafeAreaView>
+      </KeyboardAvoidingView>
     );
   }
 
+  // --- RENDER MAIN APP ---
   return (
     <SafeAreaView style={styles.container}>
       {!scanned ? (
@@ -256,8 +239,6 @@ export default function App() {
               <TextInput style={styles.inputBig} keyboardType="numeric" value={quantity} onChangeText={setQuantity} autoFocus={true} />
 
               {/* DYNAMIC ROLE-BASED CONTROLS */}
-              
-              {/* 1. PRODUCTION ROLE */}
               {user.role === 'PRODUCTION' && (
                 <View style={styles.roleBox}>
                   <Text style={styles.roleBoxTitle}>🏭 Raw Material Consumed</Text>
@@ -267,7 +248,6 @@ export default function App() {
                 </View>
               )}
 
-              {/* 2. SALES ROLE */}
               {user.role === 'SALES' && (
                 <View style={styles.roleBox}>
                   <Text style={styles.roleBoxTitle}>📦 Order Fulfillment</Text>
@@ -275,7 +255,6 @@ export default function App() {
                 </View>
               )}
 
-              {/* 3. ADMIN OR PURCHASE ROLE */}
               {(user.role === 'ADMIN' || user.role === 'PURCHASE') && (
                 <View style={styles.roleBox}>
                   <Text style={styles.roleBoxTitle}>⚙️ Manual Stock Adjustment</Text>
