@@ -914,6 +914,8 @@
                 const result = await response.json();
                 if (result.success) {
                     showToast("✅ Full Log Saved!");
+                    document.getElementById('prodMachineOther').style.display = 'none';
+                    document.getElementById('prodPartNameOther').style.display = 'none';
                     ['prodAccepted', 'prodRejected', 'prodRejKg', 'prodRMKg', 'l_MajorJC', 'l_MinorJC', 'l_Setting', 'l_McClean', 'l_ToolRework', 'l_NoTool', 'l_NoLoad', 'l_NoOperator', 'l_MMnt', 'l_EMnt', 'l_NoPower', 'l_NoAirOil', 'l_NoRm', 'l_RmLoading', 'l_QaApproval', 'l_CoilChange', 'l_NoPlan', 'l_NpdTeam', 'l_Unknown'].forEach(id => { if (document.getElementById(id)) document.getElementById(id).value = ''; });
                     loadProductionBatches();
                 } else showToast("❌ Error: " + result.message, true);
