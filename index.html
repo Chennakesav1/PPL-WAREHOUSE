@@ -555,21 +555,61 @@
 
                 <div class="table-wrapper">
                     <table id="productionTable">
-                        <thead style="background-color: #ff9800;">
+                        <thead style="background-color: #ff9800; white-space: nowrap;">
                             <tr>
-                                <th>Date/Shift</th>
-                                <th>Stage / M/c</th>
-                                <th>Part No / WO</th>
-                                <th>Acc Qty</th>
-                                <th>Rej Qty</th>
-                                <th>Speed/Hrs</th>
-                                <th>Total Loss Mins</th>
-                                <th>RM/Heat</th>
+                                <th>Date</th>
+                                <th>Shift</th>
+                                <th>Stage</th>
+                                <th>Machine</th>
+                                <th>Operator</th>
+                                <th>Process</th>
+                                <th>WO No</th>
+                                <th>Part No</th>
+                                <th>Part Name</th>
+                                <th>Size</th>
+                                <th>Pitch</th>
+                                <th>Length</th>
+                                <th>A/F</th>
+                                <th>Grade</th>
+                                <th>RM Code</th>
+                                <th>Heat No</th>
+                                <th>RM Consumed (Kg)</th>
+                                <th>Piece Wt (Kg)</th>
+                                <th>Sch Hrs</th>
+                                <th>J/C Hrs</th>
+                                <th>Planned Hrs</th>
+                                <th>Speed (RPM)</th>
+                                <th>Target Qty</th>
+                                <th style="background:#28a745;">Acc Qty</th>
+                                <th style="background:#dc3545;">Rej Qty</th>
+                                <th>Rej Kg</th>
+                                <th>Rej Reason</th>
+                                <th>Major JC</th>
+                                <th>Minor JC</th>
+                                <th>Setting</th>
+                                <th>M/C Clean</th>
+                                <th>Tool Rework</th>
+                                <th>No Tool</th>
+                                <th>No Load</th>
+                                <th>No Operator</th>
+                                <th>M/MNT</th>
+                                <th>E/MNT</th>
+                                <th>No Power</th>
+                                <th>No Air/Oil</th>
+                                <th>No RM</th>
+                                <th>RM Loading</th>
+                                <th>QA Appr</th>
+                                <th>Coil Chg</th>
+                                <th>No Plan</th>
+                                <th>NPD Team</th>
+                                <th>Unknown Loss</th>
+                                <th>Remarks</th>
+                                <th>Logged By</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td colspan="8">Loading...</td>
+                                <td colspan="48">Loading...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -922,31 +962,114 @@
             } catch (err) { showToast("❌ Server Error", true); }
         }
 
+
+
+
+        
+
         async function loadProductionBatches() {
-            try {
-                const response = await fetch(`${API_URL}/production/batches`);
-                const batches = await response.json();
-                const tbody = document.querySelector('#productionTable tbody');
-                tbody.innerHTML = '';
-                let count = 0;
-                batches.forEach(b => {
-                    if (currentLogFilter !== 'ALL' && b.stage !== currentLogFilter) return;
-                    count++;
-                    let stageColor = b.stage === 'FORGING' ? '#ff9800' : (b.stage === 'ROLLING' ? '#17a2b8' : '#28a745');
-                    const dt = new Date(b.date);
-                    const totalLoss = (b.lossMajorJC || 0) + (b.lossMinorJC || 0) + (b.lossSetting || 0) + (b.lossMcClean || 0) + (b.lossToolRework || 0) + (b.lossNoTool || 0) + (b.lossNoLoad || 0) + (b.lossNoOperator || 0) + (b.lossMMnt || 0) + (b.lossEMnt || 0) + (b.lossNoPower || 0) + (b.lossNoAirOil || 0) + (b.lossNoRm || 0) + (b.lossRmLoading || 0) + (b.lossQaApproval || 0) + (b.lossCoilChange || 0) + (b.lossNoPlan || 0) + (b.lossNpdTeam || 0) + (b.lossUnknown || 0);
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `<td><strong>${dt.toLocaleDateString()}</strong><br><span style="color:#666; font-size:11px;">Sh: ${b.shift || '-'}</span></td>
-                        <td><span style="background:${stageColor}; color:white; padding:3px 6px; border-radius:3px; font-weight:bold; font-size:11px;">${b.stage}</span><br><strong>${b.machineName || '-'}</strong></td>
-                        <td><strong>${b.partNo || '-'}</strong><br><span style="color:#666; font-size:11px;">WO: ${b.workOrderNo || '-'}</span></td>
-                        <td style="color:green; font-weight:bold;">${b.acceptedQty}</td><td style="color:red; font-weight:bold;">${b.rejectedQty} ${b.rejectionKg ? '(' + b.rejectionKg + 'kg)' : ''}</td>
-                        <td>${b.speedRpm || 0} RPM<br>${b.scheduleHours || 0} Hrs</td><td style="color:#dc3545; font-weight:bold;">${totalLoss} Mins</td>
-                        <td><span style="font-size:11px;">RM: ${b.rawMaterialCode || '-'}</span><br><span style="font-size:11px;">Heat: ${b.heatNo || '-'}</span></td>`;
-                    tbody.appendChild(tr);
-                });
-                if (count === 0) tbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">No logs found for this stage.</td></tr>';
-            } catch (error) { }
+    try {
+        const response = await fetch(`${API_URL}/production/batches`);
+        const batches = await response.json();
+        const tbody = document.querySelector('#productionTable tbody');
+        tbody.innerHTML = '';
+        let count = 0;
+        
+        batches.forEach(b => {
+            if (currentLogFilter !== 'ALL' && b.stage !== currentLogFilter) return;
+            count++;
+            
+            let stageColor = b.stage === 'FORGING' ? '#ff9800' : (b.stage === 'ROLLING' ? '#17a2b8' : '#28a745');
+            const dt = new Date(b.date).toLocaleDateString();
+            
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><strong>${dt}</strong></td>
+                <td>${b.shift || '-'}</td>
+                <td><span style="background:${stageColor}; color:white; padding:3px 6px; border-radius:3px; font-weight:bold; font-size:11px;">${b.stage}</span></td>
+                <td><strong>${b.machineName || '-'}</strong></td>
+                <td>${b.operator || '-'}</td>
+                <td>${b.operation || '-'}</td>
+                <td>${b.workOrderNo || '-'}</td>
+                <td><strong>${b.partNo || '-'}</strong></td>
+                <td>${b.partName || '-'}</td>
+                <td>${b.partSize || '-'}</td>
+                <td>${b.pitch || '-'}</td>
+                <td>${b.length || 0}</td>
+                <td>${b.af || '-'}</td>
+                <td>${b.productGrade || '-'}</td>
+                <td>${b.rawMaterialCode || '-'}</td>
+                <td>${b.heatNo || '-'}</td>
+                <td>${b.rawMaterialConsumedKg || 0}</td>
+                <td>${b.pieceWeightKg || 0}</td>
+                <td>${b.scheduleHours || 0}</td>
+                <td>${b.jobChangeHours || 0}</td>
+                <td>${b.prodPlannedHours || 0}</td>
+                <td>${b.speedRpm || 0}</td>
+                <td>${b.shiftTargetQty || 0}</td>
+                <td style="color:green; font-weight:bold; background:#e8f5e9;">${b.acceptedQty || 0}</td>
+                <td style="color:red; font-weight:bold; background:#ffebee;">${b.rejectedQty || 0}</td>
+                <td>${b.rejectionKg || 0}</td>
+                <td>${b.rejectionReason || '-'}</td>
+                <td>${b.lossMajorJC || 0}</td>
+                <td>${b.lossMinorJC || 0}</td>
+                <td>${b.lossSetting || 0}</td>
+                <td>${b.lossMcClean || 0}</td>
+                <td>${b.lossToolRework || 0}</td>
+                <td>${b.lossNoTool || 0}</td>
+                <td>${b.lossNoLoad || 0}</td>
+                <td>${b.lossNoOperator || 0}</td>
+                <td>${b.lossMMnt || 0}</td>
+                <td>${b.lossEMnt || 0}</td>
+                <td>${b.lossNoPower || 0}</td>
+                <td>${b.lossNoAirOil || 0}</td>
+                <td>${b.lossNoRm || 0}</td>
+                <td>${b.lossRmLoading || 0}</td>
+                <td>${b.lossQaApproval || 0}</td>
+                <td>${b.lossCoilChange || 0}</td>
+                <td>${b.lossNoPlan || 0}</td>
+                <td>${b.lossNpdTeam || 0}</td>
+                <td>${b.lossUnknown || 0}</td>
+                <td>${b.remarks || '-'}</td>
+                <td><span style="color:#666; font-size:11px;">👤 ${b.loggedBy || '-'}</span></td>
+
+                <td class="admin-actions">
+                    ${currentUser && currentUser.role === 'ADMIN' ? 
+                    `<button onclick="deleteProductionBatch('${b._id}')" style="background:#dc3545; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-weight:bold;">🗑️ Delete</button>` 
+                    : '<span style="color:#999; font-size: 11px;">No Access</span>'}
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+        
+        if(count === 0) {
+            tbody.innerHTML = '<tr><td colspan="48" style="text-align: center;">No logs found for this stage.</td></tr>';
         }
+    } catch (error) {
+        console.error("Failed to load batches:", error);
+    }
+}
+
+
+async function deleteProductionBatch(batchId) {
+    if (!confirm('🚨 WARNING: Are you sure you want to permanently delete this production log? This cannot be undone.')) return;
+    
+    try {
+        const response = await fetch(`${API_URL}/production/batch/${batchId}`, { 
+            method: 'DELETE' 
+        });
+        const result = await response.json();
+        
+        if (result.success) {
+            showToast("🗑️ Production log deleted!");
+            loadProductionBatches(); // Refresh the table instantly
+        } else {
+            showToast("❌ Error: " + result.message, true);
+        }
+    } catch (error) {
+        showToast("❌ Server Error while deleting", true);
+    }
+}
 
         // ==========================================
         // STANDARD INVENTORY/TX/RM/PO LOGIC

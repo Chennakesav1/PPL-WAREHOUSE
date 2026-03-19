@@ -333,6 +333,25 @@ app.post('/api/products', async (req, res) => {
     }
 });
 
+// ==========================================
+// ADMIN ONLY: Delete Production Batch
+// ==========================================
+app.delete('/api/production/batch/:id', async (req, res) => {
+    try {
+        const deletedBatch = await ProductionBatch.findByIdAndDelete(req.params.id);
+        if (!deletedBatch) return res.status(404).json({ success: false, message: "Batch not found" });
+        
+        // Note: This deletes the log, but intentionally DOES NOT reverse the 
+        // raw material deduction or finished goods addition automatically 
+        // to prevent complex inventory math errors. Admins must adjust inventory manually if needed.
+        
+        res.status(200).json({ success: true, message: "Batch deleted successfully" });
+    } catch (err) {
+        console.error("🔥 CRASH IN DELETE /api/production/batch/:id:", err);
+        res.status(500).json({ success: false, error: "Server error deleting batch", details: err.message });
+    }
+});
+
 app.post('/api/stock', async (req, res) => {
     const { barcode, type, quantity, username } = req.body;
     try {
