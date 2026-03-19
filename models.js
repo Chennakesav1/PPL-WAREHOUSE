@@ -46,6 +46,7 @@ const purchaseOrderSchema = new mongoose.Schema({
 
 // THE MASSIVE 40-COLUMN MES PRODUCTION SCHEMA
 const productionBatchSchema = new mongoose.Schema({
+    batchNumber: { type: String, unique: true, sparse: true },
     date: { type: Date, default: Date.now },
     stage: { type: String, enum: ['FORGING', 'ROLLING', 'SEC_OP'], required: true },
     machineName: String,
