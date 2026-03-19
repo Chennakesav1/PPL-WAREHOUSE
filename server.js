@@ -105,24 +105,32 @@ app.post('/api/sales/order', async (req, res) => {
         res.json({ success: true });
     } catch (err) { res.status(500).send(err.message); }
 });
-// ==========================================
-// PRODUCTION DEPT: Massive Form Submit
-// ==========================================
 app.post('/api/production/batch', async (req, res) => {
     try {
-
-        // 1. ADDED THIS: Deduct Raw Material if this is the FORGING stage
-        if (req.body.stage === 'FORGING' && req.body.rawMaterialCode && req.body.rawMaterialConsumedKg) {
-            const consumedAmount = Number(req.body.rawMaterialConsumedKg);
-            const material = await RawMaterial.findOne({ materialCode: req.body.rawMaterialCode.toUpperCase() });
+        // 1. DEDUCT RAW MATERIAL (WITH STRICT VALIDATION)
+        if (req.body.stage === 'FORGING' && req.body.rawMaterialCode) {
             
-            if (material) {
+            // .trim() removes hidden spaces that break the system
+            const cleanCode = req.body.rawMaterialCode.trim().toUpperCase();
+            const consumedAmount = Number(req.body.rawMaterialConsumedKg) || 0;
+
+            const material = await RawMaterial.findOne({ materialCode: cleanCode });
+            
+            if (!material) {
+                // CRITICAL FIX: Stop the save and alert the user if the code is wrong!
+                return res.status(400).json({ 
+                    success: false, 
+                    message: `Raw Material Code '${cleanCode}' not found in inventory! Check for typos.` 
+                });
+            }
+
+            // If found, deduct the stock
+            if (consumedAmount > 0) {
                 material.currentStockKg -= consumedAmount;
                 material.lastUpdatedBy = req.body.loggedBy || "Production System";
                 material.lastUpdate = new Date();
                 await material.save();
 
-                // Log this consumption in Transactions
                 await new Transaction({ 
                     barcode: `[CONSUMED] ${material.materialCode}`, 
                     type: 'PRODUCTION', 
@@ -133,7 +141,7 @@ app.post('/api/production/batch', async (req, res) => {
             }
         }
 
-        // 2. Add to Finished Goods if SEC_OP or ROLLING (Your existing code)
+        // 2. Add to Finished Goods if SEC_OP or ROLLING
         if (req.body.stage === 'SEC_OP' || req.body.stage === 'ROLLING' || req.body.productBarcode) {
             const lookupCode = req.body.partNo || req.body.productBarcode; 
             const product = await Product.findOne({ barcode: lookupCode });
@@ -144,9 +152,6 @@ app.post('/api/production/batch', async (req, res) => {
                 await product.save();
             }
         }
-
-
-        // Map all fields directly from the request
         const newBatch = new ProductionBatch({
             ...req.body,
             batchNumber: req.body.batchNumber || `BATCH-${Date.now()}`,
