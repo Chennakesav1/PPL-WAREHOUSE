@@ -627,6 +627,7 @@
                                 <th>Unknown Loss</th>
                                 <th>Remarks</th>
                                 <th>Logged By</th>
+                                <th>Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -1030,67 +1031,61 @@
                     tr.setAttribute('data-date', hiddenDateTag);
                     tr.setAttribute('data-stage', b.stage);
                     const dt = new Date(b.date).toLocaleDateString();
-
                     tr.innerHTML = `
-                <td><strong>${displayDate}</strong></td>
-                <td>${b.shift || '-'}</td>
-                <td><span style="background:${stageColor}; color:white; padding:3px 6px; border-radius:3px; font-weight:bold; font-size:11px;">${b.stage}</span></td>
-                <td><strong>${b.machineName || '-'}</strong></td>
-                <td>${b.operator || '-'}</td>
-                <td>${b.operation || '-'}</td>
-                <td>${b.workOrderNo || '-'}</td>
-                <td><strong>${b.partNo || '-'}</strong></td>
-                <td>${b.operator || '-'}</td>
-                <td>${b.operation || '-'}</td>
-                <td>${b.workOrderNo || '-'}</td>
-                <td><strong>${b.partNo || '-'}</strong></td>
-                <td>${b.partName || '-'}</td>
-                <td>${b.partSize || '-'}</td>
-                <td>${b.pitch || '-'}</td>
-                <td>${b.length || 0}</td>
-                <td>${b.af || '-'}</td>
-                <td>${b.productGrade || '-'}</td>
-                <td>${b.rawMaterialCode || '-'}</td>
-                <td>${b.heatNo || '-'}</td>
-                <td>${b.rawMaterialConsumedKg || 0}</td>
-                <td>${b.pieceWeightKg || 0}</td>
-                <td>${b.scheduleHours || 0}</td>
-                <td>${b.jobChangeHours || 0}</td>
-                <td>${b.prodPlannedHours || 0}</td>
-                <td>${b.speedRpm || 0}</td>
-                <td>${b.shiftTargetQty || 0}</td>
-                <td style="color:green; font-weight:bold; background:#e8f5e9;">${b.acceptedQty || 0}</td>
-                <td style="color:red; font-weight:bold; background:#ffebee;">${b.rejectedQty || 0}</td>
-                <td>${b.rejectionKg || 0}</td>
-                <td>${b.rejectionReason || '-'}</td>
-                <td>${b.lossMajorJC || 0}</td>
-                <td>${b.lossMinorJC || 0}</td>
-                <td>${b.lossSetting || 0}</td>
-                <td>${b.lossMcClean || 0}</td>
-                <td>${b.lossToolRework || 0}</td>
-                <td>${b.lossNoTool || 0}</td>
-                <td>${b.lossNoLoad || 0}</td>
-                <td>${b.lossNoOperator || 0}</td>
-                <td>${b.lossMMnt || 0}</td>
-                <td>${b.lossEMnt || 0}</td>
-                <td>${b.lossNoPower || 0}</td>
-                <td>${b.lossNoAirOil || 0}</td>
-                <td>${b.lossNoRm || 0}</td>
-                <td>${b.lossRmLoading || 0}</td>
-                <td>${b.lossQaApproval || 0}</td>
-                <td>${b.lossCoilChange || 0}</td>
-                <td>${b.lossNoPlan || 0}</td>
-                <td>${b.lossNpdTeam || 0}</td>
-                <td>${b.lossUnknown || 0}</td>
-                <td>${b.remarks || '-'}</td>
-                <td><span style="color:#666; font-size:11px;">👤 ${b.loggedBy || '-'}</span></td>
-
-                <td class="admin-actions">
-                    ${currentUser && currentUser.role === 'ADMIN' ?
+            <td><strong>${displayDate}</strong></td>
+            <td>${b.shift || '-'}</td>
+            <td><span style="background:${stageColor}; color:white; padding:3px 6px; border-radius:3px; font-weight:bold; font-size:11px;">${b.stage}</span></td>
+            <td><strong>${b.machineName || '-'}</strong></td>
+            <td>${b.operator || '-'}</td>
+            <td>${b.operation || '-'}</td>
+            <td>${b.workOrderNo || '-'}</td>
+            <td><strong>${b.partNo || '-'}</strong></td>
+            <td>${b.partName || '-'}</td>
+            <td>${b.partSize || '-'}</td>
+            <td>${b.pitch || '-'}</td>
+            <td>${b.length || 0}</td>
+            <td>${b.af || '-'}</td>
+            <td>${b.productGrade || '-'}</td>
+            <td>${b.rawMaterialCode || '-'}</td>
+            <td>${b.heatNo || '-'}</td>
+            <td>${b.rawMaterialConsumedKg || 0}</td>
+            <td>${b.pieceWeightKg || 0}</td>
+            <td>${b.scheduleHours || 0}</td>
+            <td>${b.jobChangeHours || 0}</td>
+            <td>${b.prodPlannedHours || 0}</td>
+            <td>${b.speedRpm || 0}</td>
+            <td>${b.shiftTargetQty || 0}</td>
+            <td style="color:green; font-weight:bold; background:#e8f5e9;">${b.acceptedQty || 0}</td>
+            <td style="color:red; font-weight:bold; background:#ffebee;">${b.rejectedQty || 0}</td>
+            <td>${b.rejectionKg || 0}</td>
+            <td>${b.rejectionReason || '-'}</td>
+            <td>${b.lossMajorJC || 0}</td>
+            <td>${b.lossMinorJC || 0}</td>
+            <td>${b.lossSetting || 0}</td>
+            <td>${b.lossMcClean || 0}</td>
+            <td>${b.lossToolRework || 0}</td>
+            <td>${b.lossNoTool || 0}</td>
+            <td>${b.lossNoLoad || 0}</td>
+            <td>${b.lossNoOperator || 0}</td>
+            <td>${b.lossMMnt || 0}</td>
+            <td>${b.lossEMnt || 0}</td>
+            <td>${b.lossNoPower || 0}</td>
+            <td>${b.lossNoAirOil || 0}</td>
+            <td>${b.lossNoRm || 0}</td>
+            <td>${b.lossRmLoading || 0}</td>
+            <td>${b.lossQaApproval || 0}</td>
+            <td>${b.lossCoilChange || 0}</td>
+            <td>${b.lossNoPlan || 0}</td>
+            <td>${b.lossNpdTeam || 0}</td>
+            <td>${b.lossUnknown || 0}</td>
+            <td>${b.remarks || '-'}</td>
+            <td><span style="color:#666; font-size:11px;">👤 ${b.loggedBy || '-'}</span></td>
+            <td class="admin-actions">
+                ${currentUser && currentUser.role === 'ADMIN' ?
                             `<button onclick="deleteProductionBatch('${b._id}')" style="background:#dc3545; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-weight:bold;">🗑️ Delete</button>`
                             : '<span style="color:#999; font-size: 11px;">No Access</span>'}
-                </td>
-            `;
+            </td>
+        `;
                     tbody.appendChild(tr);
                 });
 
