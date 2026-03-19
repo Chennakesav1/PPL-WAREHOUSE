@@ -1032,12 +1032,14 @@
                     const dt = new Date(b.date).toLocaleDateString();
 
                     tr.innerHTML = `
-                    <td><strong>${displayDate}</strong></td>
-                <td>${b.shift || '-'}</td>
-                <td><strong>${dt}</strong></td>
+                <td><strong>${displayDate}</strong></td>
                 <td>${b.shift || '-'}</td>
                 <td><span style="background:${stageColor}; color:white; padding:3px 6px; border-radius:3px; font-weight:bold; font-size:11px;">${b.stage}</span></td>
                 <td><strong>${b.machineName || '-'}</strong></td>
+                <td>${b.operator || '-'}</td>
+                <td>${b.operation || '-'}</td>
+                <td>${b.workOrderNo || '-'}</td>
+                <td><strong>${b.partNo || '-'}</strong></td>
                 <td>${b.operator || '-'}</td>
                 <td>${b.operation || '-'}</td>
                 <td>${b.workOrderNo || '-'}</td>
