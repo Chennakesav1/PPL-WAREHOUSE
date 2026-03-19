@@ -79,30 +79,49 @@ app.get('/api/production/batches', async (req, res) => {
     try {
         const batches = await ProductionBatch.find().sort({ date: -1 }).limit(200);
         res.json(batches);
-    } catch (err) { 
+    } catch (err) {
         console.error("🔥 CRASH IN GET /api/production/batches:", err);
-        res.status(500).json({ error: "Server error fetching batches", details: err.message }); 
+        res.status(500).json({ error: "Server error fetching batches", details: err.message });
     }
 });
 
+
+app.post('/api/sales/order', async (req, res) => {
+    const { productBarcode, quantitySold, username } = req.body;
+    try {
+        const product = await Product.findOne({ barcode: productBarcode });
+        if (!product || product.currentStock < quantitySold) {
+            return res.status(400).json({ message: "Insufficient stock or product not found" });
+        }
+        product.currentStock -= Number(quantitySold);
+        await product.save();
+        await new Transaction({ barcode: productBarcode, type: 'DISPATCH', quantity: quantitySold, resultingStock: product.currentStock, user: username }).save();
+        res.json({ success: true });
+    } catch (err) { res.status(500).send(err.message); }
+});
 // ==========================================
 // PRODUCTION DEPT: Massive Form Submit
 // ==========================================
 app.post('/api/production/batch', async (req, res) => {
     try {
+
+
         // Only deduct RM if Forging
-        if (req.body.stage === 'FORGING' && req.body.rawMaterialCode && req.body.rawMaterialConsumedKg > 0) {
-            const material = await RawMaterial.findOne({ materialCode: req.body.rawMaterialCode.toUpperCase() });
-            if (material && material.currentStockKg >= req.body.rawMaterialConsumedKg) {
-                material.currentStockKg -= Number(req.body.rawMaterialConsumedKg);
-                await material.save();
+        if (req.body.stage === 'SEC_OP' || req.body.stage === 'ROLLING' || req.body.productBarcode) {
+            const lookupCode = req.body.partNo || req.body.productBarcode; // Support both Web and App
+            const product = await Product.findOne({ barcode: lookupCode });
+
+            if (product) {
+                const qty = Number(req.body.acceptedQty) || Number(req.body.quantityProduced);
+                product.currentStock += qty;
+                await product.save();
             }
         }
 
         // Map all fields directly from the request
         const newBatch = new ProductionBatch({
             ...req.body,
-            batchNumber: req.body.batchNumber || `BATCH-${Date.now()}`, 
+            batchNumber: req.body.batchNumber || `BATCH-${Date.now()}`,
             date: req.body.date ? new Date(req.body.date) : new Date(),
             length: Number(req.body.length) || 0,
             rawMaterialConsumedKg: Number(req.body.rawMaterialConsumedKg) || 0,
@@ -151,9 +170,9 @@ app.get('/api/purchase-orders', async (req, res) => {
     try {
         const pos = await PurchaseOrder.find().sort({ orderDate: -1 });
         res.json(pos);
-    } catch (err) { 
+    } catch (err) {
         console.error("🔥 CRASH IN GET /api/purchase-orders:", err);
-        res.status(500).json({ error: "Server error", details: err.message }); 
+        res.status(500).json({ error: "Server error", details: err.message });
     }
 });
 
@@ -173,9 +192,9 @@ app.post('/api/purchase-orders', async (req, res) => {
         });
         await newPO.save();
         res.json({ success: true, message: "PO Created Successfully!" });
-    } catch (err) { 
+    } catch (err) {
         console.error("🔥 CRASH IN POST /api/purchase-orders:", err);
-        res.status(500).json({ error: "Server error creating PO", details: err.message }); 
+        res.status(500).json({ error: "Server error creating PO", details: err.message });
     }
 });
 
@@ -208,9 +227,9 @@ app.put('/api/purchase-orders/:id/receive', async (req, res) => {
         }).save();
 
         res.json({ success: true, message: "Stock Received & Added to Inventory!" });
-    } catch (err) { 
+    } catch (err) {
         console.error("🔥 CRASH IN PUT /api/purchase-orders/:id/receive:", err);
-        res.status(500).json({ error: "Server error receiving PO", details: err.message }); 
+        res.status(500).json({ error: "Server error receiving PO", details: err.message });
     }
 });
 
@@ -221,9 +240,9 @@ app.get('/api/raw-materials', async (req, res) => {
     try {
         let materials = await RawMaterial.find();
         res.json(materials);
-    } catch (err) { 
+    } catch (err) {
         console.error("🔥 CRASH IN GET /api/raw-materials:", err);
-        res.status(500).json({ error: "Server error fetching materials", details: err.message }); 
+        res.status(500).json({ error: "Server error fetching materials", details: err.message });
     }
 });
 
@@ -246,9 +265,9 @@ app.post('/api/raw-materials/receive', async (req, res) => {
 
         await new Transaction({ barcode: `[RAW] ${materialCode}`, type: 'INWARD', quantity: addedKg, resultingStock: material.currentStockKg, user: username || 'Purchase Dept' }).save();
         res.json({ success: true, message: "Raw material updated", stock: material.currentStockKg });
-    } catch (err) { 
+    } catch (err) {
         console.error("🔥 CRASH IN POST /api/raw-materials/receive:", err);
-        res.status(500).json({ error: "Server error", details: err.message }); 
+        res.status(500).json({ error: "Server error", details: err.message });
     }
 });
 
@@ -260,9 +279,9 @@ app.get('/api/product/:barcode', async (req, res) => {
         const product = await Product.findOne({ barcode: req.params.barcode.trim() });
         if (!product) return res.status(404).json({ message: "Product not found" });
         res.json(product);
-    } catch (error) { 
+    } catch (error) {
         console.error("🔥 CRASH IN GET /api/product/:barcode:", error);
-        res.status(500).json({ error: "Server error", details: error.message }); 
+        res.status(500).json({ error: "Server error", details: error.message });
     }
 });
 
@@ -270,9 +289,9 @@ app.get('/api/products', async (req, res) => {
     try {
         const products = await Product.find().sort({ productCode: 1 });
         res.json(products);
-    } catch (error) { 
+    } catch (error) {
         console.error("🔥 CRASH IN GET /api/products:", error);
-        res.status(500).json({ error: "Server error fetching products", details: error.message }); 
+        res.status(500).json({ error: "Server error fetching products", details: error.message });
     }
 });
 
@@ -280,9 +299,9 @@ app.get('/api/transactions', async (req, res) => {
     try {
         const transactions = await Transaction.find().sort({ date: -1 }).limit(100);
         res.json(transactions);
-    } catch (error) { 
+    } catch (error) {
         console.error("🔥 CRASH IN GET /api/transactions:", error);
-        res.status(500).json({ error: "Server error", details: error.message }); 
+        res.status(500).json({ error: "Server error", details: error.message });
     }
 });
 
@@ -302,9 +321,9 @@ app.post('/api/products', async (req, res) => {
             await new Transaction({ barcode, type: 'INWARD', quantity: currentStock, resultingStock: currentStock, user: "Admin (New Item)" }).save();
         }
         res.json({ success: true, message: "Product Added Successfully!" });
-    } catch (error) { 
+    } catch (error) {
         console.error("🔥 CRASH IN POST /api/products:", error);
-        res.status(500).json({ success: false, message: "Server Error saving product.", details: error.message }); 
+        res.status(500).json({ success: false, message: "Server Error saving product.", details: error.message });
     }
 });
 
@@ -323,9 +342,9 @@ app.post('/api/stock', async (req, res) => {
         await product.save();
         await new Transaction({ barcode, type, quantity: qty, resultingStock: product.currentStock, user: username || "Unknown" }).save();
         res.json({ message: "Success", newStock: product.currentStock });
-    } catch (error) { 
+    } catch (error) {
         console.error("🔥 CRASH IN POST /api/stock:", error);
-        res.status(500).json({ error: "Server error", details: error.message }); 
+        res.status(500).json({ error: "Server error", details: error.message });
     }
 });
 
@@ -334,9 +353,9 @@ app.put('/api/inventory/:id', async (req, res) => {
         const updatedItem = await Product.findByIdAndUpdate(req.params.id, { currentStock: req.body.stock }, { new: true });
         if (!updatedItem) return res.status(404).json({ message: "Item not found" });
         res.status(200).json(updatedItem);
-    } catch (error) { 
+    } catch (error) {
         console.error("🔥 CRASH IN PUT /api/inventory/:id:", error);
-        res.status(500).json({ message: "Server error updating stock", details: error.message }); 
+        res.status(500).json({ message: "Server error updating stock", details: error.message });
     }
 });
 
@@ -345,9 +364,9 @@ app.delete('/api/inventory/:id', async (req, res) => {
         const deletedItem = await Product.findByIdAndDelete(req.params.id);
         if (!deletedItem) return res.status(404).json({ message: "Item not found" });
         res.status(200).json({ message: "Item deleted successfully" });
-    } catch (error) { 
+    } catch (error) {
         console.error("🔥 CRASH IN DELETE /api/inventory/:id:", error);
-        res.status(500).json({ message: "Server error deleting item", details: error.message }); 
+        res.status(500).json({ message: "Server error deleting item", details: error.message });
     }
 });
 
