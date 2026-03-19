@@ -111,10 +111,31 @@ app.post('/api/sales/order', async (req, res) => {
 app.post('/api/production/batch', async (req, res) => {
     try {
 
+        // 1. ADDED THIS: Deduct Raw Material if this is the FORGING stage
+        if (req.body.stage === 'FORGING' && req.body.rawMaterialCode && req.body.rawMaterialConsumedKg) {
+            const consumedAmount = Number(req.body.rawMaterialConsumedKg);
+            const material = await RawMaterial.findOne({ materialCode: req.body.rawMaterialCode.toUpperCase() });
+            
+            if (material) {
+                material.currentStockKg -= consumedAmount;
+                material.lastUpdatedBy = req.body.loggedBy || "Production System";
+                material.lastUpdate = new Date();
+                await material.save();
 
-        // Only deduct RM if Forging
+                // Log this consumption in Transactions
+                await new Transaction({ 
+                    barcode: `[CONSUMED] ${material.materialCode}`, 
+                    type: 'PRODUCTION', 
+                    quantity: consumedAmount, 
+                    resultingStock: material.currentStockKg, 
+                    user: req.body.loggedBy || "Production System" 
+                }).save();
+            }
+        }
+
+        // 2. Add to Finished Goods if SEC_OP or ROLLING (Your existing code)
         if (req.body.stage === 'SEC_OP' || req.body.stage === 'ROLLING' || req.body.productBarcode) {
-            const lookupCode = req.body.partNo || req.body.productBarcode; // Support both Web and App
+            const lookupCode = req.body.partNo || req.body.productBarcode; 
             const product = await Product.findOne({ barcode: lookupCode });
 
             if (product) {
@@ -123,6 +144,7 @@ app.post('/api/production/batch', async (req, res) => {
                 await product.save();
             }
         }
+
 
         // Map all fields directly from the request
         const newBatch = new ProductionBatch({
