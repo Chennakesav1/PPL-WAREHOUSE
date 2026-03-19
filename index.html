@@ -576,7 +576,6 @@
 
                 <div class="table-wrapper">
                     <table id="productionTable">
-
                         <thead style="background-color: #ff9800; white-space: nowrap;">
                             <tr>
                                 <th>Date</th>
@@ -630,15 +629,10 @@
                                 <th>Action</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <tr>
-                                <td colspan="48">Loading...</td>
-                            </tr>
-                        </tbody>
 
                         <tbody>
                             <tr>
-                                <td colspan="48">Loading...</td>
+                                <td colspan="49" style="text-align: center;">Loading...</td>
                             </tr>
                         </tbody>
 
@@ -651,7 +645,7 @@
                                 <td id="totalAccQty" style="color: green; background: #e8f5e9; font-size: 16px;">0</td>
                                 <td id="totalRejQty" style="color: red; background: #ffebee; font-size: 16px;">0</td>
                                 <td id="totalRejKg" style="font-size: 16px;">0</td>
-                                <td colspan="22"></td>
+                                <td colspan="23"></td>
                             </tr>
                         </tfoot>
                     </table>
@@ -1005,10 +999,6 @@
         }
 
 
-
-
-
-
         async function loadProductionBatches() {
             try {
                 const response = await fetch(`${API_URL}/production/batches`);
@@ -1027,75 +1017,79 @@
                     const displayDate = rawDate.toLocaleDateString();
 
                     const tr = document.createElement('tr');
-                    // Inject hidden attributes for lightning-fast filtering
                     tr.setAttribute('data-date', hiddenDateTag);
                     tr.setAttribute('data-stage', b.stage);
-                    const dt = new Date(b.date).toLocaleDateString();
+
                     tr.innerHTML = `
-            <td><strong>${displayDate}</strong></td>
-            <td>${b.shift || '-'}</td>
-            <td><span style="background:${stageColor}; color:white; padding:3px 6px; border-radius:3px; font-weight:bold; font-size:11px;">${b.stage}</span></td>
-            <td><strong>${b.machineName || '-'}</strong></td>
-            <td>${b.operator || '-'}</td>
-            <td>${b.operation || '-'}</td>
-            <td>${b.workOrderNo || '-'}</td>
-            <td><strong>${b.partNo || '-'}</strong></td>
-            <td>${b.partName || '-'}</td>
-            <td>${b.partSize || '-'}</td>
-            <td>${b.pitch || '-'}</td>
-            <td>${b.length || 0}</td>
-            <td>${b.af || '-'}</td>
-            <td>${b.productGrade || '-'}</td>
-            <td>${b.rawMaterialCode || '-'}</td>
-            <td>${b.heatNo || '-'}</td>
-            <td>${b.rawMaterialConsumedKg || 0}</td>
-            <td>${b.pieceWeightKg || 0}</td>
-            <td>${b.scheduleHours || 0}</td>
-            <td>${b.jobChangeHours || 0}</td>
-            <td>${b.prodPlannedHours || 0}</td>
-            <td>${b.speedRpm || 0}</td>
-            <td>${b.shiftTargetQty || 0}</td>
-            <td style="color:green; font-weight:bold; background:#e8f5e9;">${b.acceptedQty || 0}</td>
-            <td style="color:red; font-weight:bold; background:#ffebee;">${b.rejectedQty || 0}</td>
-            <td>${b.rejectionKg || 0}</td>
-            <td>${b.rejectionReason || '-'}</td>
-            <td>${b.lossMajorJC || 0}</td>
-            <td>${b.lossMinorJC || 0}</td>
-            <td>${b.lossSetting || 0}</td>
-            <td>${b.lossMcClean || 0}</td>
-            <td>${b.lossToolRework || 0}</td>
-            <td>${b.lossNoTool || 0}</td>
-            <td>${b.lossNoLoad || 0}</td>
-            <td>${b.lossNoOperator || 0}</td>
-            <td>${b.lossMMnt || 0}</td>
-            <td>${b.lossEMnt || 0}</td>
-            <td>${b.lossNoPower || 0}</td>
-            <td>${b.lossNoAirOil || 0}</td>
-            <td>${b.lossNoRm || 0}</td>
-            <td>${b.lossRmLoading || 0}</td>
-            <td>${b.lossQaApproval || 0}</td>
-            <td>${b.lossCoilChange || 0}</td>
-            <td>${b.lossNoPlan || 0}</td>
-            <td>${b.lossNpdTeam || 0}</td>
-            <td>${b.lossUnknown || 0}</td>
-            <td>${b.remarks || '-'}</td>
-            <td><span style="color:#666; font-size:11px;">👤 ${b.loggedBy || '-'}</span></td>
-            <td class="admin-actions">
-                ${currentUser && currentUser.role === 'ADMIN' ?
+                <td><strong>${displayDate}</strong></td>
+                <td>${b.shift || '-'}</td>
+                <td><span style="background:${stageColor}; color:white; padding:3px 6px; border-radius:3px; font-weight:bold; font-size:11px;">${b.stage}</span></td>
+                <td><strong>${b.machineName || '-'}</strong></td>
+                <td>${b.operator || '-'}</td>
+                <td>${b.operation || '-'}</td>
+                <td>${b.workOrderNo || '-'}</td>
+                <td><strong>${b.partNo || '-'}</strong></td>
+                <td>${b.partName || '-'}</td>
+                <td>${b.partSize || '-'}</td>
+                <td>${b.pitch || '-'}</td>
+                <td>${b.length || 0}</td>
+                <td>${b.af || '-'}</td>
+                <td>${b.productGrade || '-'}</td>
+                <td>${b.rawMaterialCode || '-'}</td>
+                <td>${b.heatNo || '-'}</td>
+                <td>${b.rawMaterialConsumedKg || 0}</td>
+                <td>${b.pieceWeightKg || 0}</td>
+                <td>${b.scheduleHours || 0}</td>
+                <td>${b.jobChangeHours || 0}</td>
+                <td>${b.prodPlannedHours || 0}</td>
+                <td>${b.speedRpm || 0}</td>
+                <td>${b.shiftTargetQty || 0}</td>
+                <td style="color:green; font-weight:bold; background:#e8f5e9;">${b.acceptedQty || 0}</td>
+                <td style="color:red; font-weight:bold; background:#ffebee;">${b.rejectedQty || 0}</td>
+                <td>${b.rejectionKg || 0}</td>
+                <td>${b.rejectionReason || '-'}</td>
+                <td>${b.lossMajorJC || 0}</td>
+                <td>${b.lossMinorJC || 0}</td>
+                <td>${b.lossSetting || 0}</td>
+                <td>${b.lossMcClean || 0}</td>
+                <td>${b.lossToolRework || 0}</td>
+                <td>${b.lossNoTool || 0}</td>
+                <td>${b.lossNoLoad || 0}</td>
+                <td>${b.lossNoOperator || 0}</td>
+                <td>${b.lossMMnt || 0}</td>
+                <td>${b.lossEMnt || 0}</td>
+                <td>${b.lossNoPower || 0}</td>
+                <td>${b.lossNoAirOil || 0}</td>
+                <td>${b.lossNoRm || 0}</td>
+                <td>${b.lossRmLoading || 0}</td>
+                <td>${b.lossQaApproval || 0}</td>
+                <td>${b.lossCoilChange || 0}</td>
+                <td>${b.lossNoPlan || 0}</td>
+                <td>${b.lossNpdTeam || 0}</td>
+                <td>${b.lossUnknown || 0}</td>
+                <td>${b.remarks || '-'}</td>
+                <td><span style="color:#666; font-size:11px;">👤 ${b.loggedBy || '-'}</span></td>
+                <td class="admin-actions">
+                    ${currentUser && currentUser.role === 'ADMIN' ?
                             `<button onclick="deleteProductionBatch('${b._id}')" style="background:#dc3545; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-weight:bold;">🗑️ Delete</button>`
                             : '<span style="color:#999; font-size: 11px;">No Access</span>'}
-            </td>
-        `;
+                </td>
+            `;
                     tbody.appendChild(tr);
                 });
 
                 if (count === 0) {
-                    tbody.innerHTML = '<tr><td colspan="48" style="text-align: center;">No logs found for this stage.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="49" style="text-align: center;">No logs found for this stage.</td></tr>';
                 }
+
+                // CRITICAL FIX: Trigger the math immediately after loading the table!
+                calculateVisibleTotals();
+
             } catch (error) {
                 console.error("Failed to load batches:", error);
             }
         }
+
 
 
         async function deleteProductionBatch(batchId) {
