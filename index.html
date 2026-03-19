@@ -547,6 +547,27 @@
                     <button class="tab-btn" id="tab-ROLLING" onclick="filterLogs('ROLLING')">Rolling</button>
                     <button class="tab-btn" id="tab-SEC_OP" onclick="filterLogs('SEC_OP')">Sec. Ops</button>
                 </div>
+                <div class="search-container"
+                    style="background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #ff9800; margin-bottom: 15px;">
+                    <span style="font-weight: bold; color: #555; font-size: 14px;">🔍 FILTER LOGS:</span>
+
+                    <input type="date" id="filterProdDate" class="prod-input" onchange="applyProductionFilters()"
+                        title="Filter by Date">
+
+                    <select id="filterProdShift" class="prod-input" onchange="applyProductionFilters()">
+                        <option value="">-- All Shifts --</option>
+                        <option value="A">A Shift</option>
+                        <option value="B">B Shift</option>
+                        <option value="G">G Shift</option>
+                        <option value="S2">S2 Shift</option>
+                    </select>
+
+                    <input type="text" id="filterProdGlobal" class="prod-input" style="flex: 1; min-width: 250px;"
+                        placeholder="Search Operator, Machine, Part No, Remarks..." onkeyup="applyProductionFilters()">
+
+                    <button onclick="clearProductionFilters()"
+                        style="background-color: #6c757d; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold;">Reset</button>
+                </div>
                 <div style="display: flex; justify-content: flex-end; margin-top: -40px; margin-bottom: 10px;">
                     <button class="export-btn"
                         onclick="exportTableToCSV('productionTable', 'Full_Production_Report.csv')">⬇️ Export Full
@@ -555,6 +576,7 @@
 
                 <div class="table-wrapper">
                     <table id="productionTable">
+
                         <thead style="background-color: #ff9800; white-space: nowrap;">
                             <tr>
                                 <th>Date</th>
@@ -612,6 +634,25 @@
                                 <td colspan="48">Loading...</td>
                             </tr>
                         </tbody>
+
+                        <tbody>
+                            <tr>
+                                <td colspan="48">Loading...</td>
+                            </tr>
+                        </tbody>
+
+                        <tfoot
+                            style="background-color: #f8f9fa; font-weight: bold; position: sticky; bottom: 0; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 2;">
+                            <tr>
+                                <td colspan="23"
+                                    style="text-align: right; padding-right: 15px; color: #ff9800; font-size: 16px;">🔍
+                                    VISIBLE TOTALS:</td>
+                                <td id="totalAccQty" style="color: green; background: #e8f5e9; font-size: 16px;">0</td>
+                                <td id="totalRejQty" style="color: red; background: #ffebee; font-size: 16px;">0</td>
+                                <td id="totalRejKg" style="font-size: 16px;">0</td>
+                                <td colspan="22"></td>
+                            </tr>
+                        </tfoot>
                     </table>
                 </div>
             </div>
@@ -910,12 +951,12 @@
                 shift: document.getElementById('prodShift').value,
                 machineName: finalMachine,  // Updated!
                 partName: finalPartName,    // Updated!
-                
+
                 operator: document.getElementById('prodOperator').value,
                 operation: document.getElementById('prodOperation').value,
                 workOrderNo: document.getElementById('prodWO').value,
                 partNo: document.getElementById('prodPartNo').value,
-                
+
                 partSize: document.getElementById('prodSize').value,
                 pitch: document.getElementById('prodPitch').value,
                 length: document.getElementById('prodLength').value,
@@ -965,25 +1006,34 @@
 
 
 
-        
+
 
         async function loadProductionBatches() {
-    try {
-        const response = await fetch(`${API_URL}/production/batches`);
-        const batches = await response.json();
-        const tbody = document.querySelector('#productionTable tbody');
-        tbody.innerHTML = '';
-        let count = 0;
-        
-        batches.forEach(b => {
-            if (currentLogFilter !== 'ALL' && b.stage !== currentLogFilter) return;
-            count++;
-            
-            let stageColor = b.stage === 'FORGING' ? '#ff9800' : (b.stage === 'ROLLING' ? '#17a2b8' : '#28a745');
-            const dt = new Date(b.date).toLocaleDateString();
-            
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
+            try {
+                const response = await fetch(`${API_URL}/production/batches`);
+                const batches = await response.json();
+                const tbody = document.querySelector('#productionTable tbody');
+                tbody.innerHTML = '';
+                let count = 0;
+
+                batches.forEach(b => {
+                    if (currentLogFilter !== 'ALL' && b.stage !== currentLogFilter) return;
+                    count++;
+
+                    let stageColor = b.stage === 'FORGING' ? '#ff9800' : (b.stage === 'ROLLING' ? '#17a2b8' : '#28a745');
+                    const rawDate = new Date(b.date);
+                    const hiddenDateTag = rawDate.toISOString().split('T')[0];
+                    const displayDate = rawDate.toLocaleDateString();
+
+                    const tr = document.createElement('tr');
+                    // Inject hidden attributes for lightning-fast filtering
+                    tr.setAttribute('data-date', hiddenDateTag);
+                    tr.setAttribute('data-stage', b.stage);
+                    const dt = new Date(b.date).toLocaleDateString();
+
+                    tr.innerHTML = `
+                    <td><strong>${displayDate}</strong></td>
+                <td>${b.shift || '-'}</td>
                 <td><strong>${dt}</strong></td>
                 <td>${b.shift || '-'}</td>
                 <td><span style="background:${stageColor}; color:white; padding:3px 6px; border-radius:3px; font-weight:bold; font-size:11px;">${b.stage}</span></td>
@@ -1034,42 +1084,42 @@
                 <td><span style="color:#666; font-size:11px;">👤 ${b.loggedBy || '-'}</span></td>
 
                 <td class="admin-actions">
-                    ${currentUser && currentUser.role === 'ADMIN' ? 
-                    `<button onclick="deleteProductionBatch('${b._id}')" style="background:#dc3545; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-weight:bold;">🗑️ Delete</button>` 
-                    : '<span style="color:#999; font-size: 11px;">No Access</span>'}
+                    ${currentUser && currentUser.role === 'ADMIN' ?
+                            `<button onclick="deleteProductionBatch('${b._id}')" style="background:#dc3545; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-weight:bold;">🗑️ Delete</button>`
+                            : '<span style="color:#999; font-size: 11px;">No Access</span>'}
                 </td>
             `;
-            tbody.appendChild(tr);
-        });
-        
-        if(count === 0) {
-            tbody.innerHTML = '<tr><td colspan="48" style="text-align: center;">No logs found for this stage.</td></tr>';
+                    tbody.appendChild(tr);
+                });
+
+                if (count === 0) {
+                    tbody.innerHTML = '<tr><td colspan="48" style="text-align: center;">No logs found for this stage.</td></tr>';
+                }
+            } catch (error) {
+                console.error("Failed to load batches:", error);
+            }
         }
-    } catch (error) {
-        console.error("Failed to load batches:", error);
-    }
-}
 
 
-async function deleteProductionBatch(batchId) {
-    if (!confirm('🚨 WARNING: Are you sure you want to permanently delete this production log? This cannot be undone.')) return;
-    
-    try {
-        const response = await fetch(`${API_URL}/production/batch/${batchId}`, { 
-            method: 'DELETE' 
-        });
-        const result = await response.json();
-        
-        if (result.success) {
-            showToast("🗑️ Production log deleted!");
-            loadProductionBatches(); // Refresh the table instantly
-        } else {
-            showToast("❌ Error: " + result.message, true);
+        async function deleteProductionBatch(batchId) {
+            if (!confirm('🚨 WARNING: Are you sure you want to permanently delete this production log? This cannot be undone.')) return;
+
+            try {
+                const response = await fetch(`${API_URL}/production/batch/${batchId}`, {
+                    method: 'DELETE'
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    showToast("🗑️ Production log deleted!");
+                    loadProductionBatches(); // Refresh the table instantly
+                } else {
+                    showToast("❌ Error: " + result.message, true);
+                }
+            } catch (error) {
+                showToast("❌ Server Error while deleting", true);
+            }
         }
-    } catch (error) {
-        showToast("❌ Server Error while deleting", true);
-    }
-}
 
         // ==========================================
         // STANDARD INVENTORY/TX/RM/PO LOGIC
@@ -1265,6 +1315,94 @@ async function deleteProductionBatch(batchId) {
             let downloadLink = document.createElement("a"); downloadLink.download = filename;
             downloadLink.href = window.URL.createObjectURL(new Blob([csv.join("\n")], { type: "text/csv" }));
             downloadLink.style.display = "none"; document.body.appendChild(downloadLink); downloadLink.click();
+        }
+
+
+
+        // 1. Unified Filter Engine
+        function applyProductionFilters() {
+            const filterDate = document.getElementById('filterProdDate').value; // YYYY-MM-DD
+            const filterShift = document.getElementById('filterProdShift').value.toUpperCase();
+            const filterGlobal = document.getElementById('filterProdGlobal').value.toUpperCase();
+            const activeStageTab = currentLogFilter; // 'ALL', 'FORGING', etc.
+
+            const table = document.getElementById("productionTable");
+            const rows = table.getElementsByTagName("tr");
+
+            for (let i = 1; i < rows.length; i++) {
+                // Skip empty state rows
+                if (rows[i].cells.length < 5) continue;
+
+                const rowDate = rows[i].getAttribute('data-date');
+                const rowStage = rows[i].getAttribute('data-stage');
+                const rowShift = rows[i].cells[1].textContent.toUpperCase();
+
+                // This grabs ALL text in the entire row (Operator, Remarks, Part No, etc.)
+                const rowFullText = rows[i].textContent.toUpperCase();
+
+                // Check if the row matches all active filters
+                let matchStage = (activeStageTab === 'ALL' || rowStage === activeStageTab);
+                let matchDate = (filterDate === '' || rowDate === filterDate);
+                let matchShift = (filterShift === '' || rowShift === filterShift);
+                let matchGlobal = (filterGlobal === '' || rowFullText.includes(filterGlobal));
+
+                // If it passes all tests, show it. Otherwise, hide it.
+                if (matchStage && matchDate && matchShift && matchGlobal) {
+                    rows[i].style.display = "";
+                } else {
+                    rows[i].style.display = "none";
+                }
+            }
+        }
+        function calculateVisibleTotals() {
+            const table = document.getElementById("productionTable");
+            // We only want to look at the rows inside the <tbody>, ignoring headers/footers
+            const rows = table.getElementsByTagName("tbody")[0].getElementsByTagName("tr");
+
+            let totalAcc = 0;
+            let totalRej = 0;
+            let totalRejKg = 0;
+
+            for (let i = 0; i < rows.length; i++) {
+                // Only count the row IF it is currently visible AND it's a real data row
+                if (rows[i].style.display !== "none" && rows[i].cells.length > 5) {
+
+                    // In our massive 48-column table:
+                    // Column 23 is Accepted Qty
+                    // Column 24 is Rejected Qty
+                    // Column 25 is Rejected Kg
+                    const accVal = parseInt(rows[i].cells[23].textContent) || 0;
+                    const rejVal = parseInt(rows[i].cells[24].textContent) || 0;
+                    const rejKgVal = parseFloat(rows[i].cells[25].textContent) || 0;
+
+                    totalAcc += accVal;
+                    totalRej += rejVal;
+                    totalRejKg += rejKgVal;
+                }
+            }
+
+            // Update the footer text with the new math
+            document.getElementById("totalAccQty").textContent = totalAcc;
+            document.getElementById("totalRejQty").textContent = totalRej;
+            document.getElementById("totalRejKg").textContent = totalRejKg.toFixed(2);
+        }
+
+        // 2. Update the Stage Tabs to use the new local filter (much faster!)
+        function filterLogs(stage) {
+            currentLogFilter = stage;
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('tab-' + stage).classList.add('active');
+
+            // Instantly filter the table without reloading from the database
+            applyProductionFilters();
+        }
+
+        // 3. Clear all filters quickly
+        function clearProductionFilters() {
+            document.getElementById('filterProdDate').value = '';
+            document.getElementById('filterProdShift').value = '';
+            document.getElementById('filterProdGlobal').value = '';
+            applyProductionFilters();
         }
     </script>
 </body>
