@@ -259,16 +259,26 @@ app.get('/api/raw-materials', async (req, res) => {
 });
 
 app.post('/api/raw-materials/receive', async (req, res) => {
-    const { materialCode, materialName, addedKg, username } = req.body;
+    // NEW: We are now extracting grade, supplier, and scope from the request
+    const { materialCode, materialName, grade, supplier, scope, addedKg, username } = req.body;
     try {
         let material = await RawMaterial.findOne({ materialCode });
         if (!material) {
             material = new RawMaterial({
-                materialCode, materialName: materialName || "Carbon Steel", currentStockKg: addedKg,
-                lastUpdatedBy: username || 'Purchase Dept', lastUpdate: new Date()
+                materialCode, 
+                materialName: materialName || "Carbon Steel", 
+                grade: grade,                  // NEW
+                lastSupplier: supplier,        // NEW
+                scope: scope,                  // NEW
+                currentStockKg: addedKg,
+                lastUpdatedBy: username || 'Purchase Dept', 
+                lastUpdate: new Date()
             });
         } else {
             material.currentStockKg += Number(addedKg);
+            if (grade) material.grade = grade;               // NEW
+            if (supplier) material.lastSupplier = supplier;  // NEW
+            if (scope) material.scope = scope;               // NEW
             material.lastUpdatedBy = username || 'Purchase Dept';
             material.lastUpdate = new Date();
             if (materialName && materialName.trim() !== "") material.materialName = materialName.trim();
