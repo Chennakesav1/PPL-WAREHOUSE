@@ -723,7 +723,9 @@
                             <tr>
                                 <th>Material Code</th>
                                 <th>Name</th>
+                                <th>Grade</th>
                                 <th>Stock (Kg)</th>
+                                <th>Last Supplier</th>
                                 <th>Last Received By</th>
                                 <th>Date & Time</th>
                             </tr>
@@ -1203,9 +1205,14 @@
                     if (isLow) tr.className = "low-stock";
                     let dateStr = "N/A", timeStr = "";
                     if (m.lastUpdate) { const dt = new Date(m.lastUpdate); dateStr = dt.toLocaleDateString(); timeStr = dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); }
-                    tr.innerHTML = `<td><strong>${m.materialCode}</strong></td><td>${m.materialName || 'Steel Stock'}</td>
-                        <td class="${isLow ? 'low-stock-text' : ''}" style="font-weight: bold; font-size: 1.1em; color: #007bff;">${m.currentStockKg} Kg</td>
-                        <td><span class="user-tag" style="font-size: 14px;">👤 ${m.lastUpdatedBy || '-'}</span></td><td><span class="date-text">${dateStr}</span><span class="time-text">${timeStr}</span></td>`;
+
+                    tr.innerHTML = `
+                <td><strong>${m.materialCode}</strong></td>
+                <td>${m.materialName || 'Steel Stock'}</td>
+                <td><strong>${m.grade || '-'}</strong></td> <td class="${isLow ? 'low-stock-text' : ''}" style="font-weight: bold; font-size: 1.1em; color: #007bff;">${m.currentStockKg} Kg</td>
+                <td>${m.lastSupplier || '-'}</td> <td><span class="user-tag" style="font-size: 14px;">👤 ${m.lastUpdatedBy || '-'}</span></td>
+                <td><span class="date-text">${dateStr}</span><span class="time-text">${timeStr}</span></td>
+            `;
                     tbody.appendChild(tr);
                 });
             } catch (error) { }

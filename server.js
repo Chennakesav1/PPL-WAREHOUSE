@@ -217,11 +217,17 @@ app.put('/api/purchase-orders/:id/receive', async (req, res) => {
         let material = await RawMaterial.findOne({ materialCode: po.materialCode });
         if (!material) {
             material = new RawMaterial({
-                materialCode: po.materialCode, materialName: "Steel Stock", currentStockKg: po.expectedKg,
-                lastUpdatedBy: username || "Purchase Dept", lastUpdate: new Date()
+                materialCode: po.materialCode, materialName: "Steel Stock",
+                grade: po.grade,                 // <-- NEW: Pulls from PO
+                lastSupplier: po.supplierName,   // <-- NEW: Pulls from PO
+                currentStockKg: po.expectedKg,
+                lastUpdatedBy: username || "Purchase Dept",
+                lastUpdate: new Date()
             });
         } else {
             material.currentStockKg += po.expectedKg;
+            material.grade = po.grade;                 // <-- NEW: Updates from latest PO
+            material.lastSupplier = po.supplierName;   // <-- NEW: Updates from latest PO
             material.lastUpdatedBy = username || "Purchase Dept";
             material.lastUpdate = new Date();
         }

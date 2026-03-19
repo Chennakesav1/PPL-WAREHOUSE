@@ -24,6 +24,8 @@ const transactionSchema = new mongoose.Schema({
 const rawMaterialSchema = new mongoose.Schema({
     materialCode: { type: String, required: true, unique: true },
     materialName: String,
+    grade: String,           // NEW: Links to PO Grade
+    lastSupplier: String,    // NEW: Links to PO Supplier
     currentStockKg: { type: Number, default: 0 },
     lastUpdatedBy: String,
     lastUpdate: { type: Date, default: Date.now }
