@@ -378,7 +378,7 @@
 
     <div id="splashScreen">
         <h1 class="ppl-logo">PPL</h1>
-        <h3 style="color: #666;">Complete MES ERP</h3>
+        <h3 style="color: #666;">Complete ERP</h3>
     </div>
 
     <div id="loginOverlay">
@@ -474,7 +474,9 @@
                     <div class="form-section" id="planningSection">
                         <div class="form-section-title">3. Material & Planning</div>
                         <div class="form-grid-multi">
-                            <input type="text" id="prodRMCode" class="prod-input dyn-f" placeholder="* Exact Raw Material Code (e.g. STL-10MM)" style="border-color: #007bff; font-weight: bold;">
+                            <input type="text" id="prodRMCode" class="prod-input dyn-f"
+                                placeholder="* Exact Raw Material Code (e.g. STL-10MM)"
+                                style="border-color: #007bff; font-weight: bold;">
                             <input type="text" id="prodHeatNo" class="prod-input dyn-fr" placeholder="Heat No.">
                             <input type="number" id="prodRMKg" class="prod-input dyn-f" placeholder="RM Consumed (Kg)">
                             <input type="number" step="0.001" id="prodPieceWt" class="prod-input dyn-fr"
@@ -777,10 +779,10 @@
                 onclick="submitNewProduct()">Save</button>
         </div>
     </div>
-   <div id="receiveStockModal" class="modal">
+    <div id="receiveStockModal" class="modal">
         <div class="modal-content"><span class="close-btn" onclick="closeReceiveModal()">×</span>
             <h2 style="color: #007bff; margin-bottom: 0;">📥 Receive Steel</h2>
-            
+
             <div class="form-grid">
                 <input type="text" id="rawCodeInput" placeholder="* Steel Code" required>
                 <input type="text" id="rawNameInput" placeholder="* Name" required>
@@ -789,7 +791,7 @@
                 <input type="text" id="rawScopeInput" class="full-width" placeholder="Scope / Remarks">
                 <input type="number" id="rawKgInput" class="full-width" placeholder="* Amount (Kg)" required>
             </div>
-            
+
             <button class="save-btn" id="receiveSubmitBtn" onclick="submitRawMaterial()">Add to Stock</button>
         </div>
     </div>
@@ -1090,13 +1092,14 @@
                     tbody.innerHTML = '<tr><td colspan="49" style="text-align: center;">No logs found for this stage.</td></tr>';
                 }
 
-                // CRITICAL FIX: Trigger the math immediately after loading the table!
-                calculateVisibleTotals();
+                // CRITICAL FIX: Re-apply the search filters (which will also recalculate the totals!)
+                applyProductionFilters();
 
             } catch (error) {
                 console.error("Failed to load batches:", error);
             }
         }
+
 
 
 
@@ -1225,46 +1228,46 @@
         }
 
         function openReceiveModal() { document.getElementById('receiveStockModal').style.display = 'flex'; }
-        function closeReceiveModal() { 
-            document.getElementById('receiveStockModal').style.display = 'none'; 
-            document.getElementById('rawCodeInput').value = ''; 
-            document.getElementById('rawNameInput').value = ''; 
-            document.getElementById('rawGradeInput').value = ''; 
-            document.getElementById('rawSupplierInput').value = ''; 
-            document.getElementById('rawScopeInput').value = ''; 
-            document.getElementById('rawKgInput').value = ''; 
+        function closeReceiveModal() {
+            document.getElementById('receiveStockModal').style.display = 'none';
+            document.getElementById('rawCodeInput').value = '';
+            document.getElementById('rawNameInput').value = '';
+            document.getElementById('rawGradeInput').value = '';
+            document.getElementById('rawSupplierInput').value = '';
+            document.getElementById('rawScopeInput').value = '';
+            document.getElementById('rawKgInput').value = '';
         }
 
         async function submitRawMaterial() {
-            const code = document.getElementById('rawCodeInput').value.trim().toUpperCase(); 
-            const name = document.getElementById('rawNameInput').value.trim(); 
-            const grade = document.getElementById('rawGradeInput').value.trim(); 
-            const supplier = document.getElementById('rawSupplierInput').value.trim(); 
-            const scope = document.getElementById('rawScopeInput').value.trim(); 
+            const code = document.getElementById('rawCodeInput').value.trim().toUpperCase();
+            const name = document.getElementById('rawNameInput').value.trim();
+            const grade = document.getElementById('rawGradeInput').value.trim();
+            const supplier = document.getElementById('rawSupplierInput').value.trim();
+            const scope = document.getElementById('rawScopeInput').value.trim();
             const kg = document.getElementById('rawKgInput').value;
 
             if (!code || !kg || isNaN(kg) || Number(kg) <= 0) return showToast("Enter valid code and amount.", true);
 
             try {
-                const response = await fetch(`${API_URL}/raw-materials/receive`, { 
-                    method: 'POST', 
-                    headers: { 'Content-Type': 'application/json' }, 
-                    body: JSON.stringify({ 
-                        materialCode: code, 
-                        materialName: name, 
+                const response = await fetch(`${API_URL}/raw-materials/receive`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        materialCode: code,
+                        materialName: name,
                         grade: grade,             // Sending new data
                         supplier: supplier,       // Sending new data
                         scope: scope,             // Sending new data
-                        addedKg: Number(kg), 
-                        username: currentUser.username 
-                    }) 
+                        addedKg: Number(kg),
+                        username: currentUser.username
+                    })
                 });
                 const data = await response.json();
-                if (data.success) { 
-                    showToast(`✅ Received ${kg}kg`); 
-                    closeReceiveModal(); 
-                    loadRawMaterials(); 
-                    loadTransactions(); 
+                if (data.success) {
+                    showToast(`✅ Received ${kg}kg`);
+                    closeReceiveModal();
+                    loadRawMaterials();
+                    loadTransactions();
                 } else showToast("❌ Error: " + data.message, true);
             } catch (err) { }
         }
