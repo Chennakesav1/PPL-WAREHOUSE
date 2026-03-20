@@ -1395,36 +1395,34 @@
             }
         }
         function calculateVisibleTotals() {
-            const table = document.getElementById("productionTable");
-            // We only want to look at the rows inside the <tbody>, ignoring headers/footers
-            const rows = table.getElementsByTagName("tbody")[0].getElementsByTagName("tr");
+            // Select all rows inside the production table
+            const rows = document.querySelectorAll("#productionTable tbody tr");
 
             let totalAcc = 0;
             let totalRej = 0;
             let totalRejKg = 0;
 
-            for (let i = 0; i < rows.length; i++) {
-                // Only count the row IF it is currently visible AND it's a real data row
-                if (rows[i].style.display !== "none" && rows[i].cells.length > 5) {
+            rows.forEach(row => {
+                // Only count the row IF it is currently visible AND it has actual data
+                if (row.style.display !== "none" && row.cells.length > 5) {
 
-                    // In our massive 48-column table:
-                    // Column 23 is Accepted Qty
-                    // Column 24 is Rejected Qty
-                    // Column 25 is Rejected Kg
-                    const accVal = parseInt(rows[i].cells[23].textContent) || 0;
-                    const rejVal = parseInt(rows[i].cells[24].textContent) || 0;
-                    const rejKgVal = parseFloat(rows[i].cells[25].textContent) || 0;
+                    // In your 49-column table: Index 23=AccQty, 24=RejQty, 25=RejKg
+                    const accVal = parseInt(row.cells[23].textContent) || 0;
+                    const rejVal = parseInt(row.cells[24].textContent) || 0;
+                    const rejKgVal = parseFloat(row.cells[25].textContent) || 0;
 
                     totalAcc += accVal;
                     totalRej += rejVal;
                     totalRejKg += rejKgVal;
                 }
-            }
+            });
 
             // Update the footer text with the new math
-            document.getElementById("totalAccQty").textContent = totalAcc;
-            document.getElementById("totalRejQty").textContent = totalRej;
-            document.getElementById("totalRejKg").textContent = totalRejKg.toFixed(2);
+            if (document.getElementById("totalAccQty")) {
+                document.getElementById("totalAccQty").textContent = totalAcc;
+                document.getElementById("totalRejQty").textContent = totalRej;
+                document.getElementById("totalRejKg").textContent = totalRejKg.toFixed(2);
+            }
         }
 
         // 2. Update the Stage Tabs to use the new local filter (much faster!)
