@@ -159,7 +159,21 @@ app.post('/api/production/batch', async (req, res) => {
                     await new Transaction({ barcode: lookupCode, type: 'PRODUCTION', quantity: accQty, resultingStock: product.currentStock, user: req.body.loggedBy }).save();
                 }
             }
+            
+            // NEW: Stamp the exact time this product was touched!
+            product.lastUpdated = new Date(); 
+            
             await product.save();
+        }
+
+        // Optional Work Order Interlink (If you are still using Work Orders)
+        if (req.body.workOrderNo && req.body.acceptedQty) {
+            const wo = await WorkOrder.findOne({ woNumber: req.body.workOrderNo });
+            if (wo) {
+                wo.producedQty += Number(req.body.acceptedQty);
+                if (wo.producedQty >= wo.targetQty) wo.status = 'COMPLETED';
+                await wo.save();
+            }
         }
 
         // 2. SAVE THE ACTUAL PRODUCTION LOG
@@ -198,7 +212,6 @@ app.post('/api/production/batch', async (req, res) => {
         res.status(500).json({ error: "Production error", details: err.message });
     }
 });
-
 // ==========================================
 // 3. PURCHASE DEPT: Purchase Orders (PO)
 // ==========================================
@@ -360,8 +373,8 @@ app.post('/api/work-orders', async (req, res) => {
 
 app.get('/api/products', async (req, res) => {
     try {
-        // LIFO Sort: Changed from alphabetical to Newest Created at the top
-        const products = await Product.find().sort({ _id: -1 });
+        // FIXED: Now sorts by the exact moment the stock was last modified!
+        const products = await Product.find().sort({ lastUpdated: -1 });
         res.json(products);
     } catch (error) {
         console.error("🔥 CRASH IN GET /api/products:", error);

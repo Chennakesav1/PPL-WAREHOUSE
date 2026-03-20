@@ -10,7 +10,8 @@ const productSchema = new mongoose.Schema({
     length: Number,
     weightPerPc: Number,
     currentStock: { type: Number, default: 0 },
-    wipStock: { type: Number, default: 0 }
+    wipStock: { type: Number, default: 0 },
+    lastUpdated: { type: Date, default: Date.now }
 });
 
 const transactionSchema = new mongoose.Schema({
