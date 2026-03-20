@@ -1019,10 +1019,16 @@
         }
 
 
+        // NEW: Global memory to hold the batch data for auto-filling
+        let globalBatches = [];
+
         async function loadProductionBatches() {
             try {
                 const response = await fetch(`${API_URL}/production/batches`);
                 const batches = await response.json();
+
+                globalBatches = batches; // NEW: Save the data to memory
+
                 const tbody = document.querySelector('#productionTable tbody');
                 tbody.innerHTML = '';
                 let count = 0;
@@ -1039,6 +1045,7 @@
                     const tr = document.createElement('tr');
                     tr.setAttribute('data-date', hiddenDateTag);
                     tr.setAttribute('data-stage', b.stage);
+                    const dt = new Date(b.date).toLocaleDateString();
 
                     tr.innerHTML = `
                 <td><strong>${displayDate}</strong></td>
@@ -1089,24 +1096,92 @@
                 <td>${b.lossUnknown || 0}</td>
                 <td>${b.remarks || '-'}</td>
                 <td><span style="color:#666; font-size:11px;">👤 ${b.loggedBy || '-'}</span></td>
-                <td class="admin-actions">
-                    ${currentUser && currentUser.role === 'ADMIN' ?
-                            `<button onclick="deleteProductionBatch('${b._id}')" style="background:#dc3545; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-weight:bold;">🗑️ Delete</button>`
-                            : '<span style="color:#999; font-size: 11px;">No Access</span>'}
+                <td style="display: flex; gap: 5px;">
+                    <button onclick="autoFillNextStage('${b._id}')" style="background:#007bff; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-weight:bold;">⏭️ Next Stage</button>
+                    
+                    <button onclick="deleteProductionBatch('${b._id}')" style="background:#dc3545; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-weight:bold;">🗑️ Delete</button>
                 </td>
             `;
-                    tbody.appendChild(tr);
+            tbody.appendChild(tr);
                 });
 
                 if (count === 0) {
                     tbody.innerHTML = '<tr><td colspan="49" style="text-align: center;">No logs found for this stage.</td></tr>';
                 }
 
-                // CRITICAL FIX: Re-apply the search filters (which will also recalculate the totals!)
                 applyProductionFilters();
 
             } catch (error) {
                 console.error("Failed to load batches:", error);
+            }
+        }
+
+
+        // ==========================================
+        // SMART PROGRESSION: Auto-Fill Next Stage
+        // ==========================================
+        function autoFillNextStage(batchId) {
+            // 1. Find the exact data for this row
+            const batch = globalBatches.find(b => b._id === batchId);
+            if (!batch) return;
+
+            // 2. Figure out the logical "Next Stage"
+            let nextStage = 'ROLLING';
+            if (batch.stage === 'ROLLING') nextStage = 'SEC_OP';
+            if (batch.stage === 'SEC_OP') nextStage = 'SEC_OP'; // Tops out at Sec Op
+
+            // 3. Change the UI Stage and trigger the visual toggle
+            document.getElementById('prodStage').value = nextStage;
+            toggleStageFields();
+
+            // 4. Copy the data over
+            document.getElementById('prodDate').valueAsDate = new Date(); // Always defaults to Today
+            document.getElementById('prodShift').value = batch.shift || '';
+            document.getElementById('prodOperator').value = batch.operator || '';
+            document.getElementById('prodWO').value = batch.workOrderNo || '';
+            document.getElementById('prodPartNo').value = batch.partNo || '';
+            document.getElementById('prodSize').value = batch.partSize || '';
+            document.getElementById('prodPitch').value = batch.pitch || '';
+            document.getElementById('prodLength').value = batch.length || '';
+            document.getElementById('prodAF').value = batch.af || '';
+            document.getElementById('prodGrade').value = batch.productGrade || '';
+            document.getElementById('prodHeatNo').value = batch.heatNo || '';
+            document.getElementById('prodPieceWt').value = batch.pieceWeightKg || '';
+
+            // 5. Handle "Other" Dropdowns Smartly (Machine & Part Name)
+            setSmartDropdown('prodMachine', 'prodMachineOther', batch.machineName);
+            setSmartDropdown('prodPartName', 'prodPartNameOther', batch.partName);
+
+            // 6. Scroll the user smoothly to the top of the form
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            showToast(`✅ Form pre-filled for ${nextStage}!`);
+        }
+
+        // Helper to handle the "Other" text boxes
+        function setSmartDropdown(dropdownId, otherId, value) {
+            const dropdown = document.getElementById(dropdownId);
+            const otherBox = document.getElementById(otherId);
+            if (!value) {
+                dropdown.value = '';
+                otherBox.style.display = 'none';
+                return;
+            }
+
+            let found = false;
+            for (let i = 0; i < dropdown.options.length; i++) {
+                if (dropdown.options[i].value === value) {
+                    dropdown.selectedIndex = i;
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) {
+                dropdown.value = 'OTHER';
+                otherBox.style.display = 'block';
+                otherBox.value = value;
+            } else {
+                otherBox.style.display = 'none';
             }
         }
 
@@ -1138,7 +1213,7 @@
             const activeElem = document.activeElement;
             if (activeElem && activeElem.tagName === 'INPUT' && activeElem.id.startsWith('stock-')) {
                 // If they are typing, silently abort the refresh so we don't interrupt them!
-                return; 
+                return;
             }
             // ----------------------------------
 
@@ -1147,20 +1222,20 @@
                 const products = await response.json();
                 const tbody = document.querySelector('#productsTable tbody');
                 tbody.innerHTML = '';
-                
+
                 if (!Array.isArray(products) || products.length === 0) {
                     return tbody.innerHTML = '<tr><td colspan="10" style="text-align: center;">No finished goods found.</td></tr>';
                 }
 
                 products.forEach(p => {
                     const currentStock = p.currentStock || 0;
-                    const wipStock = p.wipStock || 0; 
+                    const wipStock = p.wipStock || 0;
                     const isLowStock = currentStock <= 10;
                     const tr = document.createElement('tr');
                     if (isLowStock) tr.className = "low-stock";
 
-                    let actionHTML = '<td class="admin-actions"></td>'; 
-                    
+                    let actionHTML = '<td class="admin-actions"></td>';
+
                     if (currentUser && currentUser.role === 'ADMIN') {
                         actionHTML = `<td class="admin-actions" style="display:flex; flex-direction:column; gap:5px;">
                             <input type="number" id="stock-${p._id}" value="${currentStock}" style="width: 70px; text-align: center; border: 1px solid #ccc; border-radius: 4px; padding: 4px; margin-bottom: 5px;">
@@ -1168,7 +1243,7 @@
                             <button onclick="deleteProduct('${p._id}')" style="background: #dc3545; color: white; border: none; padding: 5px; border-radius: 4px; cursor: pointer;">Delete</button>
                         </td>`;
                     }
-                    
+
                     tr.innerHTML = `
                         <td><strong>${p.productCode || 'N/A'}</strong></td>
                         <td>${p.sector || '-'}</td>
@@ -1184,7 +1259,7 @@
                     tbody.appendChild(tr);
                 });
                 filterInventory();
-            } catch (error) { 
+            } catch (error) {
                 console.error("Failed to load inventory:", error);
             }
         }
