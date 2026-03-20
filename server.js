@@ -83,7 +83,8 @@ app.post('/api/app-login', (req, res) => {
 // ==========================================
 app.get('/api/production/batches', async (req, res) => {
     try {
-        const batches = await ProductionBatch.find().sort({ date: -1 }).limit(200);
+        // LIFO Sort: Groups by date, then puts the absolute newest entry at the top
+        const batches = await ProductionBatch.find().sort({ date: -1, _id: -1 }).limit(200);
         res.json(batches);
     } catch (err) {
         console.error("🔥 CRASH IN GET /api/production/batches:", err);
@@ -203,7 +204,8 @@ app.post('/api/production/batch', async (req, res) => {
 // ==========================================
 app.get('/api/purchase-orders', async (req, res) => {
     try {
-        const pos = await PurchaseOrder.find().sort({ orderDate: -1 });
+        // LIFO Sort: Newest POs at the top
+        const pos = await PurchaseOrder.find().sort({ orderDate: -1, _id: -1 });
         res.json(pos);
     } catch (err) {
         console.error("🔥 CRASH IN GET /api/purchase-orders:", err);
@@ -279,7 +281,8 @@ app.put('/api/purchase-orders/:id/receive', async (req, res) => {
 // ==========================================
 app.get('/api/raw-materials', async (req, res) => {
     try {
-        let materials = await RawMaterial.find();
+        // LIFO Sort: Whatever steel stock was updated most recently jumps to the top
+        let materials = await RawMaterial.find().sort({ lastUpdate: -1 });
         res.json(materials);
     } catch (err) {
         console.error("🔥 CRASH IN GET /api/raw-materials:", err);
@@ -357,17 +360,18 @@ app.post('/api/work-orders', async (req, res) => {
 
 app.get('/api/products', async (req, res) => {
     try {
-        const products = await Product.find().sort({ productCode: 1 });
+        // LIFO Sort: Changed from alphabetical to Newest Created at the top
+        const products = await Product.find().sort({ _id: -1 });
         res.json(products);
     } catch (error) {
         console.error("🔥 CRASH IN GET /api/products:", error);
         res.status(500).json({ error: "Server error fetching products", details: error.message });
     }
 });
-
 app.get('/api/transactions', async (req, res) => {
     try {
-        const transactions = await Transaction.find().sort({ date: -1 }).limit(100);
+        // LIFO Sort: Most recent movement at the very top
+        const transactions = await Transaction.find().sort({ date: -1, _id: -1 }).limit(100);
         res.json(transactions);
     } catch (error) {
         console.error("🔥 CRASH IN GET /api/transactions:", error);
