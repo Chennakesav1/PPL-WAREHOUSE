@@ -771,6 +771,18 @@
                     </div>
                 </h2>
 
+                <div id="qcHistorySearchSection"
+                    style="display: none; background: #f1f8f9; padding: 12px; border-radius: 6px; margin-bottom: 15px; gap: 10px; align-items: center; border: 1px solid #d1e7e9;">
+                    <span style="font-weight: bold; color: #17a2b8; font-size: 13px;">🔍 SEARCH HISTORY:</span>
+                    <input type="date" id="filterQCHistoryDate" class="prod-input" onchange="applyQCHistoryFilters()"
+                        title="Filter by Approval Date">
+                    <input type="text" id="filterQCHistoryGlobal" class="prod-input" style="flex: 1;"
+                        placeholder="Search Part No, Machine, Inspector, or Remarks..."
+                        onkeyup="applyQCHistoryFilters()">
+                    <button onclick="clearQCHistoryFilters()"
+                        style="background: #6c757d; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">Reset</button>
+                </div>
+
                 <div class="table-wrapper">
                     <table id="qcTable">
                         <thead style="background-color: #17a2b8; color: white;">
@@ -1113,10 +1125,25 @@
         function refreshDashboard() {
             loadInventory();
             loadTransactions();
-            if (currentUser && (currentUser.role === 'PRODUCTION' || currentUser.role === 'ADMIN')) loadProductionBatches();
-            if (currentUser && (currentUser.role === 'QC' || currentUser.role === 'ADMIN')) loadPendingQC();
+
+            // Check Production access
+            if (currentUser && (currentUser.role === 'PRODUCTION' || currentUser.role === 'ADMIN')) {
+                loadProductionBatches();
+            }
+
+            // SMART QC REFRESH
+            if (currentUser && (currentUser.role === 'QC' || currentUser.role === 'ADMIN')) {
+                // Only refresh the view the user is currently looking at!
+                if (currentQCView === 'PENDING') {
+                    loadPendingQC();
+                } else {
+                    loadQCHistory();
+                }
+            }
+
             if (currentUser && (currentUser.role === 'ADMIN' || currentUser.role === 'PURCHASE')) {
-                loadRawMaterials(); loadPOs();
+                loadRawMaterials();
+                loadPOs();
             }
         }
 
@@ -1827,7 +1854,10 @@
             } catch (err) { console.error("Error loading QC data:", err); }
         }
 
+        let qcHistoryBatches = []; // NEW: Global memory for history
+
         function openQCInspection(batchId) {
+            const sourceData = isHistory ? qcHistoryBatches : pendingQCBatches;
             const b = pendingQCBatches.find(x => x._id === batchId);
             if (!b) return;
 
@@ -1894,6 +1924,14 @@
                     </div>
                 </div>
             `;
+            const footer = document.querySelector('#qcModal div[style*="border-top"]');
+            if (isHistory) {
+                footer.style.display = 'none'; // Hide buttons in history mode
+            } else {
+                footer.style.display = 'flex'; // Show buttons in pending mode
+                document.getElementById('btnQcApprove').onclick = () => submitQC(batchId, 'APPROVED');
+                document.getElementById('btnQcReject').onclick = () => submitQC(batchId, 'REJECTED');
+            }
 
             document.getElementById('btnQcApprove').onclick = () => submitQC(batchId, 'APPROVED');
             document.getElementById('btnQcReject').onclick = () => submitQC(batchId, 'REJECTED');
@@ -1968,14 +2006,11 @@
             const btnHistory = document.getElementById('btnShowHistory');
 
             if (view === 'PENDING') {
-                btnPending.style.background = '#17a2b8'; btnPending.style.color = 'white';
-                btnHistory.style.background = '#eee'; btnHistory.style.color = '#555';
-                loadPendingQC(); // Existing function
+                loadPendingQC();
             } else {
-                btnHistory.style.background = '#17a2b8'; btnHistory.style.color = 'white';
-                btnPending.style.background = '#eee'; btnPending.style.color = '#555';
-                loadQCHistory(); // New function below
+                loadQCHistory();
             }
+            updateQCSearchVisibility()
         }
 
         // Fetch and display Approved/Rejected batches
@@ -1983,6 +2018,7 @@
             try {
                 const res = await fetch(`${API_URL}/qc/history`);
                 const history = await res.json();
+                qcHistoryBatches = history;
 
                 const tbody = document.querySelector('#qcTable tbody');
                 tbody.innerHTML = '';
@@ -2013,11 +2049,55 @@
 
         // Simple logic to show data without the "Approve/Reject" buttons for history items
         function openQCHistoryDetails(batchId) {
-            // We can reuse openQCInspection, but we should hide the action footer
-            openQCInspection(batchId);
-            // Hide the Approve/Reject footer in history mode
-            document.querySelector('#qcModal div[style*="border-top"]').style.display = 'none';
-            // Add a simple Close button or keep the X at the top
+            // Search in the history memory instead of pending memory
+            const b = qcHistoryBatches.find(x => x._id === batchId);
+            if (!b) return console.error("Batch not found in history memory");
+
+            // Reuse the main inspection builder
+            openQCInspection(batchId, true);
+        }
+
+
+
+
+        function updateQCSearchVisibility() {
+            const searchSection = document.getElementById('qcHistorySearchSection');
+            searchSection.style.display = (currentQCView === 'HISTORY') ? 'flex' : 'none';
+        }
+
+        // 2. The Filter Engine for QC History
+        function applyQCHistoryFilters() {
+            const filterDate = document.getElementById('filterQCHistoryDate').value; // YYYY-MM-DD
+            const filterText = document.getElementById('filterQCHistoryGlobal').value.toUpperCase();
+
+            const table = document.getElementById("qcTable");
+            const rows = table.getElementsByTagName("tbody")[0].getElementsByTagName("tr");
+
+            for (let i = 0; i < rows.length; i++) {
+                // Skip if it's the "No records" row
+                if (rows[i].cells.length < 5) continue;
+
+                // Date is in the first column: we need to parse it back to ISO for comparison
+                // or easier: just look at the text content
+                const rowDateText = rows[i].cells[0].textContent; // e.g. "3/20/2026"
+                const rowFullText = rows[i].textContent.toUpperCase();
+
+                // Convert row date to YYYY-MM-DD for strict comparison
+                const d = new Date(rowDateText);
+                const rowISODate = d.toISOString().split('T')[0];
+
+                let matchDate = (filterDate === '' || rowISODate === filterDate);
+                let matchGlobal = (filterText === '' || rowFullText.includes(filterText));
+
+                rows[i].style.display = (matchDate && matchGlobal) ? "" : "none";
+            }
+        }
+
+        // 3. Clear Filters
+        function clearQCHistoryFilters() {
+            document.getElementById('filterQCHistoryDate').value = '';
+            document.getElementById('filterQCHistoryGlobal').value = '';
+            applyQCHistoryFilters();
         }
     </script>
 </body>
