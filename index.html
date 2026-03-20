@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Warehouse ERP Dashboard 📦</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -442,6 +444,28 @@
                         <div id="oeeRejText" style="font-size: 11px; color: #dc3545; margin-top: 5px;">0 rejected</div>
                     </div>
 
+                </div>
+
+                <div id="chartsDashboard" style="display: flex; gap: 15px; margin-bottom: 25px;">
+                    <div
+                        style="flex: 2; background: white; padding: 15px; border-radius: 8px; border: 1px solid #ddd; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                        <h4
+                            style="text-align: center; margin-top: 0; margin-bottom: 10px; color: #495057; font-size: 14px; text-transform: uppercase;">
+                            Today's Output by Machine</h4>
+                        <div style="height: 200px;">
+                            <canvas id="machineChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div
+                        style="flex: 1; background: white; padding: 15px; border-radius: 8px; border: 1px solid #ddd; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                        <h4
+                            style="text-align: center; margin-top: 0; margin-bottom: 10px; color: #495057; font-size: 14px; text-transform: uppercase;">
+                            Quality Ratio</h4>
+                        <div style="height: 200px;">
+                            <canvas id="qualityChart"></canvas>
+                        </div>
+                    </div>
                 </div>
 
                 <div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #ddd;">
@@ -1156,6 +1180,8 @@
 
                 calculateLiveOEE();
 
+                renderVisualCharts();
+
             } catch (error) {
                 console.error("Failed to load batches:", error);
             }
@@ -1758,6 +1784,84 @@
 
             } catch (error) {
                 console.error("OEE Math Error:", error);
+            }
+        }
+
+
+        // ==========================================
+        // LIVE CHART.JS ENGINE
+        // ==========================================
+        let machineChartInstance = null;
+        let qualityChartInstance = null;
+
+        function renderVisualCharts() {
+            try {
+                // 1. Get today's batches only
+                const todayStr = new Date().toISOString().split('T')[0];
+                const todayBatches = globalBatches.filter(b => b.date && b.date.startsWith(todayStr));
+
+                // 2. Prepare Data for Machine Bar Chart
+                const machineData = {};
+                let totalAcc = 0;
+                let totalRej = 0;
+
+                todayBatches.forEach(b => {
+                    // Group output by machine name
+                    const macName = b.machineName || 'Unknown Machine';
+                    machineData[macName] = (machineData[macName] || 0) + (Number(b.acceptedQty) || 0);
+
+                    // Sum totals for Quality chart
+                    totalAcc += (Number(b.acceptedQty) || 0);
+                    totalRej += (Number(b.rejectedQty) || 0);
+                });
+
+                // 3. Draw Machine Bar Chart
+                const ctxMachine = document.getElementById('machineChart').getContext('2d');
+                if (machineChartInstance) machineChartInstance.destroy(); // Prevent glitching on auto-refresh
+
+                machineChartInstance = new Chart(ctxMachine, {
+                    type: 'bar',
+                    data: {
+                        labels: Object.keys(machineData).length > 0 ? Object.keys(machineData) : ['No Data'],
+                        datasets: [{
+                            label: 'Accepted Parts',
+                            data: Object.keys(machineData).length > 0 ? Object.values(machineData) : [0],
+                            backgroundColor: '#007bff',
+                            borderRadius: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: { y: { beginAtZero: true } }
+                    }
+                });
+
+                // 4. Draw Quality Doughnut Chart
+                const ctxQuality = document.getElementById('qualityChart').getContext('2d');
+                if (qualityChartInstance) qualityChartInstance.destroy();
+
+                qualityChartInstance = new Chart(ctxQuality, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Accepted', 'Rejected'],
+                        datasets: [{
+                            data: (totalAcc === 0 && totalRej === 0) ? [1, 0] : [totalAcc, totalRej], // Dummy data if empty so it doesn't look broken
+                            backgroundColor: ['#28a745', '#dc3545'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '70%',
+                        plugins: { legend: { position: 'bottom' } }
+                    }
+                });
+
+            } catch (error) {
+                console.error("Chart Rendering Error:", error);
             }
         }
     </script>
