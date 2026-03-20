@@ -109,7 +109,12 @@ const productionBatchSchema = new mongoose.Schema({
     qcStatus: { type: String, enum: ['PENDING', 'APPROVED', 'REJECTED'], default: 'PENDING' },
     qcBy: String,
     qcDate: Date,
-    qcRemarks: String
+    qcRemarks: String,
+
+
+    measuredLength: { type: Number },
+    measuredAF: { type: String },
+    threadGauge: { type: String, enum: ['PASS', 'FAIL', 'N/A'], default: 'N/A' },
 });
 
 // NEW: Work Order Schema

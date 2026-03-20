@@ -475,7 +475,7 @@ app.get('/api/qc/pending', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// QC Approves OR Rejects the batch
+// QC Approves OR Rejects the batch (WITH QUANTITY OVERRIDES)
 app.put('/api/qc/approve/:id', async (req, res) => {
     try {
         const batch = await ProductionBatch.findById(req.params.id);
@@ -483,8 +483,12 @@ app.put('/api/qc/approve/:id', async (req, res) => {
             return res.status(400).json({ error: "Batch already processed or not found" });
         }
 
-        // Check the status sent by the Frontend (APPROVED or REJECTED)
         const incomingStatus = req.body.status || 'APPROVED'; 
+        
+        // NEW: Get the overridden numbers from the QC (fallback to worker's original numbers if empty)
+        const finalAccQty = req.body.accQty !== undefined ? req.body.accQty : batch.acceptedQty;
+        const finalRejQty = req.body.rejQty !== undefined ? req.body.rejQty : batch.rejectedQty;
+        const finalRejKg  = req.body.rejKg !== undefined ? req.body.rejKg : batch.rejectionKg;
 
         // ONLY add to inventory if the QC specifically hit APPROVED
         if (incomingStatus === 'APPROVED') {
@@ -493,10 +497,10 @@ app.put('/api/qc/approve/:id', async (req, res) => {
                 let product = await Product.findOne({ barcode: lookupCode.trim() });
                 if (product) {
                     if (batch.stage === 'FORGING') {
-                        product.wipStock += batch.acceptedQty; // Forging -> WIP
+                        product.wipStock += finalAccQty; // Forging -> WIP using QC's Number!
                     } else {
-                        product.currentStock += batch.acceptedQty; // Rolling -> Ready Stock
-                        await new Transaction({ barcode: product.barcode, type: 'QC_APPROVAL', quantity: batch.acceptedQty, resultingStock: product.currentStock, user: req.body.qcBy }).save();
+                        product.currentStock += finalAccQty; // Rolling -> Ready Stock using QC's Number!
+                        await new Transaction({ barcode: product.barcode, type: 'QC_APPROVAL', quantity: finalAccQty, resultingStock: product.currentStock, user: req.body.qcBy }).save();
                     }
                     product.lastUpdated = new Date();
                     await product.save();
@@ -504,7 +508,15 @@ app.put('/api/qc/approve/:id', async (req, res) => {
             }
         }
 
-        // Mark the batch with whatever status the QC chose
+        // UPDATE the production batch with the QC's final verified numbers
+        batch.acceptedQty = finalAccQty;
+        batch.rejectedQty = finalRejQty;
+        batch.rejectionKg = finalRejKg;
+
+        batch.measuredLength = req.body.measuredLength;
+        batch.measuredAF = req.body.measuredAF;
+        batch.threadGauge = req.body.threadGauge;
+        
         batch.qcStatus = incomingStatus;
         batch.qcBy = req.body.qcBy || 'QC Inspector';
         batch.qcDate = new Date();
@@ -516,5 +528,13 @@ app.put('/api/qc/approve/:id', async (req, res) => {
         res.status(500).json({ error: err.message }); 
     }
 });
-
+// Get QC History (last 100 approved/rejected batches)
+app.get('/api/qc/history', async (req, res) => {
+    try {
+        const history = await ProductionBatch.find({ 
+            qcStatus: { $in: ['APPROVED', 'REJECTED'] } 
+        }).sort({ qcDate: -1 }).limit(100);
+        res.json(history);
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
 app.listen(process.env.PORT || 5000, () => console.log(`ERP Server Running on port ${process.env.PORT || 5000}`));

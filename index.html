@@ -564,6 +564,35 @@
                         </div>
                     </div>
 
+
+
+                    <div
+                        style="background: #e3f2fd; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); grid-column: span 3; border-left: 5px solid #007bff;">
+                        <h4 style="margin-top:0; color:#007bff;">4. Physical Measurements (QC Inspector Entry)</h4>
+                        <div style="display: flex; gap: 15px; align-items: center;">
+                            <div style="flex: 1;">
+                                <label style="font-size: 12px; font-weight: bold; color: #555;">Measured Length
+                                    (mm)</label>
+                                <input type="number" step="0.01" id="qcLength" class="prod-input"
+                                    placeholder="e.g., 45.05" style="width: 100%; box-sizing: border-box;">
+                            </div>
+                            <div style="flex: 1;">
+                                <label style="font-size: 12px; font-weight: bold; color: #555;">Measured A/F</label>
+                                <input type="text" id="qcAF" class="prod-input" placeholder="e.g., 16.90"
+                                    style="width: 100%; box-sizing: border-box;">
+                            </div>
+                            <div style="flex: 1;">
+                                <label style="font-size: 12px; font-weight: bold; color: #555;">Thread Ring
+                                    Gauge</label>
+                                <select id="qcThread" class="prod-input" style="width: 100%; box-sizing: border-box;">
+                                    <option value="N/A">Not Applicable</option>
+                                    <option value="PASS">✅ GO / NO-GO Pass</option>
+                                    <option value="FAIL">❌ FAIL</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="form-section" style="border-left-color: #28a745;">
                         <div class="form-section-title" style="color: #28a745;">4. Production Output</div>
                         <div class="form-grid-multi">
@@ -729,7 +758,17 @@
             </div>
 
             <div class="card" id="qcCard" style="display: none; margin-bottom: 20px;">
-                <h2 style="color: #17a2b8; border-bottom: 2px solid #17a2b8;">🔬 Quality Control - Pending Approvals
+                <h2
+                    style="color: #17a2b8; border-bottom: 2px solid #17a2b8; display: flex; justify-content: space-between; align-items: center;">
+                    <span>🔬 Quality Control Management</span>
+                    <div style="display: flex; gap: 10px;">
+                        <button onclick="toggleQCView('PENDING')" id="btnShowPending"
+                            style="background: #17a2b8; color: white; border: none; padding: 5px 15px; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: bold;">📥
+                            Pending Approvals</button>
+                        <button onclick="toggleQCView('HISTORY')" id="btnShowHistory"
+                            style="background: #eee; color: #555; border: none; padding: 5px 15px; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: bold;">📜
+                            History / Search</button>
+                    </div>
                 </h2>
 
                 <div class="table-wrapper">
@@ -1203,7 +1242,7 @@
                             let textColor = '#000';
                             if (b.qcStatus === 'APPROVED') { qcColor = '#28a745'; textColor = '#fff'; }
                             if (b.qcStatus === 'REJECTED') { qcColor = '#dc3545'; textColor = '#fff'; }
-                            
+
                             return `
                                 <td><span style="background:${qcColor}; color:${textColor}; padding:4px 8px; border-radius:4px; font-weight:bold; font-size:11px;">${b.qcStatus || 'PENDING'}</span></td>
                                 <td style="color:#dc3545; font-weight:500; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${b.qcRemarks || ''}">${b.qcRemarks || '-'}</td>
@@ -1827,17 +1866,20 @@
                     </table>
                 </div>
                 <div style="background: #e8f5e9; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); grid-column: span 3; border-left: 5px solid #28a745;">
-                    <h4 style="margin-top:0; color:#28a745; text-align:center; font-size: 16px;">4. Final Output Verification</h4>
-                    <div style="display: flex; justify-content: space-around; font-size: 22px; margin: 15px 0; background: white; padding: 15px; border-radius: 8px;">
-                        <div><strong>✅ Accepted:</strong> <span style="color:green;">${b.acceptedQty || 0}</span> pcs</div>
-                        <div><strong>❌ Rejected:</strong> <span style="color:red;">${b.rejectedQty || 0}</span> pcs</div>
-                        <div><strong>⚖️ Rej Wt:</strong> <span style="color:#dc3545;">${b.rejectionKg || 0}</span> Kg</div>
-                    </div>
-                    <div style="display: flex; gap: 20px; justify-content: center; background: white; padding: 10px; border-radius: 8px;">
-                        <p style="margin:0;"><strong>Rejection Reason:</strong> <span style="color:#dc3545;">${b.rejectionReason || 'None'}</span></p>
-                        <p style="margin:0;"><strong>Maker Remarks:</strong> ${b.remarks || 'None'}</p>
-                        <p style="margin:0;"><strong>Logged By:</strong> 👤 ${b.loggedBy || 'Unknown'}</p>
-                    </div>
+            <h4 style="margin-top:0; color:#28a745; text-align:center; font-size: 16px;">4. Final Output Verification (Editable by QC)</h4>
+            
+            <div style="display: flex; justify-content: space-around; font-size: 18px; margin: 15px 0; background: white; padding: 15px; border-radius: 8px; align-items: center;">
+                <div><strong>✅ Accepted:</strong> <input type="number" id="qcOverrideAcc" value="${b.acceptedQty || 0}" class="prod-input" style="width: 90px; text-align: center; font-weight: bold; color: green; font-size: 18px;"> pcs</div>
+                <div><strong>❌ Rejected:</strong> <input type="number" id="qcOverrideRej" value="${b.rejectedQty || 0}" class="prod-input" style="width: 90px; text-align: center; font-weight: bold; color: red; font-size: 18px;"> pcs</div>
+                <div><strong>⚖️ Rej Wt:</strong> <input type="number" step="0.01" id="qcOverrideRejKg" value="${b.rejectionKg || 0}" class="prod-input" style="width: 90px; text-align: center; font-weight: bold; color: #dc3545; font-size: 18px;"> Kg</div>
+            </div>
+            
+            <div style="display: flex; gap: 20px; justify-content: center; background: white; padding: 10px; border-radius: 8px;">
+                <p style="margin:0;"><strong>Rejection Reason:</strong> <span style="color:#dc3545;">${b.rejectionReason || 'None'}</span></p>
+                <p style="margin:0;"><strong>Maker Remarks:</strong> ${b.remarks || 'None'}</p>
+                <p style="margin:0;"><strong>Logged By:</strong> 👤 ${b.loggedBy || 'Unknown'}</p>
+            </div>
+        </div>
                 </div>
                 <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); grid-column: span 3; border-left: 5px solid #dc3545;">
                     <h4 style="margin-top:0; color:#dc3545;">5. Downtime Losses Claimed (Minutes)</h4>
@@ -1858,16 +1900,45 @@
             document.getElementById('qcModal').style.display = 'flex';
         }
 
+        // 3. Submit the Official Verdict to the Server
         async function submitQC(batchId, status) {
             const remarks = document.getElementById('qcRemarksInput').value.trim();
-            if (status === 'REJECTED' && !remarks) return alert("QC Remarks are mandatory when rejecting a batch!");
+
+            const qcLength = document.getElementById('qcLength').value;
+            const qcAF = document.getElementById('qcAF').value;
+            const qcThread = document.getElementById('qcThread').value
+
+            // NEW: Grab the overridden numbers from the QC Inspector
+            const overrideAcc = document.getElementById('qcOverrideAcc').value;
+            const overrideRej = document.getElementById('qcOverrideRej').value;
+            const overrideRejKg = document.getElementById('qcOverrideRejKg').value;
+
+            if (status === 'REJECTED' && !remarks) {
+                return alert("QC Remarks are mandatory when rejecting a batch!");
+            }
+
             if (!confirm(`Are you sure you want to officially mark this batch as ${status}?`)) return;
 
             try {
                 const qcUsername = (typeof currentUser !== 'undefined' && currentUser.username) ? currentUser.username : 'QC Inspector';
+
+                // NEW: Send the updated quantities in the payload
+                const payload = {
+                    qcBy: qcUsername,
+                    qcRemarks: remarks,
+                    status: status,
+                    accQty: Number(overrideAcc),
+                    rejQty: Number(overrideRej),
+                    rejKg: Number(overrideRejKg),
+                    measuredLength: qcLength ? Number(qcLength) : null,
+                    measuredAF: qcAF || null,
+                    threadGauge: qcThread
+                };
+
                 const res = await fetch(`${API_URL}/qc/approve/${batchId}`, {
-                    method: 'PUT', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ qcBy: qcUsername, qcRemarks: remarks, status: status })
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
                 });
 
                 const data = await res.json();
@@ -1875,6 +1946,8 @@
                     alert(`✅ Batch ${status} successfully!`);
                     document.getElementById('qcModal').style.display = 'none';
                     document.getElementById('qcRemarksInput').value = '';
+
+                    // Refresh the tables
                     loadPendingQC();
                     if (typeof loadInventory === 'function') loadInventory();
                     if (typeof loadProductionBatches === 'function') loadProductionBatches();
@@ -1882,6 +1955,69 @@
                     alert("Error: " + data.error);
                 }
             } catch (err) { alert("Failed to connect to server."); }
+        }
+
+
+        let currentQCView = 'PENDING'; // Global state
+
+        async function toggleQCView(view) {
+            currentQCView = view;
+
+            // 1. UI Button Styling
+            const btnPending = document.getElementById('btnShowPending');
+            const btnHistory = document.getElementById('btnShowHistory');
+
+            if (view === 'PENDING') {
+                btnPending.style.background = '#17a2b8'; btnPending.style.color = 'white';
+                btnHistory.style.background = '#eee'; btnHistory.style.color = '#555';
+                loadPendingQC(); // Existing function
+            } else {
+                btnHistory.style.background = '#17a2b8'; btnHistory.style.color = 'white';
+                btnPending.style.background = '#eee'; btnPending.style.color = '#555';
+                loadQCHistory(); // New function below
+            }
+        }
+
+        // Fetch and display Approved/Rejected batches
+        async function loadQCHistory() {
+            try {
+                const res = await fetch(`${API_URL}/qc/history`);
+                const history = await res.json();
+
+                const tbody = document.querySelector('#qcTable tbody');
+                tbody.innerHTML = '';
+
+                if (history.length === 0) {
+                    return tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px;">No history records found.</td></tr>';
+                }
+
+                history.forEach(b => {
+                    const statusColor = b.qcStatus === 'APPROVED' ? '#28a745' : '#dc3545';
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                <td>${new Date(b.qcDate || b.date).toLocaleDateString()}</td>
+                <td><span style="background:#17a2b8; color:white; padding:3px 6px; border-radius:3px; font-size:11px;">${b.stage}</span></td>
+                <td><strong>${b.machineName || '-'}</strong></td>
+                <td><strong>${b.partNo || '-'}</strong></td>
+                <td style="color: green; font-weight: bold;">${b.acceptedQty || 0}</td>
+                <td><span style="background:${statusColor}; color:white; padding:3px 8px; border-radius:12px; font-weight:bold; font-size:10px;">${b.qcStatus}</span></td>
+                <td>👤 ${b.qcBy || '-'}</td>
+                <td>
+                    <button onclick="openQCHistoryDetails('${b._id}')" style="background:#6c757d; color:white; border:none; padding:6px 15px; border-radius:4px; font-weight:bold; cursor:pointer;">👁️ View Data</button>
+                </td>
+            `;
+                    tbody.appendChild(tr);
+                });
+            } catch (err) { console.error("Error loading QC History:", err); }
+        }
+
+        // Simple logic to show data without the "Approve/Reject" buttons for history items
+        function openQCHistoryDetails(batchId) {
+            // We can reuse openQCInspection, but we should hide the action footer
+            openQCInspection(batchId);
+            // Hide the Approve/Reject footer in history mode
+            document.querySelector('#qcModal div[style*="border-top"]').style.display = 'none';
+            // Add a simple Close button or keep the X at the top
         }
     </script>
 </body>
