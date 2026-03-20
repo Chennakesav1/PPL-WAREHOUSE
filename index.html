@@ -451,7 +451,13 @@
                         </div>
                         <div class="form-section-title" style="margin-top: 15px;">2. Part Details</div>
                         <div class="form-grid-multi">
-                            <input type="text" id="prodWO" class="prod-input" placeholder="Work Order No.">
+                            <select id="prodWO" class="prod-input" style="border-color: #007bff; font-weight: bold;"
+                                onchange="autoFillFromWO()">
+                                <option value="">- Select Active WO -</option>
+                                <option value="OTHER">Manual Entry...</option>
+                            </select>
+                            <input type="text" id="prodWOOther" class="prod-input" placeholder="Enter WO Manually"
+                                style="display: none; border-color: #007bff;">
                             <input type="text" id="prodPartNo" class="prod-input" placeholder="Part No (Barcode)">
                             <select id="prodPartName" class="prod-input"
                                 onchange="toggleOtherInput('prodPartName', 'prodPartNameOther')">
@@ -676,6 +682,8 @@
                                 <th>A/F</th>
                                 <th>Wt/Pc</th>
                                 <th>Current Stock</th>
+                                <th style="color: #17a2b8;">WIP (Floor)</th>
+                                <th style="color: #28a745;">Ready Stock</th>
                                 <th class="admin-actions">Actions</th>
                             </tr>
                         </thead>
@@ -950,6 +958,9 @@
 
             let finalPartName = document.getElementById('prodPartName').value;
             if (finalPartName === 'OTHER') finalPartName = document.getElementById('prodPartNameOther').value;
+
+            let finalWO = document.getElementById('prodWO').value;
+            if (finalWO === 'OTHER') finalWO = document.getElementById('prodWOOther').value;
             const data = {
                 stage: document.getElementById('prodStage').value,
                 date: document.getElementById('prodDate').value,
@@ -959,7 +970,7 @@
 
                 operator: document.getElementById('prodOperator').value,
                 operation: document.getElementById('prodOperation').value,
-                workOrderNo: document.getElementById('prodWO').value,
+                workOrderNo: finalWO,
                 partNo: document.getElementById('prodPartNo').value,
 
                 partSize: document.getElementById('prodSize').value,
@@ -1135,6 +1146,7 @@
                 if (!Array.isArray(products) || products.length === 0) return tbody.innerHTML = '<tr><td colspan="9" style="text-align: center;">No finished goods found.</td></tr>';
                 products.forEach(p => {
                     const currentStock = p.currentStock || 0;
+                    const wipStock = p.wipStock || 0; // NEW: Grab the WIP number
                     const isLowStock = currentStock <= 10;
                     const tr = document.createElement('tr');
                     if (isLowStock) tr.className = "low-stock";
@@ -1143,9 +1155,19 @@
                     if (currentUser && currentUser.role === 'ADMIN') {
                         actionHTML = `<td class="admin-actions" style="display:flex; flex-direction:column; gap:5px;"><input type="number" id="stock-${p._id}" value="${currentStock}" style="width: 70px; text-align: center; border: 1px solid #ccc; border-radius: 4px; padding: 4px; margin-bottom: 5px;"><button onclick="updateStock('${p._id}')" style="background: #28a745; color: white; border: none; padding: 5px; border-radius: 4px; cursor: pointer;">Save</button><button onclick="deleteProduct('${p._id}')" style="background: #dc3545; color: white; border: none; padding: 5px; border-radius: 4px; cursor: pointer;">Delete</button></td>`;
                     }
-                    tr.innerHTML = `<td><strong>${p.productCode || 'N/A'}</strong></td><td>${p.sector || '-'}</td><td>${p.type || '-'}</td><td>${p.grade || '-'}</td>
-                        <td>${p.length ? p.length + ' mm' : '-'}</td><td>${p.af !== undefined && p.af !== null ? p.af : '-'}</td><td>${p.weightPerPc || '0'}g</td>
-                        <td class="stock-val ${isLowStock ? 'low-stock-text' : ''}">${currentStock}</td>${actionHTML}`;
+
+                    // Injecting WIP Stock into the table
+                    tr.innerHTML = `
+                <td><strong>${p.productCode || 'N/A'}</strong></td>
+                <td>${p.sector || '-'}</td>
+                <td>${p.type || '-'}</td>
+                <td>${p.grade || '-'}</td>
+                <td>${p.length ? p.length + ' mm' : '-'}</td>
+                <td>${p.af !== undefined && p.af !== null ? p.af : '-'}</td>
+                <td>${p.weightPerPc || '0'}g</td>
+                <td style="color: #17a2b8; font-weight: bold; font-size: 1.1em;">${wipStock}</td> <td class="stock-val ${isLowStock ? 'low-stock-text' : ''}" style="color: #28a745; font-weight: bold; font-size: 1.1em;">${currentStock}</td>
+                ${actionHTML}
+            `;
                     tbody.appendChild(tr);
                 });
                 filterInventory();
@@ -1452,6 +1474,60 @@
             document.getElementById('filterProdShift').value = '';
             document.getElementById('filterProdGlobal').value = '';
             applyProductionFilters();
+        }
+
+
+
+        // 1. Fetch Active WOs on load
+        async function loadActiveWorkOrders() {
+            try {
+                const res = await fetch(`${API_URL}/work-orders/active`);
+                activeWorkOrders = await res.json();
+
+                const woDropdown = document.getElementById('prodWO');
+                woDropdown.innerHTML = '<option value="">- Select Active WO -</option>';
+                woDropdown.innerHTML += '<option value="OTHER">Manual Entry...</option>'; // <-- Keeps the manual option available
+
+                activeWorkOrders.forEach(wo => {
+                    const progress = Math.round((wo.producedQty / wo.targetQty) * 100);
+                    woDropdown.innerHTML += `<option value="${wo.woNumber}">${wo.woNumber} (${wo.partNo}) - ${progress}% Done</option>`;
+                });
+            } catch (e) { console.error("Failed to load WOs"); }
+        }
+
+        // 2. Auto-fill the form when a WO is selected
+        function autoFillFromWO() {
+            const selectedWO = document.getElementById('prodWO').value;
+
+            // Toggle the manual input box using your existing helper function!
+            toggleOtherInput('prodWO', 'prodWOOther');
+
+            // Only try to auto-fill if they picked a real database WO
+            if (selectedWO !== 'OTHER' && selectedWO !== '') {
+                const woData = activeWorkOrders.find(w => w.woNumber === selectedWO);
+
+                if (woData) {
+                    document.getElementById('prodPartNo').value = woData.partNo || '';
+                    document.getElementById('prodTarget').value = (woData.targetQty - woData.producedQty) || '';
+
+                    const partNameDropdown = document.getElementById('prodPartName');
+                    if (woData.partName) {
+                        let found = false;
+                        for (let i = 0; i < partNameDropdown.options.length; i++) {
+                            if (partNameDropdown.options[i].value === woData.partName) {
+                                partNameDropdown.selectedIndex = i;
+                                found = true; break;
+                            }
+                        }
+                        if (!found) {
+                            partNameDropdown.value = 'OTHER';
+                            toggleOtherInput('prodPartName', 'prodPartNameOther');
+                            document.getElementById('prodPartNameOther').value = woData.partName;
+                        }
+                    }
+                    showToast("ℹ️ Form auto-filled from Work Order");
+                }
+            }
         }
     </script>
 </body>

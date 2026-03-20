@@ -9,7 +9,8 @@ const productSchema = new mongoose.Schema({
     af: Number,
     length: Number,
     weightPerPc: Number,
-    currentStock: { type: Number, default: 0 }
+    currentStock: { type: Number, default: 0 },
+    wipStock: { type: Number, default: 0 }
 });
 
 const transactionSchema = new mongoose.Schema({
@@ -104,10 +105,23 @@ const productionBatchSchema = new mongoose.Schema({
     loggedBy: String
 });
 
+// NEW: Work Order Schema
+const workOrderSchema = new mongoose.Schema({
+    woNumber: { type: String, required: true, unique: true },
+    partNo: String,
+    partName: String,
+    targetQty: Number,
+    producedQty: { type: Number, default: 0 },
+    status: { type: String, enum: ['ACTIVE', 'COMPLETED', 'CANCELLED'], default: 'ACTIVE' },
+    createdBy: String,
+    createdAt: { type: Date, default: Date.now }
+});
+
 module.exports = {
     Product: mongoose.model('Product', productSchema),
     Transaction: mongoose.model('Transaction', transactionSchema),
     RawMaterial: mongoose.model('RawMaterial', rawMaterialSchema),
     PurchaseOrder: mongoose.model('PurchaseOrder', purchaseOrderSchema),
-    ProductionBatch: mongoose.model('ProductionBatch', productionBatchSchema)
+    ProductionBatch: mongoose.model('ProductionBatch', productionBatchSchema),
+    WorkOrder: mongoose.model('WorkOrder', workOrderSchema) // <-- ADD THIS
 };

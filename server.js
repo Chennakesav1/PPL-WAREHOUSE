@@ -109,18 +109,21 @@ app.post('/api/production/batch', async (req, res) => {
     try {
         // 1. DEDUCT RAW MATERIAL (WITH STRICT VALIDATION)
         if (req.body.stage === 'FORGING' && req.body.rawMaterialCode) {
-            
+
             // .trim() removes hidden spaces that break the system
             const cleanCode = req.body.rawMaterialCode.trim().toUpperCase();
             const consumedAmount = Number(req.body.rawMaterialConsumedKg) || 0;
 
             const material = await RawMaterial.findOne({ materialCode: cleanCode });
-            
+
+
+
+
             if (!material) {
                 // CRITICAL FIX: Stop the save and alert the user if the code is wrong!
-                return res.status(400).json({ 
-                    success: false, 
-                    message: `Raw Material Code '${cleanCode}' not found in inventory! Check for typos.` 
+                return res.status(400).json({
+                    success: false,
+                    message: `Raw Material Code '${cleanCode}' not found in inventory! Check for typos.`
                 });
             }
 
@@ -131,25 +134,41 @@ app.post('/api/production/batch', async (req, res) => {
                 material.lastUpdate = new Date();
                 await material.save();
 
-                await new Transaction({ 
-                    barcode: `[CONSUMED] ${material.materialCode}`, 
-                    type: 'PRODUCTION', 
-                    quantity: consumedAmount, 
-                    resultingStock: material.currentStockKg, 
-                    user: req.body.loggedBy || "Production System" 
+                await new Transaction({
+                    barcode: `[CONSUMED] ${material.materialCode}`,
+                    type: 'PRODUCTION',
+                    quantity: consumedAmount,
+                    resultingStock: material.currentStockKg,
+                    user: req.body.loggedBy || "Production System"
                 }).save();
             }
         }
 
         // 2. Add to Finished Goods if SEC_OP or ROLLING
         if (req.body.stage === 'SEC_OP' || req.body.stage === 'ROLLING' || req.body.productBarcode) {
-            const lookupCode = req.body.partNo || req.body.productBarcode; 
-            const product = await Product.findOne({ barcode: lookupCode });
+            // 2. SMART WIP & FINISHED GOODS ROUTING
+            const lookupCode = req.body.partNo || req.body.productBarcode;
+            if (lookupCode) {
+                const product = await Product.findOne({ barcode: lookupCode });
 
-            if (product) {
-                const qty = Number(req.body.acceptedQty) || Number(req.body.quantityProduced);
-                product.currentStock += qty;
-                await product.save();
+                if (product) {
+                    const accQty = Number(req.body.acceptedQty) || Number(req.body.quantityProduced) || 0;
+                    const rejQty = Number(req.body.rejectedQty) || 0;
+
+                    if (req.body.stage === 'FORGING') {
+                        // Forging produces semi-finished parts (WIP)
+                        product.wipStock = (product.wipStock || 0) + accQty;
+                    }
+                    else if (req.body.stage === 'ROLLING' || req.body.stage === 'SEC_OP') {
+                        // Rolling/Sec_Op consumes WIP and produces Finished Goods.
+                        // (We deduct both accepted and rejected from WIP, because bad parts still consume blanks!)
+                        const consumedWip = accQty + rejQty;
+                        product.wipStock = Math.max((product.wipStock || 0) - consumedWip, 0); // Math.max prevents negative WIP
+
+                        product.currentStock += accQty; // Only good parts go to final stock
+                    }
+                    await product.save();
+                }
             }
         }
         const newBatch = new ProductionBatch({
@@ -187,6 +206,15 @@ app.post('/api/production/batch', async (req, res) => {
                 product.currentStock += Number(req.body.acceptedQty);
                 await product.save();
                 await new Transaction({ barcode: req.body.partNo, type: 'PRODUCTION', quantity: req.body.acceptedQty, resultingStock: product.currentStock, user: req.body.loggedBy }).save();
+            }
+        }
+        // NEW INTERLINK: Update Work Order Progress
+        if (req.body.workOrderNo && req.body.acceptedQty) {
+            const wo = await WorkOrder.findOne({ woNumber: req.body.workOrderNo });
+            if (wo) {
+                wo.producedQty += Number(req.body.acceptedQty);
+                if (wo.producedQty >= wo.targetQty) wo.status = 'COMPLETED'; // Auto-close if target met
+                await wo.save();
             }
         }
         res.json({ success: true, message: `Production Logged!` });
@@ -292,13 +320,13 @@ app.post('/api/raw-materials/receive', async (req, res) => {
         let material = await RawMaterial.findOne({ materialCode });
         if (!material) {
             material = new RawMaterial({
-                materialCode, 
-                materialName: materialName || "Carbon Steel", 
+                materialCode,
+                materialName: materialName || "Carbon Steel",
                 grade: grade,                  // NEW
                 lastSupplier: supplier,        // NEW
                 scope: scope,                  // NEW
                 currentStockKg: addedKg,
-                lastUpdatedBy: username || 'Purchase Dept', 
+                lastUpdatedBy: username || 'Purchase Dept',
                 lastUpdate: new Date()
             });
         } else {
@@ -332,6 +360,25 @@ app.get('/api/product/:barcode', async (req, res) => {
         console.error("🔥 CRASH IN GET /api/product/:barcode:", error);
         res.status(500).json({ error: "Server error", details: error.message });
     }
+});
+
+
+// ==========================================
+// 6. WORK ORDERS (WO) MANAGEMENT
+// ==========================================
+app.get('/api/work-orders/active', async (req, res) => {
+    try {
+        const wos = await WorkOrder.find({ status: 'ACTIVE' }).sort({ createdAt: -1 });
+        res.json(wos);
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/work-orders', async (req, res) => {
+    try {
+        const newWO = new WorkOrder(req.body);
+        await newWO.save();
+        res.json({ success: true, message: "Work Order Created!" });
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 app.get('/api/products', async (req, res) => {
@@ -383,11 +430,11 @@ app.delete('/api/production/batch/:id', async (req, res) => {
     try {
         const deletedBatch = await ProductionBatch.findByIdAndDelete(req.params.id);
         if (!deletedBatch) return res.status(404).json({ success: false, message: "Batch not found" });
-        
+
         // Note: This deletes the log, but intentionally DOES NOT reverse the 
         // raw material deduction or finished goods addition automatically 
         // to prevent complex inventory math errors. Admins must adjust inventory manually if needed.
-        
+
         res.status(200).json({ success: true, message: "Batch deleted successfully" });
     } catch (err) {
         console.error("🔥 CRASH IN DELETE /api/production/batch/:id:", err);
