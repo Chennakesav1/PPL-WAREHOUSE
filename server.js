@@ -144,32 +144,37 @@ app.post('/api/production/batch', async (req, res) => {
             }
         }
 
-        // 2. Add to Finished Goods if SEC_OP or ROLLING
-        if (req.body.stage === 'SEC_OP' || req.body.stage === 'ROLLING' || req.body.productBarcode) {
-            // 2. SMART WIP & FINISHED GOODS ROUTING
-            const lookupCode = req.body.partNo || req.body.productBarcode;
-            if (lookupCode) {
-                const product = await Product.findOne({ barcode: lookupCode });
+       // 2. SMART WIP & FINISHED GOODS ROUTING
+        let lookupCode = req.body.partNo || req.body.productBarcode; 
+        if (lookupCode) {
+            lookupCode = lookupCode.trim(); // FIX: Removes accidental hidden spaces
+            
+            let product = await Product.findOne({ barcode: lookupCode });
 
-                if (product) {
-                    const accQty = Number(req.body.acceptedQty) || Number(req.body.quantityProduced) || 0;
-                    const rejQty = Number(req.body.rejectedQty) || 0;
-
-                    if (req.body.stage === 'FORGING') {
-                        // Forging produces semi-finished parts (WIP)
-                        product.wipStock = (product.wipStock || 0) + accQty;
-                    }
-                    else if (req.body.stage === 'ROLLING' || req.body.stage === 'SEC_OP') {
-                        // Rolling/Sec_Op consumes WIP and produces Finished Goods.
-                        // (We deduct both accepted and rejected from WIP, because bad parts still consume blanks!)
-                        const consumedWip = accQty + rejQty;
-                        product.wipStock = Math.max((product.wipStock || 0) - consumedWip, 0); // Math.max prevents negative WIP
-
-                        product.currentStock += accQty; // Only good parts go to final stock
-                    }
-                    await product.save();
-                }
+            // FIX: Auto-Create the Product if it doesn't exist in the database yet!
+            if (!product) {
+                product = new Product({
+                    barcode: lookupCode,
+                    productCode: lookupCode,
+                    currentStock: 0,
+                    wipStock: 0
+                });
             }
+
+            const accQty = Number(req.body.acceptedQty) || Number(req.body.quantityProduced) || 0;
+            const rejQty = Number(req.body.rejectedQty) || 0;
+
+            if (req.body.stage === 'FORGING') {
+                // Forging produces semi-finished parts (WIP)
+                product.wipStock = (product.wipStock || 0) + accQty;
+            } 
+            else if (req.body.stage === 'ROLLING' || req.body.stage === 'SEC_OP') {
+                // Rolling/Sec_Op consumes WIP and produces Finished Goods.
+                const consumedWip = accQty + rejQty;
+                product.wipStock = Math.max((product.wipStock || 0) - consumedWip, 0); 
+                product.currentStock += accQty; 
+            }
+            await product.save();
         }
         const newBatch = new ProductionBatch({
             ...req.body,
