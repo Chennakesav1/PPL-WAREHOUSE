@@ -7,6 +7,8 @@
     <title>Warehouse ERP Dashboard 📦</title>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -394,6 +396,9 @@
         </div>
     </div>
 
+
+
+
     <div id="mainDashboard">
         <button class="logout-btn" onclick="logout()">Log Out</button>
         <h1>Live ERP Dashboard <span id="roleDisplay" class="role-badge"></span></h1>
@@ -632,10 +637,16 @@
                         style="background-color: #6c757d; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold;">Reset</button>
                 </div>
 
-                <div style="display: flex; justify-content: flex-end; margin-top: -40px; margin-bottom: 10px;">
+                <div id="exportButtonsSection"
+                    style="display: flex; justify-content: flex-end; gap: 10px; margin-top: -40px; margin-bottom: 10px;">
+                    <button onclick="generateDailyPDF()"
+                        style="background: #dc3545; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        📄 Download Daily PDF
+                    </button>
                     <button class="export-btn"
-                        onclick="exportTableToCSV('productionTable', 'Full_Production_Report.csv')">⬇️ Export Full
-                        Excel</button>
+                        onclick="exportTableToCSV('productionTable', 'Full_Production_Report.csv')">
+                        ⬇️ Export Full Excel
+                    </button>
                 </div>
 
                 <div class="table-wrapper">
@@ -711,6 +722,65 @@
                             </tr>
                         </tfoot>
                     </table>
+                </div>
+            </div>
+
+
+            <div class="card" id="qcCard" style="display: none; margin-bottom: 20px;">
+                <h2 style="color: #17a2b8; border-bottom: 2px solid #17a2b8;">🔬 Quality Control - Pending Approvals
+                </h2>
+
+                <div class="table-wrapper">
+                    <table id="qcTable">
+                        <thead style="background-color: #17a2b8; color: white;">
+                            <tr>
+                                <th>Date Logged</th>
+                                <th>Stage</th>
+                                <th>Machine</th>
+                                <th>Part No</th>
+                                <th>Acc Qty</th>
+                                <th>Rej Qty</th>
+                                <th>Logged By</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="8" style="text-align: center;">Loading pending batches...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="qcModal"
+                style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; align-items: center; justify-content: center;">
+                <div
+                    style="background: white; width: 95%; max-width: 1000px; height: 90vh; border-radius: 8px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+
+                    <div
+                        style="background: #17a2b8; color: white; padding: 15px 20px; font-weight: bold; font-size: 18px; display: flex; justify-content: space-between; align-items: center;">
+                        <span>🔍 Comprehensive QC Inspection</span>
+                        <button style="background: none; border: none; color: white; font-size: 20px; cursor: pointer;"
+                            onclick="document.getElementById('qcModal').style.display='none'">✖</button>
+                    </div>
+
+                    <div id="qcModalContent"
+                        style="padding: 20px; overflow-y: auto; flex-grow: 1; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; font-size: 14px; background: #f4f6f9;">
+                    </div>
+
+                    <div
+                        style="background: #fff; padding: 15px 20px; border-top: 2px solid #dee2e6; display: flex; gap: 15px; align-items: center;">
+                        <input type="text" id="qcRemarksInput" class="prod-input"
+                            placeholder="Enter Official QC Remarks (Required for Rejection)"
+                            style="flex-grow: 1; margin: 0; font-size: 15px; padding: 10px;">
+                        <button id="btnQcReject"
+                            style="background: #dc3545; color: white; border: none; padding: 12px 25px; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 15px; box-shadow: 0 2px 4px rgba(220,53,69,0.3);">❌
+                            Reject Batch</button>
+                        <button id="btnQcApprove"
+                            style="background: #28a745; color: white; border: none; padding: 12px 35px; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 15px; box-shadow: 0 2px 4px rgba(40,167,69,0.3);">✅
+                            APPROVE & ADD TO STOCK</button>
+                    </div>
                 </div>
             </div>
 
@@ -1854,6 +1924,209 @@
             } catch (error) {
                 console.error("Chart Rendering Error:", error);
             }
+        }
+
+
+        // ==========================================
+        // ADVANCED PDF REPORTING ENGINE
+        // ==========================================
+        function generateDailyPDF() {
+            showToast("⏳ Generating PDF Report... Please wait.");
+
+            // 1. Identify all the "clutter" we want to hide from the printed report
+            // (We use DOM traversal to find your specific containers based on your layout)
+            const productionCard = document.getElementById('productionCard');
+            const formSection = productionCard.children[2]; // The big data entry form
+            const tabSection = document.querySelector('.tab-container'); // The Forging/Rolling tabs
+            const filterSection = document.querySelector('.search-container[style*="border-left"]'); // The search bars
+            const buttonsSection = document.getElementById('exportButtonsSection'); // The export buttons
+
+            // 2. Temporarily HIDE the clutter
+            if (formSection) formSection.style.display = 'none';
+            if (tabSection) tabSection.style.display = 'none';
+            if (filterSection) filterSection.style.display = 'none';
+            if (buttonsSection) buttonsSection.style.display = 'none';
+
+            // 3. Configure the PDF settings
+            // (We use A3 Landscape so your massive 49-column table fits!)
+            const today = new Date().toISOString().split('T')[0];
+            const opt = {
+                margin: 0.3,
+                filename: `Daily_Production_Report_${today}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true }, // Scale 2 keeps Chart.js crisp
+                jsPDF: { unit: 'in', format: 'a3', orientation: 'landscape' }
+            };
+
+            // 4. Generate the PDF, download it, and UNHIDE the clutter!
+            html2pdf().set(opt).from(productionCard).save().then(() => {
+                if (formSection) formSection.style.display = '';
+                if (tabSection) tabSection.style.display = 'flex';
+                if (filterSection) filterSection.style.display = '';
+                if (buttonsSection) buttonsSection.style.display = 'flex';
+                showToast("✅ PDF Report Downloaded Successfully!");
+            }).catch(err => {
+                console.error("PDF Error:", err);
+                showToast("❌ Error generating PDF");
+
+                // Safety catch: Unhide everything if it crashes
+                if (formSection) formSection.style.display = '';
+                if (tabSection) tabSection.style.display = 'flex';
+                if (filterSection) filterSection.style.display = '';
+                if (buttonsSection) buttonsSection.style.display = 'flex';
+            });
+        }
+
+
+        // ==========================================
+        // QUALITY CONTROL (QC) GATEKEEPER LOGIC
+        // ==========================================
+        let pendingQCBatches = [];
+
+        // 1. Load Pending QC Data
+        async function loadPendingQC() {
+            try {
+                const res = await fetch(`${API_URL}/qc/pending`);
+                pendingQCBatches = await res.json();
+
+                const tbody = document.querySelector('#qcTable tbody');
+                tbody.innerHTML = '';
+
+                if (pendingQCBatches.length === 0) {
+                    return tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px; color: #28a745; font-weight: bold;">All clear! No batches pending approval.</td></tr>';
+                }
+
+                pendingQCBatches.forEach(b => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                <td>${new Date(b.date).toLocaleDateString()}</td>
+                <td><span style="background:#17a2b8; color:white; padding:3px 6px; border-radius:3px; font-size:11px;">${b.stage}</span></td>
+                <td><strong>${b.machineName || '-'}</strong></td>
+                <td><strong>${b.partNo || '-'}</strong></td>
+                <td style="color: green; font-weight: bold;">${b.acceptedQty || 0}</td>
+                <td style="color: red; font-weight: bold;">${b.rejectedQty || 0}</td>
+                <td>👤 ${b.loggedBy || '-'}</td>
+                <td>
+                    <button onclick="openQCInspection('${b._id}')" style="background:#007bff; color:white; border:none; padding:6px 15px; border-radius:4px; font-weight:bold; cursor:pointer;">🔍 Full Inspect</button>
+                </td>
+            `;
+                    tbody.appendChild(tr);
+                });
+            } catch (err) { console.error("Error loading QC data:", err); }
+        }
+
+        // 2. Open the Comprehensive 49-Field Inspection Modal
+        function openQCInspection(batchId) {
+            const b = pendingQCBatches.find(x => x._id === batchId);
+            if (!b) return;
+
+            // Build the massive, easy-to-read layout of absolutely everything the Maker typed
+            document.getElementById('qcModalContent').innerHTML = `
+        <div style="background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+            <h4 style="margin-top:0; color:#ff9800; border-bottom: 1px solid #eee; padding-bottom: 5px;">1. Shift & Machine</h4>
+            <table style="width:100%; text-align:left;">
+                <tr><td style="color:#666;">Stage:</td><td><strong>${b.stage}</strong></td></tr>
+                <tr><td style="color:#666;">Date:</td><td>${new Date(b.date).toLocaleDateString()}</td></tr>
+                <tr><td style="color:#666;">Shift:</td><td>${b.shift || '-'}</td></tr>
+                <tr><td style="color:#666;">Machine:</td><td><strong>${b.machineName || '-'}</strong></td></tr>
+                <tr><td style="color:#666;">Operator:</td><td>${b.operator || '-'}</td></tr>
+                <tr><td style="color:#666;">Process:</td><td>${b.operation || '-'}</td></tr>
+            </table>
+        </div>
+        
+        <div style="background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+            <h4 style="margin-top:0; color:#007bff; border-bottom: 1px solid #eee; padding-bottom: 5px;">2. Part Details</h4>
+            <table style="width:100%; text-align:left;">
+                <tr><td style="color:#666;">WO No:</td><td>${b.workOrderNo || '-'}</td></tr>
+                <tr><td style="color:#666;">Part No:</td><td><strong>${b.partNo || '-'}</strong></td></tr>
+                <tr><td style="color:#666;">Part Name:</td><td>${b.partName || '-'}</td></tr>
+                <tr><td style="color:#666;">Size / Pitch:</td><td>${b.partSize || '-'} / ${b.pitch || '-'}</td></tr>
+                <tr><td style="color:#666;">Length / AF:</td><td>${b.length || 0}mm / ${b.af || '-'}</td></tr>
+                <tr><td style="color:#666;">Grade:</td><td>${b.productGrade || '-'}</td></tr>
+            </table>
+        </div>
+
+        <div style="background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+            <h4 style="margin-top:0; color:#17a2b8; border-bottom: 1px solid #eee; padding-bottom: 5px;">3. Planning & Material</h4>
+            <table style="width:100%; text-align:left;">
+                <tr><td style="color:#666;">RM Code:</td><td><strong>${b.rawMaterialCode || '-'}</strong></td></tr>
+                <tr><td style="color:#666;">Heat No:</td><td>${b.heatNo || '-'}</td></tr>
+                <tr><td style="color:#666;">RM Consumed:</td><td>${b.rawMaterialConsumedKg || 0} Kg</td></tr>
+                <tr><td style="color:#666;">Piece Wt:</td><td>${b.pieceWeightKg || 0} Kg</td></tr>
+                <tr><td style="color:#666;">Planned Hrs:</td><td>${b.prodPlannedHours || 0} Hrs</td></tr>
+                <tr><td style="color:#666;">Target Qty:</td><td>${b.shiftTargetQty || 0} pcs</td></tr>
+            </table>
+        </div>
+
+        <div style="background: #e8f5e9; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); grid-column: span 3; border-left: 5px solid #28a745;">
+            <h4 style="margin-top:0; color:#28a745; text-align:center; font-size: 16px;">4. Final Output Verification</h4>
+            <div style="display: flex; justify-content: space-around; font-size: 22px; margin: 15px 0; background: white; padding: 15px; border-radius: 8px;">
+                <div><strong>✅ Accepted:</strong> <span style="color:green;">${b.acceptedQty || 0}</span> pcs</div>
+                <div><strong>❌ Rejected:</strong> <span style="color:red;">${b.rejectedQty || 0}</span> pcs</div>
+                <div><strong>⚖️ Rej Wt:</strong> <span style="color:#dc3545;">${b.rejectionKg || 0}</span> Kg</div>
+            </div>
+            <div style="display: flex; gap: 20px; justify-content: center; background: white; padding: 10px; border-radius: 8px;">
+                <p style="margin:0;"><strong>Rejection Reason:</strong> <span style="color:#dc3545;">${b.rejectionReason || 'None'}</span></p>
+                <p style="margin:0;"><strong>Maker Remarks:</strong> ${b.remarks || 'None'}</p>
+                <p style="margin:0;"><strong>Logged By:</strong> 👤 ${b.loggedBy || 'Unknown'}</p>
+            </div>
+        </div>
+
+        <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); grid-column: span 3; border-left: 5px solid #dc3545;">
+            <h4 style="margin-top:0; color:#dc3545;">5. Downtime Losses Claimed (Minutes)</h4>
+            <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; font-size: 13px; background: #f8f9fa; padding: 15px; border-radius: 5px;">
+                <div><strong>Major JC:</strong> ${b.lossMajorJC || 0}</div><div><strong>Minor JC:</strong> ${b.lossMinorJC || 0}</div><div><strong>Setting:</strong> ${b.lossSetting || 0}</div>
+                <div><strong>MC Clean:</strong> ${b.lossMcClean || 0}</div><div><strong>Tool Rwk:</strong> ${b.lossToolRework || 0}</div><div><strong>No Tool:</strong> ${b.lossNoTool || 0}</div>
+                <div><strong>No Load:</strong> ${b.lossNoLoad || 0}</div><div><strong>No Opr:</strong> ${b.lossNoOperator || 0}</div><div><strong>M/MNT:</strong> ${b.lossMMnt || 0}</div>
+                <div><strong>E/MNT:</strong> ${b.lossEMnt || 0}</div><div><strong>No Pwr:</strong> ${b.lossNoPower || 0}</div><div><strong>No Air/Oil:</strong> ${b.lossNoAirOil || 0}</div>
+                <div><strong>No RM:</strong> ${b.lossNoRm || 0}</div><div><strong>RM Load:</strong> ${b.lossRmLoading || 0}</div><div><strong>QA Appr:</strong> ${b.lossQaApproval || 0}</div>
+                <div><strong>Coil Chg:</strong> ${b.lossCoilChange || 0}</div><div><strong>No Plan:</strong> ${b.lossNoPlan || 0}</div><div><strong>NPD Team:</strong> ${b.lossNpdTeam || 0}</div>
+                <div><strong>Unknown:</strong> ${b.lossUnknown || 0}</div>
+            </div>
+        </div>
+    `;
+
+            // Overwrite the buttons so they trigger the API for this specific batch
+            document.getElementById('btnQcApprove').onclick = () => submitQC(batchId, 'APPROVED');
+            document.getElementById('btnQcReject').onclick = () => submitQC(batchId, 'REJECTED');
+
+            document.getElementById('qcModal').style.display = 'flex';
+        }
+
+        // 3. Submit the Official Verdict to the Server
+        async function submitQC(batchId, status) {
+            const remarks = document.getElementById('qcRemarksInput').value.trim();
+
+            if (status === 'REJECTED' && !remarks) {
+                return alert("QC Remarks are mandatory when rejecting a batch!");
+            }
+
+            if (!confirm(`Are you sure you want to officially mark this batch as ${status}?`)) return;
+
+            try {
+                const qcUsername = (typeof currentUser !== 'undefined' && currentUser.username) ? currentUser.username : 'QC Inspector';
+
+                const res = await fetch(`${API_URL}/qc/approve/${batchId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    // FIX: We must send the "status" to the server so it knows whether to Approve or Reject!
+                    body: JSON.stringify({ qcBy: qcUsername, qcRemarks: remarks, status: status }) 
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    alert(`✅ Batch ${status} successfully!`);
+                    document.getElementById('qcModal').style.display = 'none';
+                    document.getElementById('qcRemarksInput').value = '';
+
+                    // Refresh the tables
+                    loadPendingQC();
+                    if (typeof loadInventory === 'function') loadInventory();
+                    if (typeof loadProductionBatches === 'function') loadProductionBatches();
+                } else {
+                    alert("Error: " + data.error);
+                }
+            } catch (err) { alert("Failed to connect to server."); }
         }
     </script>
 </body>

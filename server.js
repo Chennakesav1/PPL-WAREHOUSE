@@ -40,7 +40,8 @@ const DASHBOARD_USERS = {
     "admin": { pass: "admin123", role: "ADMIN" },
     "buyer": { pass: "buy123", role: "PURCHASE" },
     "maker": { pass: "make123", role: "PRODUCTION" },
-    "seller": { pass: "sell123", role: "SALES" }
+    "seller": { pass: "sell123", role: "SALES" },
+    "qc": { pass: "qc123", role: "QC" }
 };
 
 const WORKER_USERS = {
@@ -111,60 +112,43 @@ app.post('/api/sales/order', async (req, res) => {
 // ==========================================
 app.post('/api/production/batch', async (req, res) => {
     try {
-        // 1. SMART WIP & FINISHED GOODS ROUTING
+        
+        // 1. SMART WIP & FINISHED GOODS ROUTING (QC HOLD VERSION)
         let lookupCode = req.body.partNo || req.body.productBarcode; 
         if (lookupCode) {
             lookupCode = lookupCode.trim();
-
             let product = await Product.findOne({ barcode: lookupCode });
 
-            // Auto-Create the Product if it doesn't exist yet!
             if (!product) {
-                product = new Product({
-                    barcode: lookupCode,
-                    productCode: lookupCode,
-                    currentStock: 0,
-                    wipStock: 0
-                });
+                product = new Product({ barcode: lookupCode, productCode: lookupCode, currentStock: 0, wipStock: 0 });
             }
 
             const accQty = Number(req.body.acceptedQty) || Number(req.body.quantityProduced) || 0;
             const rejQty = Number(req.body.rejectedQty) || 0;
 
+            // WE ONLY DEDUCT MATERIALS HERE. WE DO NOT ADD STOCK UNTIL QC APPROVES!
             if (req.body.stage === 'FORGING') {
-                // Forging produces semi-finished parts (WIP)
-                product.wipStock = (product.wipStock || 0) + accQty;
-
-                // Deduct Raw Material
                 if (req.body.rawMaterialCode && req.body.rawMaterialConsumedKg) {
                     const cleanRmCode = req.body.rawMaterialCode.trim().toUpperCase();
                     const consumedRm = Number(req.body.rawMaterialConsumedKg);
                     const material = await RawMaterial.findOne({ materialCode: cleanRmCode });
                     if (material) {
                         material.currentStockKg -= consumedRm;
-                        material.lastUpdatedBy = req.body.loggedBy || "Production System";
                         material.lastUpdate = new Date();
                         await material.save();
                     }
                 }
             } 
             else if (req.body.stage === 'ROLLING' || req.body.stage === 'SEC_OP') {
-                // Rolling/Sec_Op consumes WIP and produces Finished Goods.
+                // Deduct the WIP that was physically consumed from the floor
                 const consumedWip = accQty + rejQty;
                 product.wipStock = Math.max((product.wipStock || 0) - consumedWip, 0); 
-                product.currentStock += accQty; 
-
-                // Log the addition to Finished Goods
-                if (accQty > 0) {
-                    await new Transaction({ barcode: lookupCode, type: 'PRODUCTION', quantity: accQty, resultingStock: product.currentStock, user: req.body.loggedBy }).save();
-                }
             }
             
-            // NEW: Stamp the exact time this product was touched!
             product.lastUpdated = new Date(); 
-            
             await product.save();
         }
+        
 
         // Optional Work Order Interlink (If you are still using Work Orders)
         if (req.body.workOrderNo && req.body.acceptedQty) {
@@ -477,5 +461,60 @@ app.delete('/api/inventory/:id', async (req, res) => {
     }
 });
 
+
+
+// ==========================================
+// 7. QUALITY CONTROL (QC) GATEKEEPER
+// ==========================================
+
+// Get all batches waiting for inspection
+app.get('/api/qc/pending', async (req, res) => {
+    try {
+        const pendingBatches = await ProductionBatch.find({ qcStatus: 'PENDING' }).sort({ date: -1 });
+        res.json(pendingBatches);
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// QC Approves OR Rejects the batch
+app.put('/api/qc/approve/:id', async (req, res) => {
+    try {
+        const batch = await ProductionBatch.findById(req.params.id);
+        if (!batch || batch.qcStatus !== 'PENDING') {
+            return res.status(400).json({ error: "Batch already processed or not found" });
+        }
+
+        // Check the status sent by the Frontend (APPROVED or REJECTED)
+        const incomingStatus = req.body.status || 'APPROVED'; 
+
+        // ONLY add to inventory if the QC specifically hit APPROVED
+        if (incomingStatus === 'APPROVED') {
+            let lookupCode = batch.partNo || batch.productBarcode;
+            if (lookupCode) {
+                let product = await Product.findOne({ barcode: lookupCode.trim() });
+                if (product) {
+                    if (batch.stage === 'FORGING') {
+                        product.wipStock += batch.acceptedQty; // Forging -> WIP
+                    } else {
+                        product.currentStock += batch.acceptedQty; // Rolling -> Ready Stock
+                        await new Transaction({ barcode: product.barcode, type: 'QC_APPROVAL', quantity: batch.acceptedQty, resultingStock: product.currentStock, user: req.body.qcBy }).save();
+                    }
+                    product.lastUpdated = new Date();
+                    await product.save();
+                }
+            }
+        }
+
+        // Mark the batch with whatever status the QC chose
+        batch.qcStatus = incomingStatus;
+        batch.qcBy = req.body.qcBy || 'QC Inspector';
+        batch.qcDate = new Date();
+        batch.qcRemarks = req.body.qcRemarks || '';
+        await batch.save();
+
+        res.json({ success: true, message: `QC ${incomingStatus} Successfully!` });
+    } catch (err) { 
+        res.status(500).json({ error: err.message }); 
+    }
+});
 
 app.listen(process.env.PORT || 5000, () => console.log(`ERP Server Running on port ${process.env.PORT || 5000}`));

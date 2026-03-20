@@ -82,6 +82,7 @@ const productionBatchSchema = new mongoose.Schema({
     rejectionReason: String,
     remarks: String,
     
+    
     // Downtime Losses
     lossMajorJC: { type: Number, default: 0 },
     lossMinorJC: { type: Number, default: 0 },
@@ -103,7 +104,12 @@ const productionBatchSchema = new mongoose.Schema({
     lossNpdTeam: { type: Number, default: 0 },
     lossUnknown: { type: Number, default: 0 },
     
-    loggedBy: String
+    
+    loggedBy: String,
+    qcStatus: { type: String, enum: ['PENDING', 'APPROVED', 'REJECTED'], default: 'PENDING' },
+    qcBy: String,
+    qcDate: Date,
+    qcRemarks: String
 });
 
 // NEW: Work Order Schema
