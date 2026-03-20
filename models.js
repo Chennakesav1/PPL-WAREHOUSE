@@ -16,7 +16,7 @@ const productSchema = new mongoose.Schema({
 
 const transactionSchema = new mongoose.Schema({
     barcode: String,
-    type: { type: String, enum: ['INWARD', 'DISPATCH', 'PRODUCTION'] },
+    type: { type: String, enum: ['INWARD', 'DISPATCH', 'PRODUCTION', 'ADJUSTMENT', 'QC_APPROVAL'] },
     quantity: Number,
     resultingStock: Number,
     user: String,
