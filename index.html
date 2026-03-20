@@ -1393,35 +1393,46 @@
                     rows[i].style.display = "none";
                 }
             }
+            calculateVisibleTotals();
         }
         function calculateVisibleTotals() {
-            // Select all rows inside the production table
-            const rows = document.querySelectorAll("#productionTable tbody tr");
+            try {
+                const table = document.getElementById("productionTable");
 
-            let totalAcc = 0;
-            let totalRej = 0;
-            let totalRejKg = 0;
+                // 1. SMART FINDER: Read the headers to find the exact column numbers dynamically
+                const headerCells = table.rows[0].cells;
+                let accIdx = 23, rejIdx = 24, rejKgIdx = 25; // Default fallbacks
 
-            rows.forEach(row => {
-                // Only count the row IF it is currently visible AND it has actual data
-                if (row.style.display !== "none" && row.cells.length > 5) {
-
-                    // In your 49-column table: Index 23=AccQty, 24=RejQty, 25=RejKg
-                    const accVal = parseInt(row.cells[23].textContent) || 0;
-                    const rejVal = parseInt(row.cells[24].textContent) || 0;
-                    const rejKgVal = parseFloat(row.cells[25].textContent) || 0;
-
-                    totalAcc += accVal;
-                    totalRej += rejVal;
-                    totalRejKg += rejKgVal;
+                for (let i = 0; i < headerCells.length; i++) {
+                    const headerText = headerCells[i].textContent.trim().toUpperCase();
+                    if (headerText.includes("ACC QTY")) accIdx = i;
+                    if (headerText.includes("REJ QTY")) rejIdx = i;
+                    if (headerText.includes("REJ KG")) rejKgIdx = i;
                 }
-            });
 
-            // Update the footer text with the new math
-            if (document.getElementById("totalAccQty")) {
-                document.getElementById("totalAccQty").textContent = totalAcc;
-                document.getElementById("totalRejQty").textContent = totalRej;
-                document.getElementById("totalRejKg").textContent = totalRejKg.toFixed(2);
+                // 2. DO THE MATH
+                const rows = table.getElementsByTagName("tbody")[0].getElementsByTagName("tr");
+                let totalAcc = 0;
+                let totalRej = 0;
+                let totalRejKg = 0;
+
+                for (let i = 0; i < rows.length; i++) {
+                    // Check if row is visible AND has enough columns to contain our data
+                    if (rows[i].style.display !== "none" && rows[i].cells.length > Math.max(accIdx, rejIdx, rejKgIdx)) {
+                        totalAcc += parseInt(rows[i].cells[accIdx].textContent) || 0;
+                        totalRej += parseInt(rows[i].cells[rejIdx].textContent) || 0;
+                        totalRejKg += parseFloat(rows[i].cells[rejKgIdx].textContent) || 0;
+                    }
+                }
+
+                // 3. UPDATE THE FOOTER
+                if (document.getElementById("totalAccQty")) {
+                    document.getElementById("totalAccQty").textContent = totalAcc;
+                    document.getElementById("totalRejQty").textContent = totalRej;
+                    document.getElementById("totalRejKg").textContent = totalRejKg.toFixed(2);
+                }
+            } catch (error) {
+                console.error("🚨 Error calculating totals: ", error);
             }
         }
 
