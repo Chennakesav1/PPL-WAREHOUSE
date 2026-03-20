@@ -396,6 +396,24 @@
         </div>
     </div>
 
+    <div id="topNav" style="background: #212529; padding: 10px 20px; display: none; justify-content: space-between; align-items: center; color: white;">
+        <div style="font-weight: bold; font-size: 18px; color: #ff9800;">🏭 PPL ERP SYSTEM</div>
+        <div id="navButtons" style="display: flex; gap: 10px;">
+            <button class="tab-btn active" id="nav-prod" onclick="switchMainTab('productionCard', 'nav-prod')">Production</button>
+            <button class="tab-btn" id="nav-qc" onclick="switchMainTab('qcCard', 'nav-qc')" style="display: none; background: #17a2b8; color: white;">QC Approval</button>
+            <button class="tab-btn" id="nav-inv" onclick="switchMainTab('invCard', 'nav-inv')" style="display: none;">Inventory</button>
+            <button class="tab-btn" id="nav-tx" onclick="switchMainTab('txCard', 'nav-tx')" style="display: none;">Movements</button>
+            <button class="tab-btn" id="nav-rm" onclick="switchMainTab('rawMaterialCard', 'nav-rm')" style="display: none;">Raw Materials</button>
+            <button class="tab-btn" id="nav-po" onclick="switchMainTab('poCard', 'nav-po')" style="display: none;">Purchase Orders</button>
+        </div>
+        <div style="font-size: 14px;">
+            <span id="roleDisplay" class="role-badge"></span> | <a href="#" onclick="logout()" style="color: #dc3545; text-decoration: none; font-weight: bold; margin-left: 10px;">Logout</a>
+        </div>
+    </div>
+
+    <div id="mainDashboard">
+        <div class="dashboard-container">
+
 
 
 
@@ -993,42 +1011,70 @@
 
             // EXACT ROLE LOGIC
             if (currentUser.role === 'ADMIN') {
-                document.getElementById('productionCard').style.display = 'block';
-                document.getElementById('invCard').style.display = 'block';
-                document.getElementById('txCard').style.display = 'block';
-                document.getElementById('rawMaterialCard').style.display = 'block';
-                document.getElementById('poCard').style.display = 'block';
+                document.getElementById('nav-qc').style.display = 'block';
+                document.getElementById('nav-inv').style.display = 'block';
+                document.getElementById('nav-tx').style.display = 'block';
+                document.getElementById('nav-rm').style.display = 'block';
+                document.getElementById('nav-po').style.display = 'block';
                 document.getElementById('addBtnUI').style.display = 'inline-block';
                 styleTag.innerHTML = ''; // Enable actions
-                document.getElementById('prodDate').valueAsDate = new Date();
-                toggleStageFields();
+                switchMainTab('productionCard', 'nav-prod');
             }
             else if (currentUser.role === 'PRODUCTION') {
-                document.getElementById('productionCard').style.display = 'block';
-                document.getElementById('invCard').style.display = 'block';
-                document.getElementById('txCard').style.display = 'block';
                 styleTag.innerHTML = '.admin-actions { display: none !important; }';
-                document.getElementById('prodDate').valueAsDate = new Date();
-                toggleStageFields();
+                switchMainTab('productionCard', 'nav-prod');
+            }
+            else if (currentUser.role === 'QC') {
+                document.getElementById('nav-qc').style.display = 'block';
+                document.getElementById('nav-inv').style.display = 'block';
+                styleTag.innerHTML = '.admin-actions { display: none !important; }';
+                switchMainTab('qcCard', 'nav-qc'); // Send QC straight to their dashboard
             }
             else if (currentUser.role === 'PURCHASE') {
-                document.getElementById('invCard').style.display = 'block';
-                document.getElementById('txCard').style.display = 'block';
-                document.getElementById('rawMaterialCard').style.display = 'block';
-                document.getElementById('poCard').style.display = 'block';
+                document.getElementById('nav-inv').style.display = 'block';
+                document.getElementById('nav-tx').style.display = 'block';
+                document.getElementById('nav-rm').style.display = 'block';
+                document.getElementById('nav-po').style.display = 'block';
                 styleTag.innerHTML = '.admin-actions { display: none !important; }';
+                switchMainTab('poCard', 'nav-po');
             }
             else if (currentUser.role === 'SALES') {
-                document.getElementById('invCard').style.display = 'block';
-                document.getElementById('txCard').style.display = 'block';
+                document.getElementById('nav-inv').style.display = 'block';
+                document.getElementById('nav-tx').style.display = 'block';
                 styleTag.innerHTML = '.admin-actions { display: none !important; }';
+                switchMainTab('invCard', 'nav-inv');
             }
-
+            
+            document.getElementById('prodDate').valueAsDate = new Date();
+            toggleStageFields();
             refreshDashboard();
+            refreshInterval = setInterval(refreshDashboard, 5000);
             refreshInterval = setInterval(refreshDashboard, 5000);
         }
 
         function logout() { localStorage.removeItem("warehouseAuth"); window.location.reload(); }
+
+
+        // Switches between the major system areas (Production vs QC vs Inventory)
+        function switchMainTab(cardId, btnId) {
+            // Hide all cards
+            document.getElementById('productionCard').style.display = 'none';
+            document.getElementById('qcCard').style.display = 'none';
+            document.getElementById('invCard').style.display = 'none';
+            document.getElementById('txCard').style.display = 'none';
+            document.getElementById('rawMaterialCard').style.display = 'none';
+            document.getElementById('poCard').style.display = 'none';
+            
+            // Remove active state from all nav buttons
+            document.querySelectorAll('#navButtons .tab-btn').forEach(btn => btn.classList.remove('active'));
+            
+            // Show the selected card and highlight the button
+            if (document.getElementById(cardId)) document.getElementById(cardId).style.display = 'block';
+            if (document.getElementById(btnId)) document.getElementById(btnId).classList.add('active');
+            
+            // If they clicked QC, immediately fetch fresh pending batches
+            if (cardId === 'qcCard') loadPendingQC();
+        }
 
         function refreshDashboard() {
             loadInventory();
