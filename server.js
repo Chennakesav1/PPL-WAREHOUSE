@@ -373,8 +373,9 @@ app.post('/api/work-orders', async (req, res) => {
 
 app.get('/api/products', async (req, res) => {
     try {
-        // FIXED: Now sorts by the exact moment the stock was last modified!
-        const products = await Product.find().sort({ lastUpdated: -1 });
+        // FIXED: Sorts by the exact moment the stock was last modified (newest at the top)
+        // We also add a fallback to _id just in case two items update at the exact same millisecond
+        const products = await Product.find().sort({ lastUpdated: -1, _id: -1 });
         res.json(products);
     } catch (error) {
         console.error("🔥 CRASH IN GET /api/products:", error);
