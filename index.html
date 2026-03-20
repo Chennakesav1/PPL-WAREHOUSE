@@ -788,11 +788,10 @@
             document.getElementById('loginOverlay').style.display = 'none';
             document.getElementById('mainDashboard').style.display = 'block';
             
-            // FIX: This unhides the Top Navigation Bar!
             document.getElementById('topNav').style.display = 'flex'; 
             document.getElementById('roleDisplay').innerText = `👤 ${currentUser.username.toUpperCase()} (${currentUser.role})`;
 
-            // Hide everything first to reset
+            // 1. Hide EVERY card and EVERY navigation button first to securely reset the screen
             document.getElementById('productionCard').style.display = 'none';
             document.getElementById('invCard').style.display = 'none';
             document.getElementById('txCard').style.display = 'none';
@@ -800,12 +799,20 @@
             document.getElementById('poCard').style.display = 'none';
             document.getElementById('qcCard').style.display = 'none';
             document.getElementById('addBtnUI').style.display = 'none';
+            
+            document.getElementById('nav-prod').style.display = 'none'; // <-- FIX: Hides Production Tab by default
+            document.getElementById('nav-qc').style.display = 'none';
+            document.getElementById('nav-inv').style.display = 'none';
+            document.getElementById('nav-tx').style.display = 'none';
+            document.getElementById('nav-rm').style.display = 'none';
+            document.getElementById('nav-po').style.display = 'none';
 
             let styleTag = document.getElementById('adminStyleOverride');
             if (!styleTag) { styleTag = document.createElement('style'); styleTag.id = 'adminStyleOverride'; document.head.appendChild(styleTag); }
 
-            // EXACT ROLE LOGIC & NAVIGATION
+            // 2. EXACT ROLE LOGIC & NAVIGATION
             if (currentUser.role === 'ADMIN') {
+                document.getElementById('nav-prod').style.display = 'block'; // Show Prod
                 document.getElementById('nav-qc').style.display = 'block';
                 document.getElementById('nav-inv').style.display = 'block';
                 document.getElementById('nav-tx').style.display = 'block';
@@ -816,10 +823,12 @@
                 switchMainTab('productionCard', 'nav-prod');
             }
             else if (currentUser.role === 'PRODUCTION') {
+                document.getElementById('nav-prod').style.display = 'block'; // Show Prod
                 styleTag.innerHTML = '.admin-actions { display: none !important; }';
                 switchMainTab('productionCard', 'nav-prod');
             }
             else if (currentUser.role === 'QC') {
+                // Notice: nav-prod is NOT turned on here!
                 document.getElementById('nav-qc').style.display = 'block';
                 document.getElementById('nav-inv').style.display = 'block';
                 styleTag.innerHTML = '.admin-actions { display: none !important; }';
