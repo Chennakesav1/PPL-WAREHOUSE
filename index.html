@@ -1133,6 +1133,15 @@
             }
         }
         async function loadInventory() {
+            // --- NEW: THE "SMART PAUSE" FIX ---
+            // Check if the user is currently clicked inside a stock input box
+            const activeElem = document.activeElement;
+            if (activeElem && activeElem.tagName === 'INPUT' && activeElem.id.startsWith('stock-')) {
+                // If they are typing, silently abort the refresh so we don't interrupt them!
+                return; 
+            }
+            // ----------------------------------
+
             try {
                 const response = await fetch(`${API_URL}/products`);
                 const products = await response.json();
@@ -1145,12 +1154,12 @@
 
                 products.forEach(p => {
                     const currentStock = p.currentStock || 0;
-                    const wipStock = p.wipStock || 0; // NEW: Pulls WIP from the database
+                    const wipStock = p.wipStock || 0; 
                     const isLowStock = currentStock <= 10;
                     const tr = document.createElement('tr');
                     if (isLowStock) tr.className = "low-stock";
 
-                    let actionHTML = '<td class="admin-actions"></td>'; // Default empty cell
+                    let actionHTML = '<td class="admin-actions"></td>'; 
                     
                     if (currentUser && currentUser.role === 'ADMIN') {
                         actionHTML = `<td class="admin-actions" style="display:flex; flex-direction:column; gap:5px;">
@@ -1160,7 +1169,6 @@
                         </td>`;
                     }
                     
-                    // 10 Headers = 10 Data Cells perfectly mapped
                     tr.innerHTML = `
                         <td><strong>${p.productCode || 'N/A'}</strong></td>
                         <td>${p.sector || '-'}</td>
@@ -1180,7 +1188,6 @@
                 console.error("Failed to load inventory:", error);
             }
         }
-
         async function updateStock(productId) {
             const newStock = document.getElementById(`stock-${productId}`).value;
             try {
