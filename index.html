@@ -8,7 +8,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    
+
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -32,8 +32,14 @@
             z-index: 9999;
         }
 
-        #splashScreen { background-color: #ffffff; }
-        #loginOverlay { background-color: #2c3e50; display: none; }
+        #splashScreen {
+            background-color: #ffffff;
+        }
+
+        #loginOverlay {
+            background-color: #2c3e50;
+            display: none;
+        }
 
         .login-box {
             background: white;
@@ -67,7 +73,10 @@
             margin-top: 10px;
         }
 
-        #mainDashboard { display: none; margin-top: 20px;}
+        #mainDashboard {
+            display: none;
+            margin-top: 20px;
+        }
 
         .role-badge {
             font-size: 14px;
@@ -122,7 +131,8 @@
             outline: none;
         }
 
-        .export-btn, .add-btn {
+        .export-btn,
+        .add-btn {
             color: white;
             border: none;
             padding: 8px 15px;
@@ -132,8 +142,13 @@
             font-size: 14px;
         }
 
-        .export-btn { background-color: #28a745; }
-        .add-btn { background-color: #007bff; }
+        .export-btn {
+            background-color: #28a745;
+        }
+
+        .add-btn {
+            background-color: #007bff;
+        }
 
         .table-wrapper {
             max-height: 700px;
@@ -149,7 +164,8 @@
             min-width: 600px;
         }
 
-        th, td {
+        th,
+        td {
             padding: 10px;
             text-align: left;
             border-bottom: 1px solid #ddd;
@@ -165,8 +181,13 @@
             z-index: 1;
         }
 
-        .low-stock { background-color: #ffebee !important; }
-        .low-stock-text { color: #d32f2f !important; }
+        .low-stock {
+            background-color: #ffebee !important;
+        }
+
+        .low-stock-text {
+            color: #d32f2f !important;
+        }
 
         .modal {
             display: none;
@@ -221,7 +242,9 @@
             box-sizing: border-box;
         }
 
-        .full-width { grid-column: 1 / -1; }
+        .full-width {
+            grid-column: 1 / -1;
+        }
 
         .save-btn {
             background-color: #007bff;
@@ -243,7 +266,9 @@
             outline: none;
         }
 
-        .prod-input:focus { border-color: #ff9800; }
+        .prod-input:focus {
+            border-color: #ff9800;
+        }
 
         .form-section {
             background: #f8f9fa;
@@ -330,7 +355,9 @@
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
         }
 
-        .toast.show { visibility: visible; }
+        .toast.show {
+            visibility: visible;
+        }
     </style>
 </head>
 
@@ -349,23 +376,32 @@
             <input type="text" id="usernameInput" placeholder="Enter Username" autocapitalize="none">
             <input type="password" id="passwordInput" placeholder="Enter Password">
             <button onclick="attemptLogin()">Log In</button>
-            <p id="loginError" style="color: red; display: none; font-size: 14px; margin-top: 10px;">Incorrect Credentials</p>
+            <p id="loginError" style="color: red; display: none; font-size: 14px; margin-top: 10px;">Incorrect
+                Credentials</p>
         </div>
     </div>
 
-    <div id="topNav" style="background: #212529; padding: 10px 20px; display: none; justify-content: space-between; align-items: center; color: white;">
+    <div id="topNav"
+        style="background: #212529; padding: 10px 20px; display: none; justify-content: space-between; align-items: center; color: white;">
         <div style="font-weight: bold; font-size: 18px; color: #ff9800;">🏭 PPL ERP SYSTEM</div>
         <div id="navButtons" style="display: flex; gap: 10px;">
-            <button class="tab-btn active" id="nav-prod" onclick="switchMainTab('productionCard', 'nav-prod')">Production</button>
-            <button class="tab-btn" id="nav-qc" onclick="switchMainTab('qcCard', 'nav-qc')" style="display: none; background: #17a2b8; color: white;">QC Approval</button>
-            <button class="tab-btn" id="nav-inv" onclick="switchMainTab('invCard', 'nav-inv')" style="display: none;">Inventory</button>
-            <button class="tab-btn" id="nav-tx" onclick="switchMainTab('txCard', 'nav-tx')" style="display: none;">Movements</button>
-            <button class="tab-btn" id="nav-rm" onclick="switchMainTab('rawMaterialCard', 'nav-rm')" style="display: none;">Raw Materials</button>
-            <button class="tab-btn" id="nav-po" onclick="switchMainTab('poCard', 'nav-po')" style="display: none;">Purchase Orders</button>
+            <button class="tab-btn active" id="nav-prod"
+                onclick="switchMainTab('productionCard', 'nav-prod')">Production</button>
+            <button class="tab-btn" id="nav-qc" onclick="switchMainTab('qcCard', 'nav-qc')"
+                style="display: none; background: #17a2b8; color: white;">QC Approval</button>
+            <button class="tab-btn" id="nav-inv" onclick="switchMainTab('invCard', 'nav-inv')"
+                style="display: none;">Inventory</button>
+            <button class="tab-btn" id="nav-tx" onclick="switchMainTab('txCard', 'nav-tx')"
+                style="display: none;">Movements</button>
+            <button class="tab-btn" id="nav-rm" onclick="switchMainTab('rawMaterialCard', 'nav-rm')"
+                style="display: none;">Raw Materials</button>
+            <button class="tab-btn" id="nav-po" onclick="switchMainTab('poCard', 'nav-po')"
+                style="display: none;">Purchase Orders</button>
         </div>
         <div style="font-size: 14px; display: flex; align-items: center;">
-            <span id="roleDisplay" class="role-badge"></span> 
-            <a href="#" onclick="logout()" style="color: #dc3545; text-decoration: none; font-weight: bold; margin-left: 15px;">Logout</a>
+            <span id="roleDisplay" class="role-badge"></span>
+            <a href="#" onclick="logout()"
+                style="color: #dc3545; text-decoration: none; font-weight: bold; margin-left: 15px;">Logout</a>
         </div>
     </div>
 
@@ -375,38 +411,57 @@
             <div class="card" id="productionCard" style="display: none; margin-bottom: 20px;">
                 <h2 style="color: #ff9800; border-bottom: 2px solid #ff9800;">🏭 Production Data Entry (Full Sheet)</h2>
 
-                <div id="masterAnalyticsDashboard" style="display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 20px; align-items: stretch; min-height: 140px;">
+                <div id="masterAnalyticsDashboard"
+                    style="display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 20px; align-items: stretch; min-height: 140px;">
                     <div style="flex: 0 0 320px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                        <div style="background: #343a40; color: white; padding: 10px; border-radius: 6px; text-align: center; display: flex; flex-direction: column; justify-content: center; box-shadow: inset 0 -3px 0 rgba(0,0,0,0.2);">
-                            <div style="font-size: 11px; font-weight: bold; text-transform: uppercase; color: #adb5bd;">Overall OEE</div>
-                            <div id="oeeTotal" style="font-size: 26px; font-weight: bold; color: #ffc107; margin-top: 2px;">0%</div>
+                        <div
+                            style="background: #343a40; color: white; padding: 10px; border-radius: 6px; text-align: center; display: flex; flex-direction: column; justify-content: center; box-shadow: inset 0 -3px 0 rgba(0,0,0,0.2);">
+                            <div style="font-size: 11px; font-weight: bold; text-transform: uppercase; color: #adb5bd;">
+                                Overall OEE</div>
+                            <div id="oeeTotal"
+                                style="font-size: 26px; font-weight: bold; color: #ffc107; margin-top: 2px;">0%</div>
                         </div>
-                        <div style="background: white; border: 1px solid #ced4da; padding: 10px; border-radius: 6px; text-align: center; display: flex; flex-direction: column; justify-content: center;">
-                            <div style="font-size: 10px; font-weight: bold; text-transform: uppercase; color: #6c757d;">Availability</div>
-                            <div id="oeeAvail" style="font-size: 18px; font-weight: bold; color: #007bff; margin-top: 2px;">0%</div>
+                        <div
+                            style="background: white; border: 1px solid #ced4da; padding: 10px; border-radius: 6px; text-align: center; display: flex; flex-direction: column; justify-content: center;">
+                            <div style="font-size: 10px; font-weight: bold; text-transform: uppercase; color: #6c757d;">
+                                Availability</div>
+                            <div id="oeeAvail"
+                                style="font-size: 18px; font-weight: bold; color: #007bff; margin-top: 2px;">0%</div>
                             <div id="oeeDowntimeText" style="font-size: 10px; color: #dc3545;">0 hrs down</div>
                         </div>
-                        <div style="background: white; border: 1px solid #ced4da; padding: 10px; border-radius: 6px; text-align: center; display: flex; flex-direction: column; justify-content: center;">
-                            <div style="font-size: 10px; font-weight: bold; text-transform: uppercase; color: #6c757d;">Performance</div>
-                            <div id="oeePerf" style="font-size: 18px; font-weight: bold; color: #17a2b8; margin-top: 2px;">0%</div>
+                        <div
+                            style="background: white; border: 1px solid #ced4da; padding: 10px; border-radius: 6px; text-align: center; display: flex; flex-direction: column; justify-content: center;">
+                            <div style="font-size: 10px; font-weight: bold; text-transform: uppercase; color: #6c757d;">
+                                Performance</div>
+                            <div id="oeePerf"
+                                style="font-size: 18px; font-weight: bold; color: #17a2b8; margin-top: 2px;">0%</div>
                             <div id="oeeSpeedText" style="font-size: 10px; color: #28a745;">0 / 0 Target</div>
                         </div>
-                        <div style="background: white; border: 1px solid #ced4da; padding: 10px; border-radius: 6px; text-align: center; display: flex; flex-direction: column; justify-content: center;">
-                            <div style="font-size: 10px; font-weight: bold; text-transform: uppercase; color: #6c757d;">Quality</div>
-                            <div id="oeeQual" style="font-size: 18px; font-weight: bold; color: #28a745; margin-top: 2px;">0%</div>
+                        <div
+                            style="background: white; border: 1px solid #ced4da; padding: 10px; border-radius: 6px; text-align: center; display: flex; flex-direction: column; justify-content: center;">
+                            <div style="font-size: 10px; font-weight: bold; text-transform: uppercase; color: #6c757d;">
+                                Quality</div>
+                            <div id="oeeQual"
+                                style="font-size: 18px; font-weight: bold; color: #28a745; margin-top: 2px;">0%</div>
                             <div id="oeeRejText" style="font-size: 10px; color: #dc3545;">0 rejected</div>
                         </div>
                     </div>
 
-                    <div style="flex: 1; min-width: 300px; background: white; padding: 10px; border-radius: 8px; border: 1px solid #ddd; display: flex; flex-direction: column; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
-                        <div style="font-size: 11px; font-weight: bold; text-transform: uppercase; color: #495057; text-align: center; margin-bottom: 5px;">Today's Output by Machine</div>
+                    <div
+                        style="flex: 1; min-width: 300px; background: white; padding: 10px; border-radius: 8px; border: 1px solid #ddd; display: flex; flex-direction: column; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                        <div
+                            style="font-size: 11px; font-weight: bold; text-transform: uppercase; color: #495057; text-align: center; margin-bottom: 5px;">
+                            Today's Output by Machine</div>
                         <div style="position: relative; flex-grow: 1; min-height: 120px;">
                             <canvas id="machineChart"></canvas>
                         </div>
                     </div>
 
-                    <div style="flex: 0 0 220px; background: white; padding: 10px; border-radius: 8px; border: 1px solid #ddd; display: flex; flex-direction: column; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
-                        <div style="font-size: 11px; font-weight: bold; text-transform: uppercase; color: #495057; text-align: center; margin-bottom: 5px;">Quality Ratio</div>
+                    <div
+                        style="flex: 0 0 220px; background: white; padding: 10px; border-radius: 8px; border: 1px solid #ddd; display: flex; flex-direction: column; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                        <div
+                            style="font-size: 11px; font-weight: bold; text-transform: uppercase; color: #495057; text-align: center; margin-bottom: 5px;">
+                            Quality Ratio</div>
                         <div style="position: relative; flex-grow: 1; min-height: 120px;">
                             <canvas id="qualityChart"></canvas>
                         </div>
@@ -415,7 +470,9 @@
 
                 <div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #ddd;">
                     <div style="display: flex; gap: 15px; margin-bottom: 15px;">
-                        <select id="prodStage" class="prod-input" style="flex: 1; font-weight: bold; border: 2px solid #ff9800; font-size: 16px;" onchange="toggleStageFields()">
+                        <select id="prodStage" class="prod-input"
+                            style="flex: 1; font-weight: bold; border: 2px solid #ff9800; font-size: 16px;"
+                            onchange="toggleStageFields()">
                             <option value="FORGING">1. FORGING</option>
                             <option value="ROLLING">2. ROLLING</option>
                             <option value="SEC_OP">3. SEC. OP.</option>
@@ -433,7 +490,8 @@
                                 <option value="G">G Shift (General)</option>
                                 <option value="S2">S2 Shift</option>
                             </select>
-                            <select id="prodMachine" class="prod-input" onchange="toggleOtherInput('prodMachine', 'prodMachineOther')">
+                            <select id="prodMachine" class="prod-input"
+                                onchange="toggleOtherInput('prodMachine', 'prodMachineOther')">
                                 <option value="">- Select Machine -</option>
                                 <option value="CH5">CH5</option>
                                 <option value="TK250">TK250</option>
@@ -446,7 +504,8 @@
                                 <option value="PO-2">PO-2</option>
                                 <option value="OTHER">Other...</option>
                             </select>
-                            <input type="text" id="prodMachineOther" class="prod-input" placeholder="Enter Machine Name" style="display: none; border-color: #007bff;">
+                            <input type="text" id="prodMachineOther" class="prod-input" placeholder="Enter Machine Name"
+                                style="display: none; border-color: #007bff;">
                             <input type="text" id="prodOperator" class="prod-input" placeholder="Operator Name">
                             <select id="prodOperation" class="prod-input">
                                 <option value="">- Select Process -</option>
@@ -459,20 +518,24 @@
                         </div>
                         <div class="form-section-title" style="margin-top: 15px;">2. Part Details</div>
                         <div class="form-grid-multi">
-                            <select id="prodWO" class="prod-input" style="border-color: #007bff; font-weight: bold;" onchange="autoFillFromWO()">
+                            <select id="prodWO" class="prod-input" style="border-color: #007bff; font-weight: bold;"
+                                onchange="autoFillFromWO()">
                                 <option value="">- Select Active WO -</option>
                                 <option value="OTHER">Manual Entry...</option>
                             </select>
-                            <input type="text" id="prodWOOther" class="prod-input" placeholder="Enter WO Manually" style="display: none; border-color: #007bff;">
+                            <input type="text" id="prodWOOther" class="prod-input" placeholder="Enter WO Manually"
+                                style="display: none; border-color: #007bff;">
                             <input type="text" id="prodPartNo" class="prod-input" placeholder="Part No (Barcode)">
-                            <select id="prodPartName" class="prod-input" onchange="toggleOtherInput('prodPartName', 'prodPartNameOther')">
+                            <select id="prodPartName" class="prod-input"
+                                onchange="toggleOtherInput('prodPartName', 'prodPartNameOther')">
                                 <option value="">- Part Name -</option>
                                 <option value="FLG">FLG</option>
                                 <option value="HEX">HEX</option>
                                 <option value="SOC">SOC</option>
                                 <option value="OTHER">Other...</option>
                             </select>
-                            <input type="text" id="prodPartNameOther" class="prod-input" placeholder="Enter Part Name" style="display: none; border-color: #007bff;">
+                            <input type="text" id="prodPartNameOther" class="prod-input" placeholder="Enter Part Name"
+                                style="display: none; border-color: #007bff;">
                             <input type="text" id="prodSize" class="prod-input" placeholder="Size (e.g., M10)">
                             <input type="text" id="prodPitch" class="prod-input" placeholder="Pitch (e.g., 1.25)">
                             <input type="number" id="prodLength" class="prod-input" placeholder="Length (mm)">
@@ -484,13 +547,18 @@
                     <div class="form-section" id="planningSection">
                         <div class="form-section-title">3. Material & Planning</div>
                         <div class="form-grid-multi">
-                            <input type="text" id="prodRMCode" class="prod-input dyn-f" placeholder="* Exact Raw Material Code (e.g. STL-10MM)" style="border-color: #007bff; font-weight: bold;">
+                            <input type="text" id="prodRMCode" class="prod-input dyn-f"
+                                placeholder="* Exact Raw Material Code (e.g. STL-10MM)"
+                                style="border-color: #007bff; font-weight: bold;">
                             <input type="text" id="prodHeatNo" class="prod-input dyn-fr" placeholder="Heat No.">
                             <input type="number" id="prodRMKg" class="prod-input dyn-f" placeholder="RM Consumed (Kg)">
-                            <input type="number" step="0.001" id="prodPieceWt" class="prod-input dyn-fr" placeholder="Piece Weight (KG)">
+                            <input type="number" step="0.001" id="prodPieceWt" class="prod-input dyn-fr"
+                                placeholder="Piece Weight (KG)">
                             <input type="number" id="prodSchHrs" class="prod-input" placeholder="Schedule Hours">
-                            <input type="number" id="prodJcHrs" class="prod-input dyn-fr" placeholder="Job Change Hours">
-                            <input type="number" id="prodPlannedHrs" class="prod-input dyn-fr" placeholder="Prod Planned Hours">
+                            <input type="number" id="prodJcHrs" class="prod-input dyn-fr"
+                                placeholder="Job Change Hours">
+                            <input type="number" id="prodPlannedHrs" class="prod-input dyn-fr"
+                                placeholder="Prod Planned Hours">
                             <input type="number" id="prodSpeed" class="prod-input dyn-fr" placeholder="Speed (RPM)">
                             <input type="number" id="prodTarget" class="prod-input" placeholder="Shift Target Qty">
                         </div>
@@ -499,38 +567,50 @@
                     <div class="form-section" style="border-left-color: #28a745;">
                         <div class="form-section-title" style="color: #28a745;">4. Production Output</div>
                         <div class="form-grid-multi">
-                            <input type="number" id="prodAccepted" class="prod-input" placeholder="✅ Accepted Qty (Nos)" style="border-color: #28a745; font-weight: bold;">
-                            <input type="number" id="prodRejected" class="prod-input" placeholder="❌ Rejection Qty (PCS)" style="border-color: #dc3545;">
-                            <input type="number" step="0.01" id="prodRejKg" class="prod-input dyn-fr" placeholder="Process/Set Rej (KGS)" style="border-color: #dc3545;">
-                            <input type="text" id="prodRejReason" class="prod-input dyn-s" placeholder="Rejection Reason">
+                            <input type="number" id="prodAccepted" class="prod-input" placeholder="✅ Accepted Qty (Nos)"
+                                style="border-color: #28a745; font-weight: bold;">
+                            <input type="number" id="prodRejected" class="prod-input"
+                                placeholder="❌ Rejection Qty (PCS)" style="border-color: #dc3545;">
+                            <input type="number" step="0.01" id="prodRejKg" class="prod-input dyn-fr"
+                                placeholder="Process/Set Rej (KGS)" style="border-color: #dc3545;">
+                            <input type="text" id="prodRejReason" class="prod-input dyn-s"
+                                placeholder="Rejection Reason">
                             <input type="text" id="prodRemarks" class="prod-input" placeholder="Remarks / Notes">
                         </div>
                     </div>
 
                     <div class="downtime-grid dyn-fr">
-                        <div style="grid-column: 1 / -1; font-size: 13px; font-weight: bold; color: #dc3545; margin-bottom: 5px;">5. DOWNTIME LOSSES (ENTER MINUTES)</div>
+                        <div
+                            style="grid-column: 1 / -1; font-size: 13px; font-weight: bold; color: #dc3545; margin-bottom: 5px;">
+                            5. DOWNTIME LOSSES (ENTER MINUTES)</div>
                         <div><label>Major J/C (1)</label><input type="number" id="l_MajorJC" class="prod-input"></div>
                         <div><label>Minor J/C (2)</label><input type="number" id="l_MinorJC" class="prod-input"></div>
-                        <div><label>Tool Setting (3)</label><input type="number" id="l_Setting" class="prod-input"></div>
+                        <div><label>Tool Setting (3)</label><input type="number" id="l_Setting" class="prod-input">
+                        </div>
                         <div><label>M/C Clean</label><input type="number" id="l_McClean" class="prod-input"></div>
-                        <div><label>Tool Rework (5)</label><input type="number" id="l_ToolRework" class="prod-input"></div>
+                        <div><label>Tool Rework (5)</label><input type="number" id="l_ToolRework" class="prod-input">
+                        </div>
                         <div><label>No Tool (6)</label><input type="number" id="l_NoTool" class="prod-input"></div>
                         <div><label>No Load</label><input type="number" id="l_NoLoad" class="prod-input"></div>
-                        <div><label>No Operator (7)</label><input type="number" id="l_NoOperator" class="prod-input"></div>
+                        <div><label>No Operator (7)</label><input type="number" id="l_NoOperator" class="prod-input">
+                        </div>
                         <div><label>M/MNT (8)</label><input type="number" id="l_MMnt" class="prod-input"></div>
                         <div><label>E/MNT (9)</label><input type="number" id="l_EMnt" class="prod-input"></div>
                         <div><label>No Power (10)</label><input type="number" id="l_NoPower" class="prod-input"></div>
-                        <div><label>No Air/Oil (11)</label><input type="number" id="l_NoAirOil" class="prod-input"></div>
+                        <div><label>No Air/Oil (11)</label><input type="number" id="l_NoAirOil" class="prod-input">
+                        </div>
                         <div><label>No RM (12)</label><input type="number" id="l_NoRm" class="prod-input"></div>
                         <div><label>RM Loading</label><input type="number" id="l_RmLoading" class="prod-input"></div>
                         <div><label>QA Approval</label><input type="number" id="l_QaApproval" class="prod-input"></div>
-                        <div><label>Coil Change (13)</label><input type="number" id="l_CoilChange" class="prod-input dyn-f"></div>
+                        <div><label>Coil Change (13)</label><input type="number" id="l_CoilChange"
+                                class="prod-input dyn-f"></div>
                         <div><label>No Plan (14)</label><input type="number" id="l_NoPlan" class="prod-input"></div>
                         <div><label>NPD Team (9F)</label><input type="number" id="l_NpdTeam" class="prod-input"></div>
                         <div><label>Unknown</label><input type="number" id="l_Unknown" class="prod-input"></div>
                     </div>
 
-                    <button onclick="submitProductionForm()" style="background: #ff9800; color: white; padding: 15px; width: 100%; font-size: 18px; font-weight: bold; border: none; border-radius: 8px; margin-top: 20px; cursor: pointer;">
+                    <button onclick="submitProductionForm()"
+                        style="background: #ff9800; color: white; padding: 15px; width: 100%; font-size: 18px; font-weight: bold; border: none; border-radius: 8px; margin-top: 20px; cursor: pointer;">
                         💾 Save Full Production Log
                     </button>
                 </div>
@@ -541,10 +621,12 @@
                     <button class="tab-btn" id="tab-ROLLING" onclick="filterLogs('ROLLING')">Rolling</button>
                     <button class="tab-btn" id="tab-SEC_OP" onclick="filterLogs('SEC_OP')">Sec. Ops</button>
                 </div>
-                
-                <div class="search-container" style="background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #ff9800; margin-bottom: 15px;">
+
+                <div class="search-container"
+                    style="background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #ff9800; margin-bottom: 15px;">
                     <span style="font-weight: bold; color: #555; font-size: 14px;">🔍 FILTER LOGS:</span>
-                    <input type="date" id="filterProdDate" class="prod-input" onchange="applyProductionFilters()" title="Filter by Date">
+                    <input type="date" id="filterProdDate" class="prod-input" onchange="applyProductionFilters()"
+                        title="Filter by Date">
                     <select id="filterProdShift" class="prod-input" onchange="applyProductionFilters()">
                         <option value="">-- All Shifts --</option>
                         <option value="A">A Shift</option>
@@ -552,29 +634,77 @@
                         <option value="G">G Shift</option>
                         <option value="S2">S2 Shift</option>
                     </select>
-                    <input type="text" id="filterProdGlobal" class="prod-input" style="flex: 1; min-width: 250px;" placeholder="Search Operator, Machine, Part No, Remarks..." onkeyup="applyProductionFilters()">
-                    <button onclick="clearProductionFilters()" style="background-color: #6c757d; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold;">Reset</button>
+                    <input type="text" id="filterProdGlobal" class="prod-input" style="flex: 1; min-width: 250px;"
+                        placeholder="Search Operator, Machine, Part No, Remarks..." onkeyup="applyProductionFilters()">
+                    <button onclick="clearProductionFilters()"
+                        style="background-color: #6c757d; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold;">Reset</button>
                 </div>
 
-                <div id="exportButtonsSection" style="display: flex; justify-content: flex-end; gap: 10px; margin-top: -40px; margin-bottom: 10px;">
-                    <button onclick="generateDailyPDF()" style="background: #dc3545; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">📄 Download Daily PDF</button>
-                    <button class="export-btn" onclick="exportTableToCSV('productionTable', 'Full_Production_Report.csv')">⬇️ Export Full Excel</button>
+                <div id="exportButtonsSection"
+                    style="display: flex; justify-content: flex-end; gap: 10px; margin-top: -40px; margin-bottom: 10px;">
+                    <button onclick="generateDailyPDF()"
+                        style="background: #dc3545; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">📄
+                        Download Daily PDF</button>
+                    <button class="export-btn"
+                        onclick="exportTableToCSV('productionTable', 'Full_Production_Report.csv')">⬇️ Export Full
+                        Excel</button>
                 </div>
 
                 <div class="table-wrapper">
                     <table id="productionTable">
                         <thead style="background-color: #ff9800; white-space: nowrap;">
                             <tr>
-                                <th>Date</th><th>Shift</th><th>Stage</th><th>Machine</th><th>Operator</th><th>Process</th>
-                                <th>WO No</th><th>Part No</th><th>Part Name</th><th>Size</th><th>Pitch</th><th>Length</th>
-                                <th>A/F</th><th>Grade</th><th>RM Code</th><th>Heat No</th><th>RM Consumed (Kg)</th><th>Piece Wt (Kg)</th>
-                                <th>Sch Hrs</th><th>J/C Hrs</th><th>Planned Hrs</th><th>Speed (RPM)</th><th>Target Qty</th>
-                                <th style="background:#28a745;">Acc Qty</th><th style="background:#dc3545;">Rej Qty</th>
-                                <th>Rej Kg</th><th>Rej Reason</th><th>Major JC</th><th>Minor JC</th><th>Setting</th>
-                                <th>M/C Clean</th><th>Tool Rework</th><th>No Tool</th><th>No Load</th><th>No Operator</th>
-                                <th>M/MNT</th><th>E/MNT</th><th>No Power</th><th>No Air/Oil</th><th>No RM</th>
-                                <th>RM Loading</th><th>QA Appr</th><th>Coil Chg</th><th>No Plan</th><th>NPD Team</th>
-                                <th>Unknown Loss</th><th>Remarks</th><th>Logged By</th><th>Action</th>
+                                <th>Date</th>
+                                <th>Shift</th>
+                                <th>Stage</th>
+                                <th>Machine</th>
+                                <th>Operator</th>
+                                <th>Process</th>
+                                <th>WO No</th>
+                                <th>Part No</th>
+                                <th>Part Name</th>
+                                <th>Size</th>
+                                <th>Pitch</th>
+                                <th>Length</th>
+                                <th>A/F</th>
+                                <th>Grade</th>
+                                <th>RM Code</th>
+                                <th>Heat No</th>
+                                <th>RM Consumed (Kg)</th>
+                                <th>Piece Wt (Kg)</th>
+                                <th>Sch Hrs</th>
+                                <th>J/C Hrs</th>
+                                <th>Planned Hrs</th>
+                                <th>Speed (RPM)</th>
+                                <th>Target Qty</th>
+                                <th style="background:#28a745;">Acc Qty</th>
+                                <th style="background:#dc3545;">Rej Qty</th>
+                                <th>Rej Kg</th>
+                                <th>Rej Reason</th>
+                                <th>Major JC</th>
+                                <th>Minor JC</th>
+                                <th>Setting</th>
+                                <th>M/C Clean</th>
+                                <th>Tool Rework</th>
+                                <th>No Tool</th>
+                                <th>No Load</th>
+                                <th>No Operator</th>
+                                <th>M/MNT</th>
+                                <th>E/MNT</th>
+                                <th>No Power</th>
+                                <th>No Air/Oil</th>
+                                <th>No RM</th>
+                                <th>RM Loading</th>
+                                <th>QA Appr</th>
+                                <th>Coil Chg</th>
+                                <th>No Plan</th>
+                                <th>NPD Team</th>
+                                <th>Unknown Loss</th>
+                                <th>Remarks</th>
+                                <th>Logged By</th>
+                                <th style="background:#17a2b8;">QC Status</th>
+                                <th style="background:#17a2b8;">QC Remarks</th>
+                                <th>Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -582,9 +712,12 @@
                                 <td colspan="49" style="text-align: center;">Loading...</td>
                             </tr>
                         </tbody>
-                        <tfoot style="background-color: #f8f9fa; font-weight: bold; position: sticky; bottom: 0; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 2;">
+                        <tfoot
+                            style="background-color: #f8f9fa; font-weight: bold; position: sticky; bottom: 0; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 2;">
                             <tr>
-                                <td colspan="23" style="text-align: right; padding-right: 15px; color: #ff9800; font-size: 16px;">🔍 VISIBLE TOTALS:</td>
+                                <td colspan="23"
+                                    style="text-align: right; padding-right: 15px; color: #ff9800; font-size: 16px;">🔍
+                                    VISIBLE TOTALS:</td>
                                 <td id="totalAccQty" style="color: green; background: #e8f5e9; font-size: 16px;">0</td>
                                 <td id="totalRejQty" style="color: red; background: #ffebee; font-size: 16px;">0</td>
                                 <td id="totalRejKg" style="font-size: 16px;">0</td>
@@ -596,18 +729,27 @@
             </div>
 
             <div class="card" id="qcCard" style="display: none; margin-bottom: 20px;">
-                <h2 style="color: #17a2b8; border-bottom: 2px solid #17a2b8;">🔬 Quality Control - Pending Approvals</h2>
+                <h2 style="color: #17a2b8; border-bottom: 2px solid #17a2b8;">🔬 Quality Control - Pending Approvals
+                </h2>
 
                 <div class="table-wrapper">
                     <table id="qcTable">
                         <thead style="background-color: #17a2b8; color: white;">
                             <tr>
-                                <th>Date Logged</th><th>Stage</th><th>Machine</th><th>Part No</th>
-                                <th>Acc Qty</th><th>Rej Qty</th><th>Logged By</th><th>Action</th>
+                                <th>Date Logged</th>
+                                <th>Stage</th>
+                                <th>Machine</th>
+                                <th>Part No</th>
+                                <th>Acc Qty</th>
+                                <th>Rej Qty</th>
+                                <th>Logged By</th>
+                                <th>Action</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr><td colspan="8" style="text-align: center;">Loading pending batches...</td></tr>
+                            <tr>
+                                <td colspan="8" style="text-align: center;">Loading pending batches...</td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -616,18 +758,28 @@
             <div class="card inventory-section" id="invCard" style="display: none;">
                 <h2>Finished Goods Stock
                     <div class="search-container">
-                        <input type="text" id="searchInput" class="search-box" style="width: 220px;" onkeyup="filterInventory()" placeholder="🔍 Search...">
-                        <button class="add-btn" id="addBtnUI" style="display: none;" onclick="openModal()">➕ Add Product</button>
-                        <button class="export-btn" onclick="exportTableToCSV('productsTable', 'Live_Stock_Inventory.csv')">⬇️ Excel</button>
+                        <input type="text" id="searchInput" class="search-box" style="width: 220px;"
+                            onkeyup="filterInventory()" placeholder="🔍 Search...">
+                        <button class="add-btn" id="addBtnUI" style="display: none;" onclick="openModal()">➕ Add
+                            Product</button>
+                        <button class="export-btn"
+                            onclick="exportTableToCSV('productsTable', 'Live_Stock_Inventory.csv')">⬇️ Excel</button>
                     </div>
                 </h2>
                 <div class="table-wrapper">
                     <table id="productsTable">
                         <thead>
                             <tr>
-                                <th>Product Code</th><th>Sector</th><th>Type</th><th>Grade</th><th>Length</th>
-                                <th>A/F</th><th>Wt/Pc</th><th style="color: #17a2b8;">WIP (Floor)</th>
-                                <th style="color: #28a745;">Ready Stock</th><th class="admin-actions">Actions</th>
+                                <th>Product Code</th>
+                                <th>Sector</th>
+                                <th>Type</th>
+                                <th>Grade</th>
+                                <th>Length</th>
+                                <th>A/F</th>
+                                <th>Wt/Pc</th>
+                                <th style="color: #17a2b8;">WIP (Floor)</th>
+                                <th style="color: #28a745;">Ready Stock</th>
+                                <th class="admin-actions">Actions</th>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -638,33 +790,48 @@
             <div class="card transaction-section" id="txCard" style="display: none;">
                 <h2>Recent Movements
                     <div class="search-container">
-                        <input type="date" id="dateSearchInput" class="search-box" style="width: 130px;" onchange="applyTxFilters()">
-                        <input type="text" id="searchTxInput" class="search-box" style="width: 150px;" onkeyup="applyTxFilters()" placeholder="🔍 Item...">
-                        <button class="export-btn" onclick="exportTableToCSV('transactionsTable', 'Warehouse_Movements.csv')">⬇️ Excel</button>
+                        <input type="date" id="dateSearchInput" class="search-box" style="width: 130px;"
+                            onchange="applyTxFilters()">
+                        <input type="text" id="searchTxInput" class="search-box" style="width: 150px;"
+                            onkeyup="applyTxFilters()" placeholder="🔍 Item...">
+                        <button class="export-btn"
+                            onclick="exportTableToCSV('transactionsTable', 'Warehouse_Movements.csv')">⬇️ Excel</button>
                     </div>
                 </h2>
                 <div class="table-wrapper">
                     <table id="transactionsTable">
                         <thead>
                             <tr>
-                                <th>Date & Time</th><th>Item Code</th><th>Type & User</th><th>Qty</th><th>Balance</th>
+                                <th>Date & Time</th>
+                                <th>Item Code</th>
+                                <th>Type & User</th>
+                                <th>Qty</th>
+                                <th>Balance</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr><td colspan="5">Loading data...</td></tr>
+                            <tr>
+                                <td colspan="5">Loading data...</td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
             </div>
 
             <div class="card" id="rawMaterialCard" style="display: none;">
-                <h2>Raw Materials (Steel) <button class="add-btn" onclick="openReceiveModal()">📥 Receive Stock</button></h2>
+                <h2>Raw Materials (Steel) <button class="add-btn" onclick="openReceiveModal()">📥 Receive Stock</button>
+                </h2>
                 <div class="table-wrapper">
                     <table id="rawMaterialsTable">
                         <thead>
                             <tr>
-                                <th>Material Code</th><th>Name</th><th>Grade</th><th>Stock (Kg)</th>
-                                <th>Last Supplier</th><th>Last Received By</th><th>Date & Time</th>
+                                <th>Material Code</th>
+                                <th>Name</th>
+                                <th>Grade</th>
+                                <th>Stock (Kg)</th>
+                                <th>Last Supplier</th>
+                                <th>Last Received By</th>
+                                <th>Date & Time</th>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -675,16 +842,25 @@
             <div class="card" id="poCard" style="display: none;">
                 <h2>Purchase Orders
                     <div class="search-container">
-                        <input type="text" id="searchPOInput" class="search-box" style="width: 200px;" onkeyup="filterPOs()" placeholder="🔍 Search POs...">
-                        <button class="add-btn" onclick="openPOModal()" style="background-color: #ff9800;">📝 Create PO</button>
+                        <input type="text" id="searchPOInput" class="search-box" style="width: 200px;"
+                            onkeyup="filterPOs()" placeholder="🔍 Search POs...">
+                        <button class="add-btn" onclick="openPOModal()" style="background-color: #ff9800;">📝 Create
+                            PO</button>
                     </div>
                 </h2>
                 <div class="table-wrapper">
                     <table id="poTable">
                         <thead>
                             <tr>
-                                <th>PO Number</th><th>Supplier</th><th>Material</th><th>Grade</th><th>Scope</th>
-                                <th>Qty (Kg)</th><th>Total Cost (₹)</th><th>Status</th><th>Action</th>
+                                <th>PO Number</th>
+                                <th>Supplier</th>
+                                <th>Material</th>
+                                <th>Grade</th>
+                                <th>Scope</th>
+                                <th>Qty (Kg)</th>
+                                <th>Total Cost (₹)</th>
+                                <th>Status</th>
+                                <th>Action</th>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -693,17 +869,31 @@
             </div>
 
         </div>
-    </div> <div id="qcModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; align-items: center; justify-content: center;">
-        <div style="background: white; width: 95%; max-width: 1000px; height: 90vh; border-radius: 8px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
-            <div style="background: #17a2b8; color: white; padding: 15px 20px; font-weight: bold; font-size: 18px; display: flex; justify-content: space-between; align-items: center;">
+    </div>
+    <div id="qcModal"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; align-items: center; justify-content: center;">
+        <div
+            style="background: white; width: 95%; max-width: 1000px; height: 90vh; border-radius: 8px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+            <div
+                style="background: #17a2b8; color: white; padding: 15px 20px; font-weight: bold; font-size: 18px; display: flex; justify-content: space-between; align-items: center;">
                 <span>🔍 Comprehensive QC Inspection</span>
-                <button style="background: none; border: none; color: white; font-size: 20px; cursor: pointer;" onclick="document.getElementById('qcModal').style.display='none'">✖</button>
+                <button style="background: none; border: none; color: white; font-size: 20px; cursor: pointer;"
+                    onclick="document.getElementById('qcModal').style.display='none'">✖</button>
             </div>
-            <div id="qcModalContent" style="padding: 20px; overflow-y: auto; flex-grow: 1; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; font-size: 14px; background: #f4f6f9;"></div>
-            <div style="background: #fff; padding: 15px 20px; border-top: 2px solid #dee2e6; display: flex; gap: 15px; align-items: center;">
-                <input type="text" id="qcRemarksInput" class="prod-input" placeholder="Enter Official QC Remarks (Required for Rejection)" style="flex-grow: 1; margin: 0; font-size: 15px; padding: 10px;">
-                <button id="btnQcReject" style="background: #dc3545; color: white; border: none; padding: 12px 25px; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 15px;">❌ Reject Batch</button>
-                <button id="btnQcApprove" style="background: #28a745; color: white; border: none; padding: 12px 35px; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 15px;">✅ APPROVE & ADD TO STOCK</button>
+            <div id="qcModalContent"
+                style="padding: 20px; overflow-y: auto; flex-grow: 1; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; font-size: 14px; background: #f4f6f9;">
+            </div>
+            <div
+                style="background: #fff; padding: 15px 20px; border-top: 2px solid #dee2e6; display: flex; gap: 15px; align-items: center;">
+                <input type="text" id="qcRemarksInput" class="prod-input"
+                    placeholder="Enter Official QC Remarks (Required for Rejection)"
+                    style="flex-grow: 1; margin: 0; font-size: 15px; padding: 10px;">
+                <button id="btnQcReject"
+                    style="background: #dc3545; color: white; border: none; padding: 12px 25px; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 15px;">❌
+                    Reject Batch</button>
+                <button id="btnQcApprove"
+                    style="background: #28a745; color: white; border: none; padding: 12px 35px; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 15px;">✅
+                    APPROVE & ADD TO STOCK</button>
             </div>
         </div>
     </div>
@@ -713,9 +903,12 @@
             <h2 style="color: #007bff; margin-bottom: 0;">Add Product</h2>
             <div class="form-grid">
                 <input type="text" id="newProdCode" class="full-width" placeholder="* Product Code" required>
-                <input type="text" id="newSector" placeholder="Sector"><input type="text" id="newType" placeholder="Type">
-                <input type="text" id="newGrade" placeholder="Grade"><input type="number" id="newLength" placeholder="Length">
-                <input type="number" id="newAF" placeholder="A/F"><input type="number" id="newWeight" placeholder="Wt/Piece">
+                <input type="text" id="newSector" placeholder="Sector"><input type="text" id="newType"
+                    placeholder="Type">
+                <input type="text" id="newGrade" placeholder="Grade"><input type="number" id="newLength"
+                    placeholder="Length">
+                <input type="number" id="newAF" placeholder="A/F"><input type="number" id="newWeight"
+                    placeholder="Wt/Piece">
                 <input type="number" id="newStock" class="full-width" placeholder="Initial Stock">
             </div>
             <button class="save-btn" onclick="submitNewProduct()">Save</button>
@@ -748,7 +941,8 @@
                 <input type="number" id="poCostPerKg" placeholder="* Cost per Kg" required>
                 <input type="text" id="poScope" class="full-width" placeholder="Scope / Remarks">
             </div>
-            <button class="save-btn" style="background-color: #ff9800;" id="poSubmitBtn" onclick="submitPO()">Generate PO</button>
+            <button class="save-btn" style="background-color: #ff9800;" id="poSubmitBtn" onclick="submitPO()">Generate
+                PO</button>
         </div>
     </div>
 
@@ -787,8 +981,8 @@
             currentUser = userData;
             document.getElementById('loginOverlay').style.display = 'none';
             document.getElementById('mainDashboard').style.display = 'block';
-            
-            document.getElementById('topNav').style.display = 'flex'; 
+
+            document.getElementById('topNav').style.display = 'flex';
             document.getElementById('roleDisplay').innerText = `👤 ${currentUser.username.toUpperCase()} (${currentUser.role})`;
 
             // 1. Hide EVERY card and EVERY navigation button first to securely reset the screen
@@ -799,7 +993,7 @@
             document.getElementById('poCard').style.display = 'none';
             document.getElementById('qcCard').style.display = 'none';
             document.getElementById('addBtnUI').style.display = 'none';
-            
+
             document.getElementById('nav-prod').style.display = 'none'; // <-- FIX: Hides Production Tab by default
             document.getElementById('nav-qc').style.display = 'none';
             document.getElementById('nav-inv').style.display = 'none';
@@ -848,11 +1042,11 @@
                 styleTag.innerHTML = '.admin-actions { display: none !important; }';
                 switchMainTab('invCard', 'nav-inv');
             }
-            
+
             document.getElementById('prodDate').valueAsDate = new Date();
             toggleStageFields();
             refreshDashboard();
-            
+
             // Prevent duplicate intervals
             if (refreshInterval) clearInterval(refreshInterval);
             refreshInterval = setInterval(refreshDashboard, 5000);
@@ -868,12 +1062,12 @@
             document.getElementById('txCard').style.display = 'none';
             document.getElementById('rawMaterialCard').style.display = 'none';
             document.getElementById('poCard').style.display = 'none';
-            
+
             document.querySelectorAll('#navButtons .tab-btn').forEach(btn => btn.classList.remove('active'));
-            
+
             if (document.getElementById(cardId)) document.getElementById(cardId).style.display = 'block';
             if (document.getElementById(btnId)) document.getElementById(btnId).classList.add('active');
-            
+
             if (cardId === 'qcCard') loadPendingQC();
         }
 
@@ -917,7 +1111,7 @@
             if (finalPartName === 'OTHER') finalPartName = document.getElementById('prodPartNameOther').value;
             let finalWO = document.getElementById('prodWO').value;
             if (finalWO === 'OTHER') finalWO = document.getElementById('prodWOOther').value;
-            
+
             const data = {
                 stage: document.getElementById('prodStage').value, date: document.getElementById('prodDate').value,
                 shift: document.getElementById('prodShift').value, machineName: finalMachine, partName: finalPartName,
@@ -932,16 +1126,16 @@
                 speedRpm: document.getElementById('prodSpeed').value, shiftTargetQty: document.getElementById('prodTarget').value,
                 acceptedQty: document.getElementById('prodAccepted').value, rejectedQty: document.getElementById('prodRejected').value,
                 rejectionKg: document.getElementById('prodRejKg').value, rejectionReason: document.getElementById('prodRejReason').value,
-                remarks: document.getElementById('prodRemarks').value, lossMajorJC: document.getElementById('l_MajorJC').value, 
-                lossMinorJC: document.getElementById('l_MinorJC').value, lossSetting: document.getElementById('l_Setting').value, 
-                lossMcClean: document.getElementById('l_McClean').value, lossToolRework: document.getElementById('l_ToolRework').value, 
-                lossNoTool: document.getElementById('l_NoTool').value, lossNoLoad: document.getElementById('l_NoLoad').value, 
-                lossNoOperator: document.getElementById('l_NoOperator').value, lossMMnt: document.getElementById('l_MMnt').value, 
-                lossEMnt: document.getElementById('l_EMnt').value, lossNoPower: document.getElementById('l_NoPower').value, 
-                lossNoAirOil: document.getElementById('l_NoAirOil').value, lossNoRm: document.getElementById('l_NoRm').value, 
-                lossRmLoading: document.getElementById('l_RmLoading').value, lossQaApproval: document.getElementById('l_QaApproval').value, 
-                lossCoilChange: document.getElementById('l_CoilChange').value, lossNoPlan: document.getElementById('l_NoPlan').value, 
-                lossNpdTeam: document.getElementById('l_NpdTeam').value, lossUnknown: document.getElementById('l_Unknown').value, 
+                remarks: document.getElementById('prodRemarks').value, lossMajorJC: document.getElementById('l_MajorJC').value,
+                lossMinorJC: document.getElementById('l_MinorJC').value, lossSetting: document.getElementById('l_Setting').value,
+                lossMcClean: document.getElementById('l_McClean').value, lossToolRework: document.getElementById('l_ToolRework').value,
+                lossNoTool: document.getElementById('l_NoTool').value, lossNoLoad: document.getElementById('l_NoLoad').value,
+                lossNoOperator: document.getElementById('l_NoOperator').value, lossMMnt: document.getElementById('l_MMnt').value,
+                lossEMnt: document.getElementById('l_EMnt').value, lossNoPower: document.getElementById('l_NoPower').value,
+                lossNoAirOil: document.getElementById('l_NoAirOil').value, lossNoRm: document.getElementById('l_NoRm').value,
+                lossRmLoading: document.getElementById('l_RmLoading').value, lossQaApproval: document.getElementById('l_QaApproval').value,
+                lossCoilChange: document.getElementById('l_CoilChange').value, lossNoPlan: document.getElementById('l_NoPlan').value,
+                lossNpdTeam: document.getElementById('l_NpdTeam').value, lossUnknown: document.getElementById('l_Unknown').value,
                 loggedBy: currentUser.username
             };
 
@@ -1004,6 +1198,17 @@
                         <td>${b.lossQaApproval || 0}</td><td>${b.lossCoilChange || 0}</td><td>${b.lossNoPlan || 0}</td>
                         <td>${b.lossNpdTeam || 0}</td><td>${b.lossUnknown || 0}</td><td>${b.remarks || '-'}</td>
                         <td><span style="color:#666; font-size:11px;">👤 ${b.loggedBy || '-'}</span></td>
+                        ${(() => {
+                            let qcColor = '#ffc107'; // Yellow for Pending
+                            let textColor = '#000';
+                            if (b.qcStatus === 'APPROVED') { qcColor = '#28a745'; textColor = '#fff'; }
+                            if (b.qcStatus === 'REJECTED') { qcColor = '#dc3545'; textColor = '#fff'; }
+                            
+                            return `
+                                <td><span style="background:${qcColor}; color:${textColor}; padding:4px 8px; border-radius:4px; font-weight:bold; font-size:11px;">${b.qcStatus || 'PENDING'}</span></td>
+                                <td style="color:#dc3545; font-weight:500; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${b.qcRemarks || ''}">${b.qcRemarks || '-'}</td>
+                            `;
+                        })()}
                         <td style="display: flex; gap: 5px;">
                             <button onclick="autoFillNextStage('${b._id}')" style="background:#007bff; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-weight:bold;">⏭️ Next Stage</button>
                             <button class="admin-actions" onclick="deleteProductionBatch('${b._id}')" style="background:#dc3545; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-weight:bold;">🗑️</button>
@@ -1024,7 +1229,7 @@
             if (!batch) return;
             let nextStage = 'ROLLING';
             if (batch.stage === 'ROLLING') nextStage = 'SEC_OP';
-            if (batch.stage === 'SEC_OP') nextStage = 'SEC_OP'; 
+            if (batch.stage === 'SEC_OP') nextStage = 'SEC_OP';
             document.getElementById('prodStage').value = nextStage;
             toggleStageFields();
             document.getElementById('prodDate').valueAsDate = new Date();
@@ -1053,7 +1258,7 @@
             for (let i = 0; i < dropdown.options.length; i++) {
                 if (dropdown.options[i].value === value) { dropdown.selectedIndex = i; found = true; break; }
             }
-            if (!found) { dropdown.value = 'OTHER'; otherBox.style.display = 'block'; otherBox.value = value; } 
+            if (!found) { dropdown.value = 'OTHER'; otherBox.style.display = 'block'; otherBox.value = value; }
             else { otherBox.style.display = 'none'; }
         }
 
@@ -1062,7 +1267,7 @@
             try {
                 const response = await fetch(`${API_URL}/production/batch/${batchId}`, { method: 'DELETE' });
                 const result = await response.json();
-                if (result.success) { showToast("🗑️ Production log deleted!"); loadProductionBatches(); } 
+                if (result.success) { showToast("🗑️ Production log deleted!"); loadProductionBatches(); }
                 else showToast("❌ Error: " + result.message, true);
             } catch (error) { showToast("❌ Server Error while deleting", true); }
         }
@@ -1122,7 +1327,7 @@
 
         function openModal() { document.getElementById('addProductModal').style.display = 'flex'; }
         function closeModal() { document.getElementById('addProductModal').style.display = 'none'; }
-        
+
         async function submitNewProduct() {
             const productCode = document.getElementById('newProdCode').value;
             if (!productCode) return alert("Product Code required!");
@@ -1142,19 +1347,19 @@
                 tbody.innerHTML = '';
                 transactions.forEach(tx => {
                     const txDate = new Date(tx.date);
-                    const isoDate = txDate.toISOString().split('T')[0]; 
+                    const isoDate = txDate.toISOString().split('T')[0];
                     let typeColor = '#333'; let sign = '';
                     if (tx.type === 'INWARD' || tx.type === 'PRODUCTION' || tx.type === 'QC_APPROVAL') { typeColor = '#28a745'; sign = '+'; }
                     if (tx.type === 'DISPATCH') { typeColor = '#dc3545'; sign = '-'; }
 
                     const tr = document.createElement('tr');
-                    tr.setAttribute('data-date', isoDate); 
+                    tr.setAttribute('data-date', isoDate);
                     tr.innerHTML = `<td><span class="date-text">${txDate.toLocaleDateString()}</span> <span class="time-text">${txDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span></td>
                         <td><strong>${tx.barcode}</strong></td><td style="color: ${typeColor}; font-weight: bold;">${tx.type} <span style="font-size:11px; color:#555;">(👤 ${tx.user || 'Unknown'})</span></td>
                         <td><strong>${sign}${tx.quantity}</strong></td><td style="color: #007bff; font-weight: bold;">${tx.resultingStock !== undefined ? tx.resultingStock : '-'}</td>`;
                     tbody.appendChild(tr);
                 });
-                applyTxFilters(); 
+                applyTxFilters();
             } catch (error) { }
         }
 
@@ -1206,7 +1411,7 @@
                     body: JSON.stringify({ materialCode: code, materialName: name, grade: grade, supplier: supplier, scope: scope, addedKg: Number(kg), username: currentUser.username })
                 });
                 const data = await response.json();
-                if (data.success) { showToast(`✅ Received ${kg}kg`); closeReceiveModal(); loadRawMaterials(); loadTransactions(); } 
+                if (data.success) { showToast(`✅ Received ${kg}kg`); closeReceiveModal(); loadRawMaterials(); loadTransactions(); }
                 else showToast("❌ Error: " + data.message, true);
             } catch (err) { }
         }
@@ -1232,7 +1437,7 @@
 
         function openPOModal() { document.getElementById('poModal').style.display = 'flex'; }
         function closePOModal() { document.getElementById('poModal').style.display = 'none'; document.getElementById('poSupplier').value = ''; document.getElementById('poMaterialCode').value = ''; document.getElementById('poExpectedKg').value = ''; document.getElementById('poCostPerKg').value = ''; }
-        
+
         async function submitPO() {
             const supplierName = document.getElementById('poSupplier').value.trim(); const materialCode = document.getElementById('poMaterialCode').value.trim(); const grade = document.getElementById('poGrade').value.trim(); const scope = document.getElementById('poScope').value.trim(); const expectedKg = document.getElementById('poExpectedKg').value; const costPerKg = document.getElementById('poCostPerKg').value;
             if (!supplierName || !materialCode || !expectedKg || !costPerKg) return showToast("Fill all required fields", true);
@@ -1262,14 +1467,14 @@
 
         function applyTxFilters() {
             const text = document.getElementById("searchTxInput").value.toUpperCase();
-            const date = document.getElementById("dateSearchInput").value; 
+            const date = document.getElementById("dateSearchInput").value;
             const tr = document.getElementById("transactionsTable").getElementsByTagName("tr");
             for (let i = 1; i < tr.length; i++) {
                 if (tr[i].cells.length === 1) continue;
                 let itemCode = tr[i].getElementsByTagName("td")[1].textContent.toUpperCase();
                 let rowDate = tr[i].getAttribute("data-date");
                 let matchesText = itemCode.includes(text);
-                let matchesDate = !date || rowDate === date; 
+                let matchesDate = !date || rowDate === date;
                 tr[i].style.display = (matchesText && matchesDate) ? "" : "none";
             }
         }
@@ -1297,10 +1502,10 @@
         }
 
         function applyProductionFilters() {
-            const filterDate = document.getElementById('filterProdDate').value; 
+            const filterDate = document.getElementById('filterProdDate').value;
             const filterShift = document.getElementById('filterProdShift').value.toUpperCase();
             const filterGlobal = document.getElementById('filterProdGlobal').value.toUpperCase();
-            const activeStageTab = currentLogFilter; 
+            const activeStageTab = currentLogFilter;
 
             const table = document.getElementById("productionTable");
             const rows = table.getElementsByTagName("tr");
@@ -1330,7 +1535,7 @@
             try {
                 const table = document.getElementById("productionTable");
                 const headerCells = table.rows[0].cells;
-                let accIdx = 23, rejIdx = 24, rejKgIdx = 25; 
+                let accIdx = 23, rejIdx = 24, rejKgIdx = 25;
 
                 for (let i = 0; i < headerCells.length; i++) {
                     const headerText = headerCells[i].textContent.trim().toUpperCase();
@@ -1378,7 +1583,7 @@
                 activeWorkOrders = await res.json();
                 const woDropdown = document.getElementById('prodWO');
                 woDropdown.innerHTML = '<option value="">- Select Active WO -</option>';
-                woDropdown.innerHTML += '<option value="OTHER">Manual Entry...</option>'; 
+                woDropdown.innerHTML += '<option value="OTHER">Manual Entry...</option>';
 
                 activeWorkOrders.forEach(wo => {
                     const progress = Math.round((wo.producedQty / wo.targetQty) * 100);
@@ -1458,7 +1663,7 @@
                 let performance = 0; let totalProduced = totalAcceptedQty + totalRejectedQty;
                 if (totalTargetQty > 0) {
                     performance = totalProduced / totalTargetQty;
-                    if (performance > 1) performance = 1; 
+                    if (performance > 1) performance = 1;
                 }
 
                 let quality = 0;
@@ -1492,7 +1697,7 @@
                 });
 
                 const ctxMachine = document.getElementById('machineChart').getContext('2d');
-                if (machineChartInstance) machineChartInstance.destroy(); 
+                if (machineChartInstance) machineChartInstance.destroy();
                 machineChartInstance = new Chart(ctxMachine, {
                     type: 'bar',
                     data: {
@@ -1518,10 +1723,10 @@
         function generateDailyPDF() {
             showToast("⏳ Generating PDF Report... Please wait.");
             const productionCard = document.getElementById('productionCard');
-            const formSection = productionCard.children[2]; 
-            const tabSection = document.querySelector('.tab-container'); 
-            const filterSection = document.querySelector('.search-container[style*="border-left"]'); 
-            const buttonsSection = document.getElementById('exportButtonsSection'); 
+            const formSection = productionCard.children[2];
+            const tabSection = document.querySelector('.tab-container');
+            const filterSection = document.querySelector('.search-container[style*="border-left"]');
+            const buttonsSection = document.getElementById('exportButtonsSection');
 
             if (formSection) formSection.style.display = 'none';
             if (tabSection) tabSection.style.display = 'none';
@@ -1532,7 +1737,7 @@
             const opt = {
                 margin: 0.3, filename: `Daily_Production_Report_${today}.pdf`,
                 image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true }, 
+                html2canvas: { scale: 2, useCORS: true },
                 jsPDF: { unit: 'in', format: 'a3', orientation: 'landscape' }
             };
 
@@ -1662,7 +1867,7 @@
                 const qcUsername = (typeof currentUser !== 'undefined' && currentUser.username) ? currentUser.username : 'QC Inspector';
                 const res = await fetch(`${API_URL}/qc/approve/${batchId}`, {
                     method: 'PUT', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ qcBy: qcUsername, qcRemarks: remarks, status: status }) 
+                    body: JSON.stringify({ qcBy: qcUsername, qcRemarks: remarks, status: status })
                 });
 
                 const data = await res.json();
@@ -1680,4 +1885,5 @@
         }
     </script>
 </body>
+
 </html>
