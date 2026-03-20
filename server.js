@@ -18,7 +18,7 @@ app.use(cors({
 app.use(express.json());
 
 // Importing Models
-const { Product, Transaction, RawMaterial, PurchaseOrder, ProductionBatch } = require('./models');
+const { Product, Transaction, RawMaterial, PurchaseOrder, ProductionBatch, WorkOrder } = require('./models');
 
 
 
