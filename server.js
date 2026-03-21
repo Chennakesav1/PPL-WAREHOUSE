@@ -389,4 +389,27 @@ app.put('/api/purchase-orders/:id/receive', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+
+// ==========================================
+// 7. WORK ORDERS (WO) MANAGEMENT
+// ==========================================
+app.get('/api/work-orders/active', async (req, res) => {
+    try {
+        const wos = await WorkOrder.find({ status: 'ACTIVE' }).sort({ createdAt: -1 });
+        res.json(wos);
+    } catch (err) { 
+        res.status(500).json({ error: err.message }); 
+    }
+});
+
+app.post('/api/work-orders', async (req, res) => {
+    try {
+        const newWO = new WorkOrder(req.body);
+        await newWO.save();
+        res.json({ success: true, message: "Work Order Created!" });
+    } catch (err) { 
+        res.status(500).json({ error: err.message }); 
+    }
+});
+
 app.listen(process.env.PORT || 5000, () => console.log(`ERP Server Running on port ${process.env.PORT || 5000}`));
