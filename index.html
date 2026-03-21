@@ -397,6 +397,7 @@
                 style="display: none;">Raw Materials</button>
             <button class="tab-btn" id="nav-po" onclick="switchMainTab('poCard', 'nav-po')"
                 style="display: none;">Purchase Orders</button>
+            <button class="tab-btn" id="nav-sales" onclick="switchMainTab('salesCard', 'nav-sales')" style="display: none; background: #6f42c1; color: white;">📈 Sales & CRM</button>    
         </div>
         <div style="font-size: 14px; display: flex; align-items: center;">
             <span id="roleDisplay" class="role-badge"></span>
@@ -870,6 +871,67 @@
                 </div>
             </div>
 
+
+            <div class="card" id="salesCard" style="display: none; margin-bottom: 20px;">
+                <h2 style="color: #6f42c1; border-bottom: 2px solid #6f42c1;">
+                    📈 Sales, CRM & Billing
+                    <div class="tab-container" style="border: none; margin: 0; padding: 0;">
+                        <button class="tab-btn active" id="tab-crm" onclick="switchSalesTab('crm')" style="background: #6f42c1; color: white;">👥 CRM</button>
+                        <button class="tab-btn" id="tab-orders" onclick="switchSalesTab('orders')">🛒 Orders & Billing</button>
+                    </div>
+                </h2>
+
+                <div id="crmSection">
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #6f42c1;">
+                        <h4 style="margin-top:0; color:#6f42c1;">➕ Add New Customer / Lead</h4>
+                        <div class="form-grid-multi">
+                            <input type="text" id="crmName" class="prod-input" placeholder="* Company / Client Name">
+                            <select id="crmType" class="prod-input">
+                                <option value="DEALER">Dealer</option>
+                                <option value="RETAILER">Retailer</option>
+                                <option value="BULK_BUYER">Bulk Buyer</option>
+                            </select>
+                            <input type="text" id="crmPhone" class="prod-input" placeholder="Phone Number">
+                            <input type="text" id="crmEmail" class="prod-input" placeholder="Email Address">
+                            <button onclick="submitCustomer()" class="add-btn" style="background: #6f42c1;">Save Customer</button>
+                        </div>
+                    </div>
+                    <div class="table-wrapper">
+                        <table id="crmTable">
+                            <thead style="background-color: #6f42c1; color: white;">
+                                <tr><th>Customer Name</th><th>Type</th><th>Contact Info</th><th>Added On</th><th>Action</th></tr>
+                            </thead>
+                            <tbody><tr><td colspan="5" style="text-align:center;">Loading Customers...</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="ordersSection" style="display: none;">
+                    <div style="background: #e8f5e9; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #28a745;">
+                        <h4 style="margin-top:0; color:#28a745;">📝 Create Quotation / Order</h4>
+                        <div class="form-grid-multi">
+                            <select id="soCustomer" class="prod-input"><option value="">- Select Customer -</option></select>
+                            <input type="text" id="soProduct" class="prod-input" placeholder="* Product Code">
+                            <input type="number" id="soQty" class="prod-input" placeholder="* Quantity">
+                            <input type="number" id="soPrice" class="prod-input" placeholder="* Unit Price (₹)">
+                            <select id="soType" class="prod-input">
+                                <option value="QUOTATION">Draft Quotation</option>
+                                <option value="CONFIRMED">Confirmed Order (Reserves Stock)</option>
+                            </select>
+                            <button onclick="submitSalesOrder()" class="add-btn" style="background: #28a745;">Generate</button>
+                        </div>
+                    </div>
+                    <div class="table-wrapper">
+                        <table id="salesOrderTable">
+                            <thead style="background-color: #28a745; color: white;">
+                                <tr><th>Order No</th><th>Date</th><th>Customer</th><th>Items</th><th>Total Amount</th><th>Order Status</th><th>Payment Status</th><th>Actions</th></tr>
+                            </thead>
+                            <tbody><tr><td colspan="8" style="text-align:center;">Loading Orders...</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
             <div class="card" id="poCard" style="display: none;">
                 <h2>Purchase Orders
                     <div class="search-container">
@@ -1038,6 +1100,9 @@
             document.getElementById('nav-po').style.display = 'none';
 
             let styleTag = document.getElementById('adminStyleOverride');
+            if (currentUser.role === 'ADMIN' || currentUser.role === 'SALES') {
+                document.getElementById('nav-sales').style.display = 'block';
+            }
             if (!styleTag) { styleTag = document.createElement('style'); styleTag.id = 'adminStyleOverride'; document.head.appendChild(styleTag); }
 
             if (currentUser.role === 'ADMIN') {
@@ -1048,6 +1113,7 @@
                 document.getElementById('nav-rm').style.display = 'block';
                 document.getElementById('nav-po').style.display = 'block';
                 document.getElementById('addBtnUI').style.display = 'inline-block';
+                
                 styleTag.innerHTML = '';
                 switchMainTab('productionCard', 'nav-prod');
             }
@@ -1093,6 +1159,7 @@
         function logout() { localStorage.removeItem("warehouseAuth"); window.location.reload(); }
 
         function switchMainTab(cardId, btnId) {
+            document.getElementById('salesCard').style.display = 'none';
             document.getElementById('productionCard').style.display = 'none';
             document.getElementById('qcCard').style.display = 'none';
             document.getElementById('invCard').style.display = 'none';
@@ -1101,6 +1168,7 @@
             document.getElementById('poCard').style.display = 'none';
 
             document.querySelectorAll('#navButtons .tab-btn').forEach(btn => btn.classList.remove('active'));
+            if (cardId === 'salesCard') { loadCustomers(); loadSalesOrders(); }
 
             if (document.getElementById(cardId)) document.getElementById(cardId).style.display = 'block';
             if (document.getElementById(btnId)) document.getElementById(btnId).classList.add('active');
@@ -2052,6 +2120,146 @@ async function loadProductionBatches() {
                     showToast("ℹ️ Form auto-filled from Work Order");
                 }
             }
+        }
+
+
+        // ==========================================
+        // SALES & CRM LOGIC
+        // ==========================================
+        function switchSalesTab(tab) {
+            document.getElementById('crmSection').style.display = tab === 'crm' ? 'block' : 'none';
+            document.getElementById('ordersSection').style.display = tab === 'orders' ? 'block' : 'none';
+            
+            document.getElementById('tab-crm').style.background = tab === 'crm' ? '#6f42c1' : '#eee';
+            document.getElementById('tab-crm').style.color = tab === 'crm' ? 'white' : '#555';
+            
+            document.getElementById('tab-orders').style.background = tab === 'orders' ? '#28a745' : '#eee';
+            document.getElementById('tab-orders').style.color = tab === 'orders' ? 'white' : '#555';
+        }
+
+        async function loadCustomers() {
+            try {
+                const res = await fetch(`${API_URL}/customers`);
+                const customers = await res.json();
+                
+                const tbody = document.querySelector('#crmTable tbody');
+                const soSelect = document.getElementById('soCustomer');
+                tbody.innerHTML = '';
+                soSelect.innerHTML = '<option value="">- Select Customer -</option>';
+
+                customers.forEach(c => {
+                    // Populate Table
+                    tbody.innerHTML += `<tr>
+                        <td><strong>${c.name}</strong></td>
+                        <td><span style="background:#17a2b8; color:white; padding:3px 6px; border-radius:3px; font-size:11px;">${c.type}</span></td>
+                        <td>📞 ${c.phone || '-'} <br> ✉️ ${c.email || '-'}</td>
+                        <td>${new Date(c.createdAt).toLocaleDateString()}</td>
+                        <td><button style="background:#007bff; color:white; border:none; padding:4px 8px; border-radius:4px;">Add Note</button></td>
+                    </tr>`;
+                    
+                    // Populate Dropdown for Sales Orders
+                    soSelect.innerHTML += `<option value="${c._id}">${c.name}</option>`;
+                });
+            } catch (err) { console.error("Error loading CRM", err); }
+        }
+
+        async function submitCustomer() {
+            const name = document.getElementById('crmName').value;
+            if (!name) return showToast("Customer Name is required!", true);
+
+            try {
+                const res = await fetch(`${API_URL}/customers`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name, type: document.getElementById('crmType').value,
+                        phone: document.getElementById('crmPhone').value, email: document.getElementById('crmEmail').value
+                    })
+                });
+                if (res.ok) {
+                    showToast("👥 Customer Added!");
+                    ['crmName', 'crmPhone', 'crmEmail'].forEach(id => document.getElementById(id).value = '');
+                    loadCustomers();
+                }
+            } catch (err) { showToast("❌ Error saving customer", true); }
+        }
+
+        async function loadSalesOrders() {
+            try {
+                const res = await fetch(`${API_URL}/sales-orders`);
+                const orders = await res.json();
+                const tbody = document.querySelector('#salesOrderTable tbody');
+                tbody.innerHTML = '';
+
+                orders.forEach(o => {
+                    let itemsHtml = o.items.map(i => `${i.quantity}x ${i.productCode}`).join('<br>');
+                    
+                    let statusColor = o.status === 'QUOTATION' ? '#6c757d' : (o.status === 'CONFIRMED' ? '#007bff' : (o.status === 'DISPATCHED' ? '#28a745' : '#ff9800'));
+                    let payColor = o.paymentStatus === 'PAID' ? '#28a745' : (o.paymentStatus === 'OVERDUE' ? '#dc3545' : '#ffc107');
+
+                    tbody.innerHTML += `<tr>
+                        <td><strong>${o.orderNo}</strong></td>
+                        <td>${new Date(o.orderDate).toLocaleDateString()}</td>
+                        <td><strong>${o.customerName || 'Walk-in'}</strong></td>
+                        <td style="font-size:12px;">${itemsHtml}</td>
+                        <td><strong>₹${o.grandTotal.toLocaleString()}</strong> <br> <span style="font-size:10px; color:#666;">(Inc. 18% GST)</span></td>
+                        <td><span style="background:${statusColor}; color:white; padding:4px 8px; border-radius:4px; font-weight:bold; font-size:11px;">${o.status}</span></td>
+                        <td><span style="color:${payColor}; font-weight:bold; font-size:12px;">${o.paymentStatus}</span></td>
+                        <td>
+                            ${o.status === 'QUOTATION' ? `<button onclick="updateOrderStatus('${o._id}', 'CONFIRMED')" style="background:#007bff; color:white; border:none; padding:4px; border-radius:4px; cursor:pointer;">Confirm Order</button>` : ''}
+                            ${o.status === 'CONFIRMED' ? `<button onclick="updateOrderStatus('${o._id}', 'DISPATCHED')" style="background:#28a745; color:white; border:none; padding:4px; border-radius:4px; cursor:pointer;">🚚 Dispatch</button>` : ''}
+                            ${o.paymentStatus !== 'PAID' ? `<button onclick="updateOrderPayment('${o._id}', 'PAID')" style="background:#17a2b8; color:white; border:none; padding:4px; border-radius:4px; cursor:pointer;">Mark Paid</button>` : ''}
+                        </td>
+                    </tr>`;
+                });
+            } catch (err) { console.error("Error loading orders", err); }
+        }
+
+        async function submitSalesOrder() {
+            const customerSelect = document.getElementById('soCustomer');
+            const productCode = document.getElementById('soProduct').value;
+            const quantity = document.getElementById('soQty').value;
+            const unitPrice = document.getElementById('soPrice').value;
+            const status = document.getElementById('soType').value;
+
+            if (!customerSelect.value || !productCode || !quantity || !unitPrice) return showToast("Fill all required fields!", true);
+
+            try {
+                const res = await fetch(`${API_URL}/sales-orders`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        customerId: customerSelect.value,
+                        customerName: customerSelect.options[customerSelect.selectedIndex].text,
+                        items: [{ productCode, quantity: Number(quantity), unitPrice: Number(unitPrice), total: quantity * unitPrice }],
+                        status: status,
+                        createdBy: currentUser.username
+                    })
+                });
+                const result = await res.json();
+                if (result.success) {
+                    showToast("📝 Order Generated!");
+                    loadSalesOrders();
+                    if (status === 'CONFIRMED') loadInventory(); // Refresh stock if reserved
+                } else showToast("❌ " + result.error, true);
+            } catch (err) { showToast("❌ Server Error", true); }
+        }
+
+        async function updateOrderStatus(id, newStatus) {
+            if (!confirm(`Mark order as ${newStatus}?`)) return;
+            try {
+                const res = await fetch(`${API_URL}/sales-orders/${id}/status`, {
+                    method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: newStatus, username: currentUser.username })
+                });
+                if (res.ok) { showToast(`✅ Order ${newStatus}`); loadSalesOrders(); loadInventory(); loadTransactions(); }
+            } catch (err) {}
+        }
+        
+        async function updateOrderPayment(id, newPaymentStatus) {
+            try {
+                const res = await fetch(`${API_URL}/sales-orders/${id}/status`, {
+                    method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ paymentStatus: newPaymentStatus })
+                });
+                if (res.ok) { showToast("💰 Payment Recorded!"); loadSalesOrders(); }
+            } catch (err) {}
         }
     </script>
 </body>

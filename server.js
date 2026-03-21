@@ -427,4 +427,98 @@ app.post('/api/work-orders', async (req, res) => {
     }
 });
 
+
+
+// ==========================================
+// 8. SALES & CRM MANAGEMENT
+// ==========================================
+
+// --- CRM: Customers ---
+app.get('/api/customers', async (req, res) => {
+    try {
+        const customers = await Customer.find().sort({ createdAt: -1 });
+        res.json(customers);
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/customers', async (req, res) => {
+    try {
+        const newCustomer = new Customer(req.body);
+        await newCustomer.save();
+        res.json({ success: true, message: "Customer Added!" });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// --- SALES: Orders & Quotations ---
+app.get('/api/sales-orders', async (req, res) => {
+    try {
+        const orders = await SalesOrder.find().sort({ orderDate: -1 });
+        res.json(orders);
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/sales-orders', async (req, res) => {
+    try {
+        const { customerId, customerName, items, status, createdBy } = req.body;
+        
+        let subtotal = 0;
+        for (let item of items) {
+            subtotal += (item.quantity * item.unitPrice);
+        }
+        const gstAmount = subtotal * 0.18; // Assuming 18% GST standard
+        const grandTotal = subtotal + gstAmount;
+
+        const newOrder = new SalesOrder({
+            orderNo: `SO-${Date.now()}`,
+            customerId, customerName, items, subtotal, gstAmount, grandTotal, status, createdBy
+        });
+
+        // 🚨 INVENTORY LINK: If order is CONFIRMED, reserve the stock!
+        if (status === 'CONFIRMED') {
+            for (let item of items) {
+                let product = await Product.findOne({ barcode: item.productCode });
+                if (product) {
+                    if (product.currentStock < item.quantity) {
+                        return res.status(400).json({ error: `Not enough stock for ${item.productCode}` });
+                    }
+                    product.reservedStock = (product.reservedStock || 0) + item.quantity;
+                    await product.save();
+                }
+            }
+        }
+
+        await newOrder.save();
+        res.json({ success: true, message: `Order saved as ${status}` });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// Update Order Status (Dispatching & Billing)
+app.put('/api/sales-orders/:id/status', async (req, res) => {
+    try {
+        const { status, paymentStatus, username } = req.body;
+        const order = await SalesOrder.findById(req.params.id);
+        if (!order) return res.status(404).json({ error: "Order not found" });
+
+        // If moving from CONFIRMED to DISPATCHED, officially deduct the stock
+        if (order.status !== 'DISPATCHED' && status === 'DISPATCHED') {
+            for (let item of order.items) {
+                let product = await Product.findOne({ barcode: item.productCode });
+                if (product) {
+                    product.currentStock -= item.quantity;
+                    product.reservedStock = Math.max((product.reservedStock || 0) - item.quantity, 0);
+                    await product.save();
+                    
+                    await new Transaction({ barcode: product.barcode, type: 'DISPATCH', quantity: item.quantity, resultingStock: product.currentStock, user: username }).save();
+                }
+            }
+        }
+
+        if (status) order.status = status;
+        if (paymentStatus) order.paymentStatus = paymentStatus;
+        await order.save();
+
+        res.json({ success: true, message: "Order updated successfully" });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 app.listen(process.env.PORT || 5000, () => console.log(`ERP Server Running on port ${process.env.PORT || 5000}`));

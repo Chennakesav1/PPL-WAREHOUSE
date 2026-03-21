@@ -142,6 +142,50 @@ const workOrderSchema = new mongoose.Schema({
     createdAt: { type: Date, default: Date.now }
 });
 
+
+// --- CUSTOMER (CRM) SCHEMA ---
+const CustomerSchema = new mongoose.Schema({
+    name: { type: String, required: true },
+    type: { type: String, enum: ['DEALER', 'RETAILER', 'BULK_BUYER', 'OTHER'], default: 'RETAILER' },
+    contactPerson: { type: String },
+    phone: { type: String },
+    email: { type: String },
+    address: { type: String },
+    interactions: [{
+        date: { type: Date, default: Date.now },
+        type: { type: String }, // CALL, EMAIL, MEETING
+        notes: { type: String }
+    }],
+    createdAt: { type: Date, default: Date.now }
+});
+
+// --- SALES ORDER & INVOICE SCHEMA ---
+const SalesOrderSchema = new mongoose.Schema({
+    orderNo: { type: String, required: true, unique: true },
+    customerId: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer' },
+    customerName: { type: String }, // Stored for easy frontend access
+    items: [{
+        productCode: { type: String, required: true },
+        quantity: { type: Number, required: true },
+        unitPrice: { type: Number, required: true },
+        total: { type: Number, required: true }
+    }],
+    subtotal: { type: Number, default: 0 },
+    gstAmount: { type: Number, default: 0 },
+    grandTotal: { type: Number, default: 0 },
+    status: { type: String, enum: ['QUOTATION', 'CONFIRMED', 'IN_PRODUCTION', 'DISPATCHED'], default: 'QUOTATION' },
+    paymentStatus: { type: String, enum: ['PENDING', 'PARTIAL', 'PAID', 'OVERDUE'], default: 'PENDING' },
+    orderDate: { type: Date, default: Date.now },
+    createdBy: { type: String }
+});
+
+const Customer = mongoose.model('Customer', CustomerSchema);
+const SalesOrder = mongoose.model('SalesOrder', SalesOrderSchema);
+
+// Update your exports to include them!
+module.exports = { Product, Transaction, RawMaterial, PurchaseOrder, ProductionBatch, WorkOrder, Customer, SalesOrder };
+
+
 module.exports = {
     
     Product: mongoose.model('Product', productSchema),
