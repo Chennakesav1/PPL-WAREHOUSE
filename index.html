@@ -1029,6 +1029,8 @@
         }
 
         function unlockDashboard(userData) {
+
+
             currentUser = userData;
             document.getElementById('loginOverlay').style.display = 'none';
             document.getElementById('mainDashboard').style.display = 'block';
@@ -1053,6 +1055,15 @@
             document.getElementById('nav-po').style.display = 'none';
 
             let styleTag = document.getElementById('adminStyleOverride');
+
+            // Inside unlockDashboard(userData)
+            if (currentUser.role === 'QC') {
+                document.getElementById('nav-qc').style.display = 'block';
+                document.getElementById('nav-inv').style.display = 'block';
+                // Ensure QC starts on the Pending view
+                currentQCView = 'PENDING';
+                switchMainTab('qcCard', 'nav-qc');
+            }
             if (!styleTag) { styleTag = document.createElement('style'); styleTag.id = 'adminStyleOverride'; document.head.appendChild(styleTag); }
 
             // 2. EXACT ROLE LOGIC & NAVIGATION
@@ -1859,7 +1870,7 @@
         let qcHistoryBatches = []; // NEW: Global memory for history
 
         // IMPROVED: Unified Inspection Modal for Pending AND History
-        function openQCInspection(batchId) {  
+        function openQCInspection(batchId) {
             // 1. Find the data in either Pending or History buckets
             let b = pendingQCBatches.find(x => x._id === batchId);
             let isHistoryMode = false;
