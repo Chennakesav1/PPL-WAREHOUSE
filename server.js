@@ -143,7 +143,8 @@ app.put('/api/qc/approve/:id', async (req, res) => {
                 }
 
                 // ROUTING LOGIC based on Stage
-                if (batch.stage === 'POLISHING' || batch.stage === 'SEC_OP') {
+                // ROUTING LOGIC based on Stage OR PPC Route
+                if (batch.stage === 'POLISHING' || batch.stage === 'SEC_OP' || batch.nextProcessRoute === 'READY_STOCK') {
                     // Final Stage -> Move to Ready Stock
                     product.currentStock += finalAccQty;
                     // Deduct from WIP since it finished
