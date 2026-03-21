@@ -1111,8 +1111,10 @@
             loadInventory();
             loadTransactions();
 
+            // ADD IT HERE:
             if (currentUser && (currentUser.role === 'PRODUCTION' || currentUser.role === 'PPC' || currentUser.role === 'ADMIN')) {
                 loadProductionBatches();
+                loadActiveWorkOrders(); // <--- Add this line!
             }
 
             if (currentUser && (currentUser.role === 'QC' || currentUser.role === 'ADMIN')) {
@@ -2000,6 +2002,44 @@
                 if (filterSection) filterSection.style.display = '';
                 if (buttonsSection) buttonsSection.style.display = 'flex';
             });
+        }
+
+
+
+        // --- WORK ORDER LOGIC ---
+        async function loadActiveWorkOrders() {
+            try {
+                const res = await fetch(`${API_URL}/work-orders/active`);
+                if (!res.ok) return; 
+                activeWorkOrders = await res.json();
+                
+                const woDropdown = document.getElementById('prodWO');
+                woDropdown.innerHTML = '<option value="">- Select Active WO -</option><option value="OTHER">Manual Entry...</option>';
+
+                activeWorkOrders.forEach(wo => {
+                    const progress = wo.targetQty ? Math.round((wo.producedQty / wo.targetQty) * 100) : 0;
+                    woDropdown.innerHTML += `<option value="${wo.woNumber}">${wo.woNumber} (${wo.partNo}) - ${progress}% Done</option>`;
+                });
+            } catch (e) { 
+                console.error("Failed to load WOs", e); 
+            }
+        }
+
+        function autoFillFromWO() {
+            const selectedWO = document.getElementById('prodWO').value;
+            
+            // This line makes the "Manual Entry" box appear!
+            toggleOtherInput('prodWO', 'prodWOOther');
+            
+            if (selectedWO !== 'OTHER' && selectedWO !== '') {
+                const woData = activeWorkOrders.find(w => w.woNumber === selectedWO);
+                if (woData) {
+                    document.getElementById('prodPartNo').value = woData.partNo || '';
+                    document.getElementById('prodTarget').value = (woData.targetQty - woData.producedQty) || '';
+                    setSmartDropdown('prodPartName', 'prodPartNameOther', woData.partName);
+                    showToast("ℹ️ Form auto-filled from Work Order");
+                }
+            }
         }
     </script>
 </body>
