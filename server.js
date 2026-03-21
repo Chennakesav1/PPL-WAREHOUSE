@@ -543,4 +543,10 @@ app.put('/api/sales-orders/:id/status', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+
+// --- TEMPORARY FIX: Clear Old Database Rules ---
+SalesOrder.syncIndexes().then(() => {
+    console.log("✅ Ghost indexes cleared from Sales Orders!");
+}).catch(err => console.log(err));
+
 app.listen(process.env.PORT || 5000, () => console.log(`ERP Server Running on port ${process.env.PORT || 5000}`));
