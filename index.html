@@ -1284,13 +1284,18 @@
                             `<button onclick="openPPCModal('${b._id}')" style="background:#6f42c1; color:white; border:none; padding:5px; border-radius:4px; cursor:pointer; font-weight:bold; font-size: 11px; width: 100%;">Assign Route</button>` : ''}
                             
                             ${(() => {
-                            const isFinished = b.nextProcessRoute === 'READY_STOCK';
-                            const isDisabled = b.qcStatus !== 'APPROVED' || isFinished;
-                            const btnText = isFinished ? '✅ Finished' : '⏭️ Next Stage';
-                            const btnColor = isFinished ? '#28a745' : '#007bff';
-
-                            return `<button onclick="autoFillNextStage('${b._id}')" style="background:${btnColor}; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-weight:bold; flex: 1; ${isDisabled ? 'opacity:0.5; cursor:not-allowed;' : ''}" ${isDisabled ? 'disabled' : ''}>${btnText}</button>`;
-                        })()}
+                                // 1. Checks if the route is READY_STOCK
+                                const isFinished = b.nextProcessRoute === 'READY_STOCK';
+                                
+                                // 2. THIS IS THE LINE! It decides if the button should be locked.
+                                const isDisabled = b.qcStatus !== 'APPROVED' || isFinished;
+                                
+                                // 3. Changes the text and color based on if it's finished
+                                const btnText = isFinished ? '✅ Finished' : '⏭️ Next Stage';
+                                const btnColor = isFinished ? '#28a745' : '#007bff';
+                                
+                                return `<button onclick="autoFillNextStage('${b._id}')" style="background:${btnColor}; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-weight:bold; flex: 1; ${isDisabled ? 'opacity:0.5; cursor:not-allowed;' : ''}" ${isDisabled ? 'disabled' : ''}>${btnText}</button>`;
+                            })()}
                             
                             <button class="admin-actions" onclick="deleteProductionBatch('${b._id}')" style="background:#dc3545; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-weight:bold;">🗑️</button>
                         </td>
