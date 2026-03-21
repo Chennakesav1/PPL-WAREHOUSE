@@ -119,6 +119,7 @@ const productionBatchSchema = new mongoose.Schema({
     ppcBy: String,
     ppcRemarks: String,
     ppcDate: Date,
+    isReadyForNextStage: { type: Boolean, default: false },
     nextProcessRoute: { type: String, enum: ['ROLLING', 'HEAT_TREATMENT', 'POLISHING', 'SEC_OP', 'NONE'], default: 'NONE' },
 
     
