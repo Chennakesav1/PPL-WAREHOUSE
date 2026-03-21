@@ -159,12 +159,20 @@ const CustomerSchema = new mongoose.Schema({
 });
 
 // --- SALES ORDER & INVOICE SCHEMA ---
+// --- SALES ORDER & INVOICE SCHEMA ---
 const SalesOrderSchema = new mongoose.Schema({
     orderNo: { type: String, required: true, unique: true },
     customerId: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer' },
-    customerName: { type: String }, // Stored for easy frontend access
+    customerName: { type: String }, 
     items: [{
         productCode: { type: String, required: true },
+        // NEW: Auto-fetched product dimensions
+        sector: { type: String },     
+        grade: { type: String },      
+        length: { type: Number },     
+        af: { type: String },         
+        weightPerPc: { type: Number },
+        // Existing fields
         quantity: { type: Number, required: true },
         unitPrice: { type: Number, required: true },
         total: { type: Number, required: true }

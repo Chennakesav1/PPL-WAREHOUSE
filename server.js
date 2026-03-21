@@ -461,34 +461,58 @@ app.post('/api/sales-orders', async (req, res) => {
         const { customerId, customerName, items, status, createdBy } = req.body;
         
         let subtotal = 0;
+        const enrichedItems = []; // Array to hold items with full dimensions
+
+        // Loop through the submitted items to calculate totals and fetch dimensions
         for (let item of items) {
             subtotal += (item.quantity * item.unitPrice);
-        }
-        const gstAmount = subtotal * 0.18; // Assuming 18% GST standard
-        const grandTotal = subtotal + gstAmount;
-
-        const newOrder = new SalesOrder({
-            orderNo: `SO-${Date.now()}`,
-            customerId, customerName, items, subtotal, gstAmount, grandTotal, status, createdBy
-        });
-
-        // 🚨 INVENTORY LINK: If order is CONFIRMED, reserve the stock!
-        if (status === 'CONFIRMED') {
-            for (let item of items) {
-                let product = await Product.findOne({ barcode: item.productCode });
-                if (product) {
+            
+            // Search the Inventory Database for this exact product
+            let product = await Product.findOne({ barcode: item.productCode });
+            
+            if (product) {
+                // If stock needs to be reserved, check availability
+                if (status === 'CONFIRMED') {
                     if (product.currentStock < item.quantity) {
                         return res.status(400).json({ error: `Not enough stock for ${item.productCode}` });
                     }
                     product.reservedStock = (product.reservedStock || 0) + item.quantity;
                     await product.save();
                 }
+                
+                // Attach the dimensions from the database to the Sales Order item
+                enrichedItems.push({
+                    ...item,
+                    sector: product.sector || 'N/A',
+                    grade: product.grade || 'N/A',
+                    length: product.length || 0,
+                    af: product.af || 'N/A',
+                    weightPerPc: product.weightPerPc || 0
+                });
+            } else {
+                // Fallback if product code was typed wrong but forced through
+                enrichedItems.push({
+                    ...item,
+                    sector: 'N/A', grade: 'N/A', length: 0, af: 'N/A', weightPerPc: 0
+                });
             }
         }
 
+        const gstAmount = subtotal * 0.18; // 18% GST
+        const grandTotal = subtotal + gstAmount;
+
+        const newOrder = new SalesOrder({
+            orderNo: `SO-${Date.now()}`,
+            customerId, customerName, 
+            items: enrichedItems, // Save the enriched items with dimensions!
+            subtotal, gstAmount, grandTotal, status, createdBy
+        });
+
         await newOrder.save();
         res.json({ success: true, message: `Order saved as ${status}` });
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    } catch (err) { 
+        res.status(500).json({ error: err.message }); 
+    }
 });
 
 // Update Order Status (Dispatching & Billing)

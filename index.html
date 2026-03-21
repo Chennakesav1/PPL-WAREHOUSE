@@ -2209,7 +2209,20 @@ async function loadProductionBatches() {
                 tbody.innerHTML = '';
 
                 orders.forEach(o => {
-                    let itemsHtml = o.items.map(i => `${i.quantity}x ${i.productCode}`).join('<br>');
+                    // Build a detailed list of items including their exact dimensions
+                    let itemsHtml = o.items.map(i => {
+                        let details = [];
+                        if (i.sector && i.sector !== 'N/A') details.push(i.sector);
+                        if (i.grade && i.grade !== 'N/A') details.push(`Gr: ${i.grade}`);
+                        if (i.length) details.push(`L: ${i.length}mm`);
+                        if (i.af && i.af !== 'N/A') details.push(`A/F: ${i.af}`);
+                        if (i.weightPerPc) details.push(`Wt: ${i.weightPerPc}g`);
+                        
+                        // Format it so the Product Code is bold, and dimensions are small text underneath
+                        let detailString = details.length > 0 ? `<br><span style="font-size:10px; color:#555;">(${details.join(' | ')})</span>` : '';
+                        
+                        return `<div style="margin-bottom: 8px;"><b>${i.quantity}x ${i.productCode}</b>${detailString}</div>`;
+                    }).join('');
                     
                     let statusColor = o.status === 'QUOTATION' ? '#6c757d' : (o.status === 'CONFIRMED' ? '#007bff' : (o.status === 'DISPATCHED' ? '#28a745' : '#ff9800'));
                     let payColor = o.paymentStatus === 'PAID' ? '#28a745' : (o.paymentStatus === 'OVERDUE' ? '#dc3545' : '#ffc107');
