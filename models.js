@@ -54,7 +54,7 @@ const purchaseOrderSchema = new mongoose.Schema({
 const productionBatchSchema = new mongoose.Schema({
     batchNumber: { type: String, unique: true, sparse: true },
     date: { type: Date, default: Date.now },
-    stage: { type: String, enum: ['FORGING', 'ROLLING', 'SEC_OP'], required: true },
+    stage: { type: String, required: true },
     machineName: String,
     operator: String,
     shift: String,
