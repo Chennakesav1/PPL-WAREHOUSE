@@ -397,9 +397,6 @@
                 style="display: none;">Raw Materials</button>
             <button class="tab-btn" id="nav-po" onclick="switchMainTab('poCard', 'nav-po')"
                 style="display: none;">Purchase Orders</button>
-
-            <button class="tab-btn" id="nav-ppc" onclick="switchMainTab('ppcCard', 'nav-ppc')"
-                style="display:none; background:#6f42c1; color:white;">PPC Approval</button>
         </div>
         <div style="font-size: 14px; display: flex; align-items: center;">
             <span id="roleDisplay" class="role-badge"></span>
@@ -756,25 +753,6 @@
                                 <td colspan="23"></td>
                             </tr>
                         </tfoot>
-                    </table>
-                </div>
-            </div>
-
-            <div class="card" id="ppcCard" style="display: none;">
-                <h2 style="color: #6f42c1;">📋 PPC Verification Queue</h2>
-                <div class="table-wrapper">
-                    <table id="ppcTable">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Stage</th>
-                                <th>Part No</th>
-                                <th>Qty</th>
-                                <th>Status</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody id="ppcBody"></tbody>
                     </table>
                 </div>
             </div>
@@ -1286,7 +1264,7 @@
                         <td>${b.lossQaApproval || 0}</td><td>${b.lossCoilChange || 0}</td><td>${b.lossNoPlan || 0}</td>
                         <td>${b.lossNpdTeam || 0}</td><td>${b.lossUnknown || 0}</td><td>${b.remarks || '-'}</td>
                         <td><span style="color:#666; font-size:11px;">👤 ${b.loggedBy || '-'}</span></td>
-                        
+
                         
                         ${(() => {
                             let qcColor = '#ffc107'; // Yellow for Pending
@@ -1881,7 +1859,7 @@
         let qcHistoryBatches = []; // NEW: Global memory for history
 
         // IMPROVED: Unified Inspection Modal for Pending AND History
-        function openQCInspection(batchId) {
+        function openQCInspection(batchId) {  
             // 1. Find the data in either Pending or History buckets
             let b = pendingQCBatches.find(x => x._id === batchId);
             let isHistoryMode = false;
@@ -2108,42 +2086,6 @@
             document.getElementById('filterQCHistoryDate').value = '';
             document.getElementById('filterQCHistoryGlobal').value = '';
             applyQCHistoryFilters();
-        }
-
-
-
-        function unlockDashboard(userData) {
-            currentUser = userData;
-            if (currentUser.role === 'PPC' || currentUser.role === 'ADMIN') {
-                document.getElementById('nav-ppc').style.display = 'block';
-            }
-        }
-
-        // Logic for PPC to Approve and Route
-        async function ppcAction(batchId, status) {
-            let nextRoute = 'NONE';
-            let remarks = '';
-
-            if (status === 'REJECTED') {
-                remarks = prompt("Enter rejection reason for Production team:");
-                if (!remarks) return;
-            } else {
-                // Handle Routing Decision after Rolling
-                const choice = confirm("PPC APPROVAL:\nClick OK for HEAT TREATMENT\nClick CANCEL for POLISHING");
-                nextRoute = choice ? 'HEAT_TREATMENT' : 'POLISHING';
-                alert(`PPC Approved for ${nextRoute}`);
-            }
-
-            const res = await fetch(`/api/ppc/verify/${batchId}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status, remarks, nextRoute, username: currentUser.username })
-            });
-
-            if (res.ok) {
-                showToast("PPC Action Completed");
-                refreshDashboard();
-            }
         }
     </script>
 </body>
