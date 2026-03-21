@@ -112,9 +112,19 @@ const productionBatchSchema = new mongoose.Schema({
     qcRemarks: String,
 
 
-    measuredLength: { type: Number },
-    measuredAF: { type: String },
-    threadGauge: { type: String, enum: ['PASS', 'FAIL', 'N/A'], default: 'N/A' },
+// --- PPC GATEKEEPER ---
+    ppcStatus: { type: String, enum: ['PENDING', 'APPROVED', 'REJECTED'], default: 'PENDING' },
+    ppcBy: String,
+    ppcRemarks: String,
+    ppcDate: Date,
+    nextProcessRoute: { type: String, enum: ['ROLLING', 'HEAT_TREATMENT', 'POLISHING', 'SEC_OP', 'NONE'], default: 'NONE' },
+
+    
+    // Measurements (Filled by QC)
+    measuredLength: Number,
+    measuredAF: String,
+    threadGauge: { type: String, enum: ['PASS', 'FAIL', 'N/A'], default: 'N/A' }
+
 });
 
 // NEW: Work Order Schema
@@ -130,6 +140,7 @@ const workOrderSchema = new mongoose.Schema({
 });
 
 module.exports = {
+    
     Product: mongoose.model('Product', productSchema),
     Transaction: mongoose.model('Transaction', transactionSchema),
     RawMaterial: mongoose.model('RawMaterial', rawMaterialSchema),

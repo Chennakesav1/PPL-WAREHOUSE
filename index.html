@@ -376,32 +376,24 @@
             <input type="text" id="usernameInput" placeholder="Enter Username" autocapitalize="none">
             <input type="password" id="passwordInput" placeholder="Enter Password">
             <button onclick="attemptLogin()">Log In</button>
-            <p id="loginError" style="color: red; display: none; font-size: 14px; margin-top: 10px;">Incorrect
-                Credentials</p>
+            <p id="loginError" style="color: red; display: none; font-size: 14px; margin-top: 10px;">Incorrect Credentials</p>
         </div>
     </div>
 
-    <div id="topNav"
-        style="background: #212529; padding: 10px 20px; display: none; justify-content: space-between; align-items: center; color: white;">
+    <div id="topNav" style="background: #212529; padding: 10px 20px; display: none; justify-content: space-between; align-items: center; color: white;">
         <div style="font-weight: bold; font-size: 18px; color: #ff9800;">🏭 PPL ERP SYSTEM</div>
         <div id="navButtons" style="display: flex; gap: 10px;">
-            <button class="tab-btn active" id="nav-prod"
-                onclick="switchMainTab('productionCard', 'nav-prod')">Production</button>
-            <button class="tab-btn" id="nav-qc" onclick="switchMainTab('qcCard', 'nav-qc')"
-                style="display: none; background: #17a2b8; color: white;">QC Approval</button>
-            <button class="tab-btn" id="nav-inv" onclick="switchMainTab('invCard', 'nav-inv')"
-                style="display: none;">Inventory</button>
-            <button class="tab-btn" id="nav-tx" onclick="switchMainTab('txCard', 'nav-tx')"
-                style="display: none;">Movements</button>
-            <button class="tab-btn" id="nav-rm" onclick="switchMainTab('rawMaterialCard', 'nav-rm')"
-                style="display: none;">Raw Materials</button>
-            <button class="tab-btn" id="nav-po" onclick="switchMainTab('poCard', 'nav-po')"
-                style="display: none;">Purchase Orders</button>
+            <button class="tab-btn active" id="nav-prod" onclick="switchMainTab('productionCard', 'nav-prod')">Production</button>
+            <button class="tab-btn" id="nav-ppc" onclick="switchMainTab('ppcCard', 'nav-ppc')" style="display:none; background:#6f42c1; color:white;">PPC Approval</button>
+            <button class="tab-btn" id="nav-qc" onclick="switchMainTab('qcCard', 'nav-qc')" style="display: none; background: #17a2b8; color: white;">QC Approval</button>
+            <button class="tab-btn" id="nav-inv" onclick="switchMainTab('invCard', 'nav-inv')" style="display: none;">Inventory</button>
+            <button class="tab-btn" id="nav-tx" onclick="switchMainTab('txCard', 'nav-tx')" style="display: none;">Movements</button>
+            <button class="tab-btn" id="nav-rm" onclick="switchMainTab('rawMaterialCard', 'nav-rm')" style="display: none;">Raw Materials</button>
+            <button class="tab-btn" id="nav-po" onclick="switchMainTab('poCard', 'nav-po')" style="display: none;">Purchase Orders</button>
         </div>
         <div style="font-size: 14px; display: flex; align-items: center;">
             <span id="roleDisplay" class="role-badge"></span>
-            <a href="#" onclick="logout()"
-                style="color: #dc3545; text-decoration: none; font-weight: bold; margin-left: 15px;">Logout</a>
+            <a href="#" onclick="logout()" style="color: #dc3545; text-decoration: none; font-weight: bold; margin-left: 15px;">Logout</a>
         </div>
     </div>
 
@@ -410,58 +402,36 @@
 
             <div class="card" id="productionCard" style="display: none; margin-bottom: 20px;">
                 <h2 style="color: #ff9800; border-bottom: 2px solid #ff9800;">🏭 Production Data Entry (Full Sheet)</h2>
-
-                <div id="masterAnalyticsDashboard"
-                    style="display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 20px; align-items: stretch; min-height: 140px;">
+                <div id="masterAnalyticsDashboard" style="display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 20px; align-items: stretch; min-height: 140px;">
                     <div style="flex: 0 0 320px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                        <div
-                            style="background: #343a40; color: white; padding: 10px; border-radius: 6px; text-align: center; display: flex; flex-direction: column; justify-content: center; box-shadow: inset 0 -3px 0 rgba(0,0,0,0.2);">
-                            <div style="font-size: 11px; font-weight: bold; text-transform: uppercase; color: #adb5bd;">
-                                Overall OEE</div>
-                            <div id="oeeTotal"
-                                style="font-size: 26px; font-weight: bold; color: #ffc107; margin-top: 2px;">0%</div>
+                        <div style="background: #343a40; color: white; padding: 10px; border-radius: 6px; text-align: center; display: flex; flex-direction: column; justify-content: center; box-shadow: inset 0 -3px 0 rgba(0,0,0,0.2);">
+                            <div style="font-size: 11px; font-weight: bold; text-transform: uppercase; color: #adb5bd;">Overall OEE</div>
+                            <div id="oeeTotal" style="font-size: 26px; font-weight: bold; color: #ffc107; margin-top: 2px;">0%</div>
                         </div>
-                        <div
-                            style="background: white; border: 1px solid #ced4da; padding: 10px; border-radius: 6px; text-align: center; display: flex; flex-direction: column; justify-content: center;">
-                            <div style="font-size: 10px; font-weight: bold; text-transform: uppercase; color: #6c757d;">
-                                Availability</div>
-                            <div id="oeeAvail"
-                                style="font-size: 18px; font-weight: bold; color: #007bff; margin-top: 2px;">0%</div>
+                        <div style="background: white; border: 1px solid #ced4da; padding: 10px; border-radius: 6px; text-align: center; display: flex; flex-direction: column; justify-content: center;">
+                            <div style="font-size: 10px; font-weight: bold; text-transform: uppercase; color: #6c757d;">Availability</div>
+                            <div id="oeeAvail" style="font-size: 18px; font-weight: bold; color: #007bff; margin-top: 2px;">0%</div>
                             <div id="oeeDowntimeText" style="font-size: 10px; color: #dc3545;">0 hrs down</div>
                         </div>
-                        <div
-                            style="background: white; border: 1px solid #ced4da; padding: 10px; border-radius: 6px; text-align: center; display: flex; flex-direction: column; justify-content: center;">
-                            <div style="font-size: 10px; font-weight: bold; text-transform: uppercase; color: #6c757d;">
-                                Performance</div>
-                            <div id="oeePerf"
-                                style="font-size: 18px; font-weight: bold; color: #17a2b8; margin-top: 2px;">0%</div>
+                        <div style="background: white; border: 1px solid #ced4da; padding: 10px; border-radius: 6px; text-align: center; display: flex; flex-direction: column; justify-content: center;">
+                            <div style="font-size: 10px; font-weight: bold; text-transform: uppercase; color: #6c757d;">Performance</div>
+                            <div id="oeePerf" style="font-size: 18px; font-weight: bold; color: #17a2b8; margin-top: 2px;">0%</div>
                             <div id="oeeSpeedText" style="font-size: 10px; color: #28a745;">0 / 0 Target</div>
                         </div>
-                        <div
-                            style="background: white; border: 1px solid #ced4da; padding: 10px; border-radius: 6px; text-align: center; display: flex; flex-direction: column; justify-content: center;">
-                            <div style="font-size: 10px; font-weight: bold; text-transform: uppercase; color: #6c757d;">
-                                Quality</div>
-                            <div id="oeeQual"
-                                style="font-size: 18px; font-weight: bold; color: #28a745; margin-top: 2px;">0%</div>
+                        <div style="background: white; border: 1px solid #ced4da; padding: 10px; border-radius: 6px; text-align: center; display: flex; flex-direction: column; justify-content: center;">
+                            <div style="font-size: 10px; font-weight: bold; text-transform: uppercase; color: #6c757d;">Quality</div>
+                            <div id="oeeQual" style="font-size: 18px; font-weight: bold; color: #28a745; margin-top: 2px;">0%</div>
                             <div id="oeeRejText" style="font-size: 10px; color: #dc3545;">0 rejected</div>
                         </div>
                     </div>
-
-                    <div
-                        style="flex: 1; min-width: 300px; background: white; padding: 10px; border-radius: 8px; border: 1px solid #ddd; display: flex; flex-direction: column; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
-                        <div
-                            style="font-size: 11px; font-weight: bold; text-transform: uppercase; color: #495057; text-align: center; margin-bottom: 5px;">
-                            Today's Output by Machine</div>
+                    <div style="flex: 1; min-width: 300px; background: white; padding: 10px; border-radius: 8px; border: 1px solid #ddd; display: flex; flex-direction: column; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                        <div style="font-size: 11px; font-weight: bold; text-transform: uppercase; color: #495057; text-align: center; margin-bottom: 5px;">Today's Output by Machine</div>
                         <div style="position: relative; flex-grow: 1; min-height: 120px;">
                             <canvas id="machineChart"></canvas>
                         </div>
                     </div>
-
-                    <div
-                        style="flex: 0 0 220px; background: white; padding: 10px; border-radius: 8px; border: 1px solid #ddd; display: flex; flex-direction: column; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
-                        <div
-                            style="font-size: 11px; font-weight: bold; text-transform: uppercase; color: #495057; text-align: center; margin-bottom: 5px;">
-                            Quality Ratio</div>
+                    <div style="flex: 0 0 220px; background: white; padding: 10px; border-radius: 8px; border: 1px solid #ddd; display: flex; flex-direction: column; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                        <div style="font-size: 11px; font-weight: bold; text-transform: uppercase; color: #495057; text-align: center; margin-bottom: 5px;">Quality Ratio</div>
                         <div style="position: relative; flex-grow: 1; min-height: 120px;">
                             <canvas id="qualityChart"></canvas>
                         </div>
@@ -470,9 +440,7 @@
 
                 <div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #ddd;">
                     <div style="display: flex; gap: 15px; margin-bottom: 15px;">
-                        <select id="prodStage" class="prod-input"
-                            style="flex: 1; font-weight: bold; border: 2px solid #ff9800; font-size: 16px;"
-                            onchange="toggleStageFields()">
+                        <select id="prodStage" class="prod-input" style="flex: 1; font-weight: bold; border: 2px solid #ff9800; font-size: 16px;" onchange="toggleStageFields()">
                             <option value="FORGING">1. FORGING</option>
                             <option value="ROLLING">2. ROLLING</option>
                             <option value="SEC_OP">3. SEC. OP.</option>
@@ -490,8 +458,7 @@
                                 <option value="G">G Shift (General)</option>
                                 <option value="S2">S2 Shift</option>
                             </select>
-                            <select id="prodMachine" class="prod-input"
-                                onchange="toggleOtherInput('prodMachine', 'prodMachineOther')">
+                            <select id="prodMachine" class="prod-input" onchange="toggleOtherInput('prodMachine', 'prodMachineOther')">
                                 <option value="">- Select Machine -</option>
                                 <option value="CH5">CH5</option>
                                 <option value="TK250">TK250</option>
@@ -504,8 +471,7 @@
                                 <option value="PO-2">PO-2</option>
                                 <option value="OTHER">Other...</option>
                             </select>
-                            <input type="text" id="prodMachineOther" class="prod-input" placeholder="Enter Machine Name"
-                                style="display: none; border-color: #007bff;">
+                            <input type="text" id="prodMachineOther" class="prod-input" placeholder="Enter Machine Name" style="display: none; border-color: #007bff;">
                             <input type="text" id="prodOperator" class="prod-input" placeholder="Operator Name">
                             <select id="prodOperation" class="prod-input">
                                 <option value="">- Select Process -</option>
@@ -518,24 +484,20 @@
                         </div>
                         <div class="form-section-title" style="margin-top: 15px;">2. Part Details</div>
                         <div class="form-grid-multi">
-                            <select id="prodWO" class="prod-input" style="border-color: #007bff; font-weight: bold;"
-                                onchange="autoFillFromWO()">
+                            <select id="prodWO" class="prod-input" style="border-color: #007bff; font-weight: bold;" onchange="autoFillFromWO()">
                                 <option value="">- Select Active WO -</option>
                                 <option value="OTHER">Manual Entry...</option>
                             </select>
-                            <input type="text" id="prodWOOther" class="prod-input" placeholder="Enter WO Manually"
-                                style="display: none; border-color: #007bff;">
+                            <input type="text" id="prodWOOther" class="prod-input" placeholder="Enter WO Manually" style="display: none; border-color: #007bff;">
                             <input type="text" id="prodPartNo" class="prod-input" placeholder="Part No (Barcode)">
-                            <select id="prodPartName" class="prod-input"
-                                onchange="toggleOtherInput('prodPartName', 'prodPartNameOther')">
+                            <select id="prodPartName" class="prod-input" onchange="toggleOtherInput('prodPartName', 'prodPartNameOther')">
                                 <option value="">- Part Name -</option>
                                 <option value="FLG">FLG</option>
                                 <option value="HEX">HEX</option>
                                 <option value="SOC">SOC</option>
                                 <option value="OTHER">Other...</option>
                             </select>
-                            <input type="text" id="prodPartNameOther" class="prod-input" placeholder="Enter Part Name"
-                                style="display: none; border-color: #007bff;">
+                            <input type="text" id="prodPartNameOther" class="prod-input" placeholder="Enter Part Name" style="display: none; border-color: #007bff;">
                             <input type="text" id="prodSize" class="prod-input" placeholder="Size (e.g., M10)">
                             <input type="text" id="prodPitch" class="prod-input" placeholder="Pitch (e.g., 1.25)">
                             <input type="number" id="prodLength" class="prod-input" placeholder="Length (mm)">
@@ -547,43 +509,31 @@
                     <div class="form-section" id="planningSection">
                         <div class="form-section-title">3. Material & Planning</div>
                         <div class="form-grid-multi">
-                            <input type="text" id="prodRMCode" class="prod-input dyn-f"
-                                placeholder="* Exact Raw Material Code (e.g. STL-10MM)"
-                                style="border-color: #007bff; font-weight: bold;">
+                            <input type="text" id="prodRMCode" class="prod-input dyn-f" placeholder="* Exact Raw Material Code (e.g. STL-10MM)" style="border-color: #007bff; font-weight: bold;">
                             <input type="text" id="prodHeatNo" class="prod-input dyn-fr" placeholder="Heat No.">
                             <input type="number" id="prodRMKg" class="prod-input dyn-f" placeholder="RM Consumed (Kg)">
-                            <input type="number" step="0.001" id="prodPieceWt" class="prod-input dyn-fr"
-                                placeholder="Piece Weight (KG)">
+                            <input type="number" step="0.001" id="prodPieceWt" class="prod-input dyn-fr" placeholder="Piece Weight (KG)">
                             <input type="number" id="prodSchHrs" class="prod-input" placeholder="Schedule Hours">
-                            <input type="number" id="prodJcHrs" class="prod-input dyn-fr"
-                                placeholder="Job Change Hours">
-                            <input type="number" id="prodPlannedHrs" class="prod-input dyn-fr"
-                                placeholder="Prod Planned Hours">
+                            <input type="number" id="prodJcHrs" class="prod-input dyn-fr" placeholder="Job Change Hours">
+                            <input type="number" id="prodPlannedHrs" class="prod-input dyn-fr" placeholder="Prod Planned Hours">
                             <input type="number" id="prodSpeed" class="prod-input dyn-fr" placeholder="Speed (RPM)">
                             <input type="number" id="prodTarget" class="prod-input" placeholder="Shift Target Qty">
                         </div>
                     </div>
 
-
-
-                    <div
-                        style="background: #e3f2fd; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); grid-column: span 3; border-left: 5px solid #007bff;">
+                    <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); grid-column: span 3; border-left: 5px solid #007bff;">
                         <h4 style="margin-top:0; color:#007bff;">4. Physical Measurements (QC Inspector Entry)</h4>
                         <div style="display: flex; gap: 15px; align-items: center;">
                             <div style="flex: 1;">
-                                <label style="font-size: 12px; font-weight: bold; color: #555;">Measured Length
-                                    (mm)</label>
-                                <input type="number" step="0.01" id="qcLength" class="prod-input"
-                                    placeholder="e.g., 45.05" style="width: 100%; box-sizing: border-box;">
+                                <label style="font-size: 12px; font-weight: bold; color: #555;">Measured Length (mm)</label>
+                                <input type="number" step="0.01" id="qcLength" class="prod-input" placeholder="e.g., 45.05" style="width: 100%; box-sizing: border-box;">
                             </div>
                             <div style="flex: 1;">
                                 <label style="font-size: 12px; font-weight: bold; color: #555;">Measured A/F</label>
-                                <input type="text" id="qcAF" class="prod-input" placeholder="e.g., 16.90"
-                                    style="width: 100%; box-sizing: border-box;">
+                                <input type="text" id="qcAF" class="prod-input" placeholder="e.g., 16.90" style="width: 100%; box-sizing: border-box;">
                             </div>
                             <div style="flex: 1;">
-                                <label style="font-size: 12px; font-weight: bold; color: #555;">Thread Ring
-                                    Gauge</label>
+                                <label style="font-size: 12px; font-weight: bold; color: #555;">Thread Ring Gauge</label>
                                 <select id="qcThread" class="prod-input" style="width: 100%; box-sizing: border-box;">
                                     <option value="N/A">Not Applicable</option>
                                     <option value="PASS">✅ GO / NO-GO Pass</option>
@@ -596,52 +546,38 @@
                     <div class="form-section" style="border-left-color: #28a745;">
                         <div class="form-section-title" style="color: #28a745;">4. Production Output</div>
                         <div class="form-grid-multi">
-                            <input type="number" id="prodAccepted" class="prod-input" placeholder="✅ Accepted Qty (Nos)"
-                                style="border-color: #28a745; font-weight: bold;">
-                            <input type="number" id="prodRejected" class="prod-input"
-                                placeholder="❌ Rejection Qty (PCS)" style="border-color: #dc3545;">
-                            <input type="number" step="0.01" id="prodRejKg" class="prod-input dyn-fr"
-                                placeholder="Process/Set Rej (KGS)" style="border-color: #dc3545;">
-                            <input type="text" id="prodRejReason" class="prod-input dyn-s"
-                                placeholder="Rejection Reason">
+                            <input type="number" id="prodAccepted" class="prod-input" placeholder="✅ Accepted Qty (Nos)" style="border-color: #28a745; font-weight: bold;">
+                            <input type="number" id="prodRejected" class="prod-input" placeholder="❌ Rejection Qty (PCS)" style="border-color: #dc3545;">
+                            <input type="number" step="0.01" id="prodRejKg" class="prod-input dyn-fr" placeholder="Process/Set Rej (KGS)" style="border-color: #dc3545;">
+                            <input type="text" id="prodRejReason" class="prod-input dyn-s" placeholder="Rejection Reason">
                             <input type="text" id="prodRemarks" class="prod-input" placeholder="Remarks / Notes">
                         </div>
                     </div>
 
                     <div class="downtime-grid dyn-fr">
-                        <div
-                            style="grid-column: 1 / -1; font-size: 13px; font-weight: bold; color: #dc3545; margin-bottom: 5px;">
-                            5. DOWNTIME LOSSES (ENTER MINUTES)</div>
+                        <div style="grid-column: 1 / -1; font-size: 13px; font-weight: bold; color: #dc3545; margin-bottom: 5px;">5. DOWNTIME LOSSES (ENTER MINUTES)</div>
                         <div><label>Major J/C (1)</label><input type="number" id="l_MajorJC" class="prod-input"></div>
                         <div><label>Minor J/C (2)</label><input type="number" id="l_MinorJC" class="prod-input"></div>
-                        <div><label>Tool Setting (3)</label><input type="number" id="l_Setting" class="prod-input">
-                        </div>
+                        <div><label>Tool Setting (3)</label><input type="number" id="l_Setting" class="prod-input"></div>
                         <div><label>M/C Clean</label><input type="number" id="l_McClean" class="prod-input"></div>
-                        <div><label>Tool Rework (5)</label><input type="number" id="l_ToolRework" class="prod-input">
-                        </div>
+                        <div><label>Tool Rework (5)</label><input type="number" id="l_ToolRework" class="prod-input"></div>
                         <div><label>No Tool (6)</label><input type="number" id="l_NoTool" class="prod-input"></div>
                         <div><label>No Load</label><input type="number" id="l_NoLoad" class="prod-input"></div>
-                        <div><label>No Operator (7)</label><input type="number" id="l_NoOperator" class="prod-input">
-                        </div>
+                        <div><label>No Operator (7)</label><input type="number" id="l_NoOperator" class="prod-input"></div>
                         <div><label>M/MNT (8)</label><input type="number" id="l_MMnt" class="prod-input"></div>
                         <div><label>E/MNT (9)</label><input type="number" id="l_EMnt" class="prod-input"></div>
                         <div><label>No Power (10)</label><input type="number" id="l_NoPower" class="prod-input"></div>
-                        <div><label>No Air/Oil (11)</label><input type="number" id="l_NoAirOil" class="prod-input">
-                        </div>
+                        <div><label>No Air/Oil (11)</label><input type="number" id="l_NoAirOil" class="prod-input"></div>
                         <div><label>No RM (12)</label><input type="number" id="l_NoRm" class="prod-input"></div>
                         <div><label>RM Loading</label><input type="number" id="l_RmLoading" class="prod-input"></div>
                         <div><label>QA Approval</label><input type="number" id="l_QaApproval" class="prod-input"></div>
-                        <div><label>Coil Change (13)</label><input type="number" id="l_CoilChange"
-                                class="prod-input dyn-f"></div>
+                        <div><label>Coil Change (13)</label><input type="number" id="l_CoilChange" class="prod-input dyn-f"></div>
                         <div><label>No Plan (14)</label><input type="number" id="l_NoPlan" class="prod-input"></div>
                         <div><label>NPD Team (9F)</label><input type="number" id="l_NpdTeam" class="prod-input"></div>
                         <div><label>Unknown</label><input type="number" id="l_Unknown" class="prod-input"></div>
                     </div>
 
-                    <button onclick="submitProductionForm()"
-                        style="background: #ff9800; color: white; padding: 15px; width: 100%; font-size: 18px; font-weight: bold; border: none; border-radius: 8px; margin-top: 20px; cursor: pointer;">
-                        💾 Save Full Production Log
-                    </button>
+                    <button onclick="submitProductionForm()" style="background: #ff9800; color: white; padding: 15px; width: 100%; font-size: 18px; font-weight: bold; border: none; border-radius: 8px; margin-top: 20px; cursor: pointer;">💾 Save Full Production Log</button>
                 </div>
 
                 <div class="tab-container">
@@ -651,11 +587,9 @@
                     <button class="tab-btn" id="tab-SEC_OP" onclick="filterLogs('SEC_OP')">Sec. Ops</button>
                 </div>
 
-                <div class="search-container"
-                    style="background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #ff9800; margin-bottom: 15px;">
+                <div class="search-container" style="background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #ff9800; margin-bottom: 15px;">
                     <span style="font-weight: bold; color: #555; font-size: 14px;">🔍 FILTER LOGS:</span>
-                    <input type="date" id="filterProdDate" class="prod-input" onchange="applyProductionFilters()"
-                        title="Filter by Date">
+                    <input type="date" id="filterProdDate" class="prod-input" onchange="applyProductionFilters()" title="Filter by Date">
                     <select id="filterProdShift" class="prod-input" onchange="applyProductionFilters()">
                         <option value="">-- All Shifts --</option>
                         <option value="A">A Shift</option>
@@ -663,20 +597,13 @@
                         <option value="G">G Shift</option>
                         <option value="S2">S2 Shift</option>
                     </select>
-                    <input type="text" id="filterProdGlobal" class="prod-input" style="flex: 1; min-width: 250px;"
-                        placeholder="Search Operator, Machine, Part No, Remarks..." onkeyup="applyProductionFilters()">
-                    <button onclick="clearProductionFilters()"
-                        style="background-color: #6c757d; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold;">Reset</button>
+                    <input type="text" id="filterProdGlobal" class="prod-input" style="flex: 1; min-width: 250px;" placeholder="Search Operator, Machine, Part No, Remarks..." onkeyup="applyProductionFilters()">
+                    <button onclick="clearProductionFilters()" style="background-color: #6c757d; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold;">Reset</button>
                 </div>
 
-                <div id="exportButtonsSection"
-                    style="display: flex; justify-content: flex-end; gap: 10px; margin-top: -40px; margin-bottom: 10px;">
-                    <button onclick="generateDailyPDF()"
-                        style="background: #dc3545; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">📄
-                        Download Daily PDF</button>
-                    <button class="export-btn"
-                        onclick="exportTableToCSV('productionTable', 'Full_Production_Report.csv')">⬇️ Export Full
-                        Excel</button>
+                <div id="exportButtonsSection" style="display: flex; justify-content: flex-end; gap: 10px; margin-top: -40px; margin-bottom: 10px;">
+                    <button onclick="generateDailyPDF()" style="background: #dc3545; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">📄 Download Daily PDF</button>
+                    <button class="export-btn" onclick="exportTableToCSV('productionTable', 'Full_Production_Report.csv')">⬇️ Export Full Excel</button>
                 </div>
 
                 <div class="table-wrapper">
@@ -737,16 +664,11 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td colspan="49" style="text-align: center;">Loading...</td>
-                            </tr>
+                            <tr><td colspan="49" style="text-align: center;">Loading...</td></tr>
                         </tbody>
-                        <tfoot
-                            style="background-color: #f8f9fa; font-weight: bold; position: sticky; bottom: 0; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 2;">
+                        <tfoot style="background-color: #f8f9fa; font-weight: bold; position: sticky; bottom: 0; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 2;">
                             <tr>
-                                <td colspan="23"
-                                    style="text-align: right; padding-right: 15px; color: #ff9800; font-size: 16px;">🔍
-                                    VISIBLE TOTALS:</td>
+                                <td colspan="23" style="text-align: right; padding-right: 15px; color: #ff9800; font-size: 16px;">🔍 VISIBLE TOTALS:</td>
                                 <td id="totalAccQty" style="color: green; background: #e8f5e9; font-size: 16px;">0</td>
                                 <td id="totalRejQty" style="color: red; background: #ffebee; font-size: 16px;">0</td>
                                 <td id="totalRejKg" style="font-size: 16px;">0</td>
@@ -757,32 +679,39 @@
                 </div>
             </div>
 
+            <div class="card" id="ppcCard" style="display: none; margin-bottom: 20px;">
+                <h2 style="color: #6f42c1; border-bottom: 2px solid #6f42c1;">📋 PPC Verification Queue</h2>
+                <div class="table-wrapper">
+                    <table id="ppcTable">
+                        <thead>
+                            <tr style="background-color: #6f42c1; color: white;">
+                                <th>Date</th>
+                                <th>Stage</th>
+                                <th>Part No</th>
+                                <th>Qty</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ppcBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
             <div class="card" id="qcCard" style="display: none; margin-bottom: 20px;">
-                <h2
-                    style="color: #17a2b8; border-bottom: 2px solid #17a2b8; display: flex; justify-content: space-between; align-items: center;">
+                <h2 style="color: #17a2b8; border-bottom: 2px solid #17a2b8; display: flex; justify-content: space-between; align-items: center;">
                     <span>🔬 Quality Control Management</span>
                     <div style="display: flex; gap: 10px;">
-                        <button onclick="toggleQCView('PENDING')" id="btnShowPending"
-                            style="background: #17a2b8; color: white; border: none; padding: 5px 15px; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: bold;">📥
-                            Pending Approvals</button>
-                        <button onclick="toggleQCView('HISTORY')" id="btnShowHistory"
-                            style="background: #eee; color: #555; border: none; padding: 5px 15px; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: bold;">📜
-                            History / Search</button>
+                        <button onclick="toggleQCView('PENDING')" id="btnShowPending" style="background: #17a2b8; color: white; border: none; padding: 5px 15px; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: bold;">📥 Pending Approvals</button>
+                        <button onclick="toggleQCView('HISTORY')" id="btnShowHistory" style="background: #eee; color: #555; border: none; padding: 5px 15px; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: bold;">📜 History / Search</button>
                     </div>
                 </h2>
-
-                <div id="qcHistorySearchSection"
-                    style="display: none; background: #f1f8f9; padding: 12px; border-radius: 6px; margin-bottom: 15px; gap: 10px; align-items: center; border: 1px solid #d1e7e9;">
+                <div id="qcHistorySearchSection" style="display: none; background: #f1f8f9; padding: 12px; border-radius: 6px; margin-bottom: 15px; gap: 10px; align-items: center; border: 1px solid #d1e7e9;">
                     <span style="font-weight: bold; color: #17a2b8; font-size: 13px;">🔍 SEARCH HISTORY:</span>
-                    <input type="date" id="filterQCHistoryDate" class="prod-input" onchange="applyQCHistoryFilters()"
-                        title="Filter by Approval Date">
-                    <input type="text" id="filterQCHistoryGlobal" class="prod-input" style="flex: 1;"
-                        placeholder="Search Part No, Machine, Inspector, or Remarks..."
-                        onkeyup="applyQCHistoryFilters()">
-                    <button onclick="clearQCHistoryFilters()"
-                        style="background: #6c757d; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">Reset</button>
+                    <input type="date" id="filterQCHistoryDate" class="prod-input" onchange="applyQCHistoryFilters()" title="Filter by Approval Date">
+                    <input type="text" id="filterQCHistoryGlobal" class="prod-input" style="flex: 1;" placeholder="Search Part No, Machine, Inspector, or Remarks..." onkeyup="applyQCHistoryFilters()">
+                    <button onclick="clearQCHistoryFilters()" style="background: #6c757d; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">Reset</button>
                 </div>
-
                 <div class="table-wrapper">
                     <table id="qcTable">
                         <thead style="background-color: #17a2b8; color: white;">
@@ -797,11 +726,7 @@
                                 <th>Action</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <tr>
-                                <td colspan="8" style="text-align: center;">Loading pending batches...</td>
-                            </tr>
-                        </tbody>
+                        <tbody><tr><td colspan="8" style="text-align: center;">Loading pending batches...</td></tr></tbody>
                     </table>
                 </div>
             </div>
@@ -809,12 +734,9 @@
             <div class="card inventory-section" id="invCard" style="display: none;">
                 <h2>Finished Goods Stock
                     <div class="search-container">
-                        <input type="text" id="searchInput" class="search-box" style="width: 220px;"
-                            onkeyup="filterInventory()" placeholder="🔍 Search...">
-                        <button class="add-btn" id="addBtnUI" style="display: none;" onclick="openModal()">➕ Add
-                            Product</button>
-                        <button class="export-btn"
-                            onclick="exportTableToCSV('productsTable', 'Live_Stock_Inventory.csv')">⬇️ Excel</button>
+                        <input type="text" id="searchInput" class="search-box" style="width: 220px;" onkeyup="filterInventory()" placeholder="🔍 Search...">
+                        <button class="add-btn" id="addBtnUI" style="display: none;" onclick="openModal()">➕ Add Product</button>
+                        <button class="export-btn" onclick="exportTableToCSV('productsTable', 'Live_Stock_Inventory.csv')">⬇️ Excel</button>
                     </div>
                 </h2>
                 <div class="table-wrapper">
@@ -841,12 +763,9 @@
             <div class="card transaction-section" id="txCard" style="display: none;">
                 <h2>Recent Movements
                     <div class="search-container">
-                        <input type="date" id="dateSearchInput" class="search-box" style="width: 130px;"
-                            onchange="applyTxFilters()">
-                        <input type="text" id="searchTxInput" class="search-box" style="width: 150px;"
-                            onkeyup="applyTxFilters()" placeholder="🔍 Item...">
-                        <button class="export-btn"
-                            onclick="exportTableToCSV('transactionsTable', 'Warehouse_Movements.csv')">⬇️ Excel</button>
+                        <input type="date" id="dateSearchInput" class="search-box" style="width: 130px;" onchange="applyTxFilters()">
+                        <input type="text" id="searchTxInput" class="search-box" style="width: 150px;" onkeyup="applyTxFilters()" placeholder="🔍 Item...">
+                        <button class="export-btn" onclick="exportTableToCSV('transactionsTable', 'Warehouse_Movements.csv')">⬇️ Excel</button>
                     </div>
                 </h2>
                 <div class="table-wrapper">
@@ -860,18 +779,13 @@
                                 <th>Balance</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <tr>
-                                <td colspan="5">Loading data...</td>
-                            </tr>
-                        </tbody>
+                        <tbody><tr><td colspan="5">Loading data...</td></tr></tbody>
                     </table>
                 </div>
             </div>
 
             <div class="card" id="rawMaterialCard" style="display: none;">
-                <h2>Raw Materials (Steel) <button class="add-btn" onclick="openReceiveModal()">📥 Receive Stock</button>
-                </h2>
+                <h2>Raw Materials (Steel) <button class="add-btn" onclick="openReceiveModal()">📥 Receive Stock</button></h2>
                 <div class="table-wrapper">
                     <table id="rawMaterialsTable">
                         <thead>
@@ -893,10 +807,8 @@
             <div class="card" id="poCard" style="display: none;">
                 <h2>Purchase Orders
                     <div class="search-container">
-                        <input type="text" id="searchPOInput" class="search-box" style="width: 200px;"
-                            onkeyup="filterPOs()" placeholder="🔍 Search POs...">
-                        <button class="add-btn" onclick="openPOModal()" style="background-color: #ff9800;">📝 Create
-                            PO</button>
+                        <input type="text" id="searchPOInput" class="search-box" style="width: 200px;" onkeyup="filterPOs()" placeholder="🔍 Search POs...">
+                        <button class="add-btn" onclick="openPOModal()" style="background-color: #ff9800;">📝 Create PO</button>
                     </div>
                 </h2>
                 <div class="table-wrapper">
@@ -921,30 +833,18 @@
 
         </div>
     </div>
-    <div id="qcModal"
-        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; align-items: center; justify-content: center;">
-        <div
-            style="background: white; width: 95%; max-width: 1000px; height: 90vh; border-radius: 8px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
-            <div
-                style="background: #17a2b8; color: white; padding: 15px 20px; font-weight: bold; font-size: 18px; display: flex; justify-content: space-between; align-items: center;">
+
+    <div id="qcModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; align-items: center; justify-content: center;">
+        <div style="background: white; width: 95%; max-width: 1000px; height: 90vh; border-radius: 8px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+            <div style="background: #17a2b8; color: white; padding: 15px 20px; font-weight: bold; font-size: 18px; display: flex; justify-content: space-between; align-items: center;">
                 <span>🔍 Comprehensive QC Inspection</span>
-                <button style="background: none; border: none; color: white; font-size: 20px; cursor: pointer;"
-                    onclick="document.getElementById('qcModal').style.display='none'">✖</button>
+                <button style="background: none; border: none; color: white; font-size: 20px; cursor: pointer;" onclick="document.getElementById('qcModal').style.display='none'">✖</button>
             </div>
-            <div id="qcModalContent"
-                style="padding: 20px; overflow-y: auto; flex-grow: 1; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; font-size: 14px; background: #f4f6f9;">
-            </div>
-            <div
-                style="background: #fff; padding: 15px 20px; border-top: 2px solid #dee2e6; display: flex; gap: 15px; align-items: center;">
-                <input type="text" id="qcRemarksInput" class="prod-input"
-                    placeholder="Enter Official QC Remarks (Required for Rejection)"
-                    style="flex-grow: 1; margin: 0; font-size: 15px; padding: 10px;">
-                <button id="btnQcReject"
-                    style="background: #dc3545; color: white; border: none; padding: 12px 25px; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 15px;">❌
-                    Reject Batch</button>
-                <button id="btnQcApprove"
-                    style="background: #28a745; color: white; border: none; padding: 12px 35px; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 15px;">✅
-                    APPROVE & ADD TO STOCK</button>
+            <div id="qcModalContent" style="padding: 20px; overflow-y: auto; flex-grow: 1; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; font-size: 14px; background: #f4f6f9;"></div>
+            <div style="background: #fff; padding: 15px 20px; border-top: 2px solid #dee2e6; display: flex; gap: 15px; align-items: center;">
+                <input type="text" id="qcRemarksInput" class="prod-input" placeholder="Enter Official QC Remarks (Required for Rejection)" style="flex-grow: 1; margin: 0; font-size: 15px; padding: 10px;">
+                <button id="btnQcReject" style="background: #dc3545; color: white; border: none; padding: 12px 25px; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 15px;">❌ Reject Batch</button>
+                <button id="btnQcApprove" style="background: #28a745; color: white; border: none; padding: 12px 35px; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 15px;">✅ APPROVE & ADD TO STOCK</button>
             </div>
         </div>
     </div>
@@ -954,12 +854,9 @@
             <h2 style="color: #007bff; margin-bottom: 0;">Add Product</h2>
             <div class="form-grid">
                 <input type="text" id="newProdCode" class="full-width" placeholder="* Product Code" required>
-                <input type="text" id="newSector" placeholder="Sector"><input type="text" id="newType"
-                    placeholder="Type">
-                <input type="text" id="newGrade" placeholder="Grade"><input type="number" id="newLength"
-                    placeholder="Length">
-                <input type="number" id="newAF" placeholder="A/F"><input type="number" id="newWeight"
-                    placeholder="Wt/Piece">
+                <input type="text" id="newSector" placeholder="Sector"><input type="text" id="newType" placeholder="Type">
+                <input type="text" id="newGrade" placeholder="Grade"><input type="number" id="newLength" placeholder="Length">
+                <input type="number" id="newAF" placeholder="A/F"><input type="number" id="newWeight" placeholder="Wt/Piece">
                 <input type="number" id="newStock" class="full-width" placeholder="Initial Stock">
             </div>
             <button class="save-btn" onclick="submitNewProduct()">Save</button>
@@ -992,8 +889,7 @@
                 <input type="number" id="poCostPerKg" placeholder="* Cost per Kg" required>
                 <input type="text" id="poScope" class="full-width" placeholder="Scope / Remarks">
             </div>
-            <button class="save-btn" style="background-color: #ff9800;" id="poSubmitBtn" onclick="submitPO()">Generate
-                PO</button>
+            <button class="save-btn" style="background-color: #ff9800;" id="poSubmitBtn" onclick="submitPO()">Generate PO</button>
         </div>
     </div>
 
@@ -1036,48 +932,56 @@
             document.getElementById('topNav').style.display = 'flex';
             document.getElementById('roleDisplay').innerText = `👤 ${currentUser.username.toUpperCase()} (${currentUser.role})`;
 
-            // 1. Hide EVERY card and EVERY navigation button first to securely reset the screen
+            // Hide cards
             document.getElementById('productionCard').style.display = 'none';
             document.getElementById('invCard').style.display = 'none';
             document.getElementById('txCard').style.display = 'none';
             document.getElementById('rawMaterialCard').style.display = 'none';
             document.getElementById('poCard').style.display = 'none';
             document.getElementById('qcCard').style.display = 'none';
+            document.getElementById('ppcCard').style.display = 'none';
             document.getElementById('addBtnUI').style.display = 'none';
 
-            document.getElementById('nav-prod').style.display = 'none'; // <-- FIX: Hides Production Tab by default
+            // Hide Nav Buttons
+            document.getElementById('nav-prod').style.display = 'none';
             document.getElementById('nav-qc').style.display = 'none';
             document.getElementById('nav-inv').style.display = 'none';
             document.getElementById('nav-tx').style.display = 'none';
             document.getElementById('nav-rm').style.display = 'none';
             document.getElementById('nav-po').style.display = 'none';
+            document.getElementById('nav-ppc').style.display = 'none';
 
             let styleTag = document.getElementById('adminStyleOverride');
             if (!styleTag) { styleTag = document.createElement('style'); styleTag.id = 'adminStyleOverride'; document.head.appendChild(styleTag); }
 
-            // 2. EXACT ROLE LOGIC & NAVIGATION
             if (currentUser.role === 'ADMIN') {
-                document.getElementById('nav-prod').style.display = 'block'; // Show Prod
+                document.getElementById('nav-prod').style.display = 'block';
+                document.getElementById('nav-ppc').style.display = 'block';
                 document.getElementById('nav-qc').style.display = 'block';
                 document.getElementById('nav-inv').style.display = 'block';
                 document.getElementById('nav-tx').style.display = 'block';
                 document.getElementById('nav-rm').style.display = 'block';
                 document.getElementById('nav-po').style.display = 'block';
                 document.getElementById('addBtnUI').style.display = 'inline-block';
-                styleTag.innerHTML = ''; // Enable actions
+                styleTag.innerHTML = '';
                 switchMainTab('productionCard', 'nav-prod');
             }
+            else if (currentUser.role === 'PPC') {
+                document.getElementById('nav-ppc').style.display = 'block';
+                document.getElementById('nav-prod').style.display = 'block';
+                styleTag.innerHTML = '.admin-actions { display: none !important; }';
+                switchMainTab('ppcCard', 'nav-ppc');
+            }
             else if (currentUser.role === 'PRODUCTION') {
-                document.getElementById('nav-prod').style.display = 'block'; // Show Prod
+                document.getElementById('nav-prod').style.display = 'block';
                 styleTag.innerHTML = '.admin-actions { display: none !important; }';
                 switchMainTab('productionCard', 'nav-prod');
             }
             else if (currentUser.role === 'QC') {
-                // Notice: nav-prod is NOT turned on here!
                 document.getElementById('nav-qc').style.display = 'block';
                 document.getElementById('nav-inv').style.display = 'block';
                 styleTag.innerHTML = '.admin-actions { display: none !important; }';
-                switchMainTab('qcCard', 'nav-qc'); // Send QC straight to their dashboard
+                switchMainTab('qcCard', 'nav-qc');
             }
             else if (currentUser.role === 'PURCHASE') {
                 document.getElementById('nav-inv').style.display = 'block';
@@ -1098,14 +1002,12 @@
             toggleStageFields();
             refreshDashboard();
 
-            // Prevent duplicate intervals
             if (refreshInterval) clearInterval(refreshInterval);
             refreshInterval = setInterval(refreshDashboard, 5000);
         }
 
         function logout() { localStorage.removeItem("warehouseAuth"); window.location.reload(); }
 
-        // Switches between the major system areas
         function switchMainTab(cardId, btnId) {
             document.getElementById('productionCard').style.display = 'none';
             document.getElementById('qcCard').style.display = 'none';
@@ -1113,6 +1015,7 @@
             document.getElementById('txCard').style.display = 'none';
             document.getElementById('rawMaterialCard').style.display = 'none';
             document.getElementById('poCard').style.display = 'none';
+            document.getElementById('ppcCard').style.display = 'none';
 
             document.querySelectorAll('#navButtons .tab-btn').forEach(btn => btn.classList.remove('active'));
 
@@ -1120,25 +1023,23 @@
             if (document.getElementById(btnId)) document.getElementById(btnId).classList.add('active');
 
             if (cardId === 'qcCard') loadPendingQC();
+            if (cardId === 'ppcCard') loadPendingPPC();
         }
 
         function refreshDashboard() {
             loadInventory();
             loadTransactions();
 
-            // Check Production access
-            if (currentUser && (currentUser.role === 'PRODUCTION' || currentUser.role === 'ADMIN')) {
+            if (currentUser && (currentUser.role === 'PRODUCTION' || currentUser.role === 'ADMIN' || currentUser.role === 'PPC')) {
                 loadProductionBatches();
             }
 
-            // SMART QC REFRESH
             if (currentUser && (currentUser.role === 'QC' || currentUser.role === 'ADMIN')) {
-                // Only refresh the view the user is currently looking at!
-                if (currentQCView === 'PENDING') {
-                    loadPendingQC();
-                } else {
-                    loadQCHistory();
-                }
+                if (currentQCView === 'PENDING') loadPendingQC(); else loadQCHistory();
+            }
+
+            if (currentUser && (currentUser.role === 'PPC' || currentUser.role === 'ADMIN')) {
+                loadPendingPPC();
             }
 
             if (currentUser && (currentUser.role === 'ADMIN' || currentUser.role === 'PURCHASE')) {
@@ -1147,6 +1048,69 @@
             }
         }
 
+        // --- PPC Logic ---
+        async function loadPendingPPC() {
+            try {
+                const response = await fetch(`${API_URL}/production/batches`);
+                const batches = await response.json();
+                const pending = batches.filter(b => b.ppcStatus === 'PENDING' || !b.ppcStatus);
+                const tbody = document.getElementById('ppcBody');
+                tbody.innerHTML = '';
+                
+                if (pending.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">All Clear! No batches pending PPC approval.</td></tr>';
+                    return;
+                }
+
+                pending.forEach(b => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${new Date(b.date).toLocaleDateString()}</td>
+                        <td>${b.stage}</td>
+                        <td>${b.partNo}</td>
+                        <td>${b.acceptedQty}</td>
+                        <td><span style="background:#ffc107; padding:4px 8px; border-radius:4px; font-weight:bold; font-size:11px;">PENDING</span></td>
+                        <td>
+                            <button onclick="ppcAction('${b._id}', 'APPROVED')" style="background:#28a745; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">✅ Approve</button>
+                            <button onclick="ppcAction('${b._id}', 'REJECTED')" style="background:#dc3545; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">❌ Reject</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (error) { console.error("PPC Load Error:", error); }
+        }
+
+        async function ppcAction(batchId, status) {
+            let nextRoute = 'NONE';
+            let remarks = '';
+
+            if (status === 'REJECTED') {
+                remarks = prompt("Enter rejection reason for Production team:");
+                if (!remarks) return;
+            } else {
+                const choice = confirm("PPC APPROVAL:\nClick OK for HEAT TREATMENT\nClick CANCEL for POLISHING");
+                nextRoute = choice ? 'HEAT_TREATMENT' : 'POLISHING';
+                alert(`PPC Approved for ${nextRoute}`);
+            }
+
+            try {
+                const res = await fetch(`${API_URL}/ppc/verify/${batchId}`, {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ status, remarks, nextRoute, username: currentUser.username })
+                });
+                
+                if (res.ok) {
+                    showToast(`PPC ${status} Successful`);
+                    refreshDashboard();
+                } else {
+                    const err = await res.json();
+                    showToast(`Error: ${err.message}`, true);
+                }
+            } catch (error) { showToast("Server error", true); }
+        }
+
+        // --- Production Logic ---
         function toggleOtherInput(selectId, inputId) {
             const selectElement = document.getElementById(selectId);
             const inputElement = document.getElementById(inputId);
@@ -1179,29 +1143,53 @@
             if (finalWO === 'OTHER') finalWO = document.getElementById('prodWOOther').value;
 
             const data = {
-                stage: document.getElementById('prodStage').value, date: document.getElementById('prodDate').value,
-                shift: document.getElementById('prodShift').value, machineName: finalMachine, partName: finalPartName,
-                operator: document.getElementById('prodOperator').value, operation: document.getElementById('prodOperation').value,
-                workOrderNo: finalWO, partNo: document.getElementById('prodPartNo').value,
-                partSize: document.getElementById('prodSize').value, pitch: document.getElementById('prodPitch').value,
-                length: document.getElementById('prodLength').value, af: document.getElementById('prodAF').value,
-                productGrade: document.getElementById('prodGrade').value, rawMaterialCode: document.getElementById('prodRMCode').value,
-                heatNo: document.getElementById('prodHeatNo').value, rawMaterialConsumedKg: document.getElementById('prodRMKg').value,
-                pieceWeightKg: document.getElementById('prodPieceWt').value, scheduleHours: document.getElementById('prodSchHrs').value,
-                jobChangeHours: document.getElementById('prodJcHrs').value, prodPlannedHours: document.getElementById('prodPlannedHrs').value,
-                speedRpm: document.getElementById('prodSpeed').value, shiftTargetQty: document.getElementById('prodTarget').value,
-                acceptedQty: document.getElementById('prodAccepted').value, rejectedQty: document.getElementById('prodRejected').value,
-                rejectionKg: document.getElementById('prodRejKg').value, rejectionReason: document.getElementById('prodRejReason').value,
-                remarks: document.getElementById('prodRemarks').value, lossMajorJC: document.getElementById('l_MajorJC').value,
-                lossMinorJC: document.getElementById('l_MinorJC').value, lossSetting: document.getElementById('l_Setting').value,
-                lossMcClean: document.getElementById('l_McClean').value, lossToolRework: document.getElementById('l_ToolRework').value,
-                lossNoTool: document.getElementById('l_NoTool').value, lossNoLoad: document.getElementById('l_NoLoad').value,
-                lossNoOperator: document.getElementById('l_NoOperator').value, lossMMnt: document.getElementById('l_MMnt').value,
-                lossEMnt: document.getElementById('l_EMnt').value, lossNoPower: document.getElementById('l_NoPower').value,
-                lossNoAirOil: document.getElementById('l_NoAirOil').value, lossNoRm: document.getElementById('l_NoRm').value,
-                lossRmLoading: document.getElementById('l_RmLoading').value, lossQaApproval: document.getElementById('l_QaApproval').value,
-                lossCoilChange: document.getElementById('l_CoilChange').value, lossNoPlan: document.getElementById('l_NoPlan').value,
-                lossNpdTeam: document.getElementById('l_NpdTeam').value, lossUnknown: document.getElementById('l_Unknown').value,
+                stage: document.getElementById('prodStage').value, 
+                date: document.getElementById('prodDate').value,
+                shift: document.getElementById('prodShift').value, 
+                machineName: finalMachine, 
+                partName: finalPartName,
+                operator: document.getElementById('prodOperator').value, 
+                operation: document.getElementById('prodOperation').value,
+                workOrderNo: finalWO, 
+                partNo: document.getElementById('prodPartNo').value,
+                partSize: document.getElementById('prodSize').value, 
+                pitch: document.getElementById('prodPitch').value,
+                length: document.getElementById('prodLength').value, 
+                af: document.getElementById('prodAF').value,
+                productGrade: document.getElementById('prodGrade').value, 
+                rawMaterialCode: document.getElementById('prodRMCode').value,
+                heatNo: document.getElementById('prodHeatNo').value, 
+                rawMaterialConsumedKg: document.getElementById('prodRMKg').value,
+                pieceWeightKg: document.getElementById('prodPieceWt').value, 
+                scheduleHours: document.getElementById('prodSchHrs').value,
+                jobChangeHours: document.getElementById('prodJcHrs').value, 
+                prodPlannedHours: document.getElementById('prodPlannedHrs').value,
+                speedRpm: document.getElementById('prodSpeed').value, 
+                shiftTargetQty: document.getElementById('prodTarget').value,
+                acceptedQty: document.getElementById('prodAccepted').value, 
+                rejectedQty: document.getElementById('prodRejected').value,
+                rejectionKg: document.getElementById('prodRejKg').value, 
+                rejectionReason: document.getElementById('prodRejReason').value,
+                remarks: document.getElementById('prodRemarks').value, 
+                lossMajorJC: document.getElementById('l_MajorJC').value,
+                lossMinorJC: document.getElementById('l_MinorJC').value, 
+                lossSetting: document.getElementById('l_Setting').value,
+                lossMcClean: document.getElementById('l_McClean').value, 
+                lossToolRework: document.getElementById('l_ToolRework').value,
+                lossNoTool: document.getElementById('l_NoTool').value, 
+                lossNoLoad: document.getElementById('l_NoLoad').value,
+                lossNoOperator: document.getElementById('l_NoOperator').value, 
+                lossMMnt: document.getElementById('l_MMnt').value,
+                lossEMnt: document.getElementById('l_EMnt').value, 
+                lossNoPower: document.getElementById('l_NoPower').value,
+                lossNoAirOil: document.getElementById('l_NoAirOil').value, 
+                lossNoRm: document.getElementById('l_NoRm').value,
+                lossRmLoading: document.getElementById('l_RmLoading').value, 
+                lossQaApproval: document.getElementById('l_QaApproval').value,
+                lossCoilChange: document.getElementById('l_CoilChange').value, 
+                lossNoPlan: document.getElementById('l_NoPlan').value,
+                lossNpdTeam: document.getElementById('l_NpdTeam').value, 
+                lossUnknown: document.getElementById('l_Unknown').value,
                 loggedBy: currentUser.username
             };
 
@@ -1211,9 +1199,7 @@
                 const response = await fetch(`${API_URL}/production/batch`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
                 const result = await response.json();
                 if (result.success) {
-                    showToast("✅ Full Log Saved for QC!");
-                    document.getElementById('prodMachineOther').style.display = 'none';
-                    document.getElementById('prodPartNameOther').style.display = 'none';
+                    showToast("✅ Logged! Pending PPC approval.");
                     ['prodAccepted', 'prodRejected', 'prodRejKg', 'prodRMKg', 'l_MajorJC', 'l_MinorJC', 'l_Setting', 'l_McClean', 'l_ToolRework', 'l_NoTool', 'l_NoLoad', 'l_NoOperator', 'l_MMnt', 'l_EMnt', 'l_NoPower', 'l_NoAirOil', 'l_NoRm', 'l_RmLoading', 'l_QaApproval', 'l_CoilChange', 'l_NoPlan', 'l_NpdTeam', 'l_Unknown'].forEach(id => { if (document.getElementById(id)) document.getElementById(id).value = ''; });
                     loadProductionBatches();
                 } else showToast("❌ Error: " + result.message, true);
@@ -1265,14 +1251,16 @@
                         <td>${b.lossNpdTeam || 0}</td><td>${b.lossUnknown || 0}</td><td>${b.remarks || '-'}</td>
                         <td><span style="color:#666; font-size:11px;">👤 ${b.loggedBy || '-'}</span></td>
                         ${(() => {
-                            let qcColor = '#ffc107'; // Yellow for Pending
+                            let qcColor = '#ffc107'; 
                             let textColor = '#000';
-                            if (b.qcStatus === 'APPROVED') { qcColor = '#28a745'; textColor = '#fff'; }
-                            if (b.qcStatus === 'REJECTED') { qcColor = '#dc3545'; textColor = '#fff'; }
+                            let status = b.qcStatus || 'PENDING';
+                            if (b.ppcStatus === 'REJECTED') { status = 'PPC REJ'; qcColor = '#6f42c1'; textColor='#fff'; }
+                            else if (b.qcStatus === 'APPROVED') { qcColor = '#28a745'; textColor = '#fff'; }
+                            else if (b.qcStatus === 'REJECTED') { qcColor = '#dc3545'; textColor = '#fff'; }
 
                             return `
-                                <td><span style="background:${qcColor}; color:${textColor}; padding:4px 8px; border-radius:4px; font-weight:bold; font-size:11px;">${b.qcStatus || 'PENDING'}</span></td>
-                                <td style="color:#dc3545; font-weight:500; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${b.qcRemarks || ''}">${b.qcRemarks || '-'}</td>
+                                <td><span style="background:${qcColor}; color:${textColor}; padding:4px 8px; border-radius:4px; font-weight:bold; font-size:11px;">${status}</span></td>
+                                <td style="color:#dc3545; font-weight:500; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${b.qcRemarks || b.ppcRemarks || ''}">${b.qcRemarks || b.ppcRemarks || '-'}</td>
                             `;
                         })()}
                         <td style="display: flex; gap: 5px;">
@@ -1283,7 +1271,7 @@
                     tbody.appendChild(tr);
                 });
 
-                if (count === 0) tbody.innerHTML = '<tr><td colspan="49" style="text-align: center;">No logs found for this stage.</td></tr>';
+                if (count === 0) tbody.innerHTML = '<tr><td colspan="49" style="text-align: center;">No logs found.</td></tr>';
                 applyProductionFilters();
                 calculateLiveOEE();
                 renderVisualCharts();
@@ -1329,82 +1317,62 @@
         }
 
         async function deleteProductionBatch(batchId) {
-            if (!confirm('🚨 WARNING: Are you sure you want to permanently delete this production log?')) return;
+            if (!confirm('🚨 WARNING: Are you sure you want to permanently delete this?')) return;
             try {
                 const response = await fetch(`${API_URL}/production/batch/${batchId}`, { method: 'DELETE' });
-                const result = await response.json();
-                if (result.success) { showToast("🗑️ Production log deleted!"); loadProductionBatches(); }
-                else showToast("❌ Error: " + result.message, true);
-            } catch (error) { showToast("❌ Server Error while deleting", true); }
+                if (response.ok) { showToast("🗑️ Log deleted!"); loadProductionBatches(); }
+            } catch (error) { showToast("❌ Server Error", true); }
         }
 
+        // --- Inventory Logic ---
         async function loadInventory() {
             const activeElem = document.activeElement;
-            if (activeElem && activeElem.tagName === 'INPUT' && activeElem.id.startsWith('stock-')) return;
-
+            if (activeElem && activeElem.id.startsWith('stock-')) return;
             try {
                 const response = await fetch(`${API_URL}/products`);
                 const products = await response.json();
                 const tbody = document.querySelector('#productsTable tbody');
                 tbody.innerHTML = '';
-                if (!Array.isArray(products) || products.length === 0) return tbody.innerHTML = '<tr><td colspan="10" style="text-align: center;">No finished goods found.</td></tr>';
-
+                if (!Array.isArray(products) || products.length === 0) return tbody.innerHTML = '<tr><td colspan="10" style="text-align: center;">No goods found.</td></tr>';
                 products.forEach(p => {
                     const currentStock = p.currentStock || 0;
                     const wipStock = p.wipStock || 0;
                     const isLowStock = currentStock <= 10;
                     const tr = document.createElement('tr');
                     if (isLowStock) tr.className = "low-stock";
-
                     let actionHTML = '<td class="admin-actions"></td>';
                     if (currentUser && currentUser.role === 'ADMIN') {
-                        actionHTML = `<td class="admin-actions" style="display:flex; flex-direction:column; gap:5px;">
-                            <input type="number" id="stock-${p._id}" value="${currentStock}" style="width: 70px; text-align: center; border: 1px solid #ccc; border-radius: 4px; padding: 4px; margin-bottom: 5px;">
-                            <button onclick="updateStock('${p._id}')" style="background: #28a745; color: white; border: none; padding: 5px; border-radius: 4px; cursor: pointer;">Save</button>
-                            <button onclick="deleteProduct('${p._id}')" style="background: #dc3545; color: white; border: none; padding: 5px; border-radius: 4px; cursor: pointer;">Delete</button>
+                        actionHTML = `<td class="admin-actions">
+                            <input type="number" id="stock-${p._id}" value="${currentStock}" style="width: 70px; padding: 4px;">
+                            <button onclick="updateStock('${p._id}')" style="background: #28a745; color: white; border: none; padding: 5px; border-radius: 4px;">Save</button>
                         </td>`;
                     }
-
-                    tr.innerHTML = `
-                        <td><strong>${p.productCode || 'N/A'}</strong></td><td>${p.sector || '-'}</td><td>${p.type || '-'}</td>
-                        <td>${p.grade || '-'}</td><td>${p.length ? p.length + ' mm' : '-'}</td><td>${p.af !== undefined && p.af !== null ? p.af : '-'}</td>
-                        <td>${p.weightPerPc || '0'}g</td><td style="color: #17a2b8; font-weight: bold; font-size: 1.1em;">${wipStock}</td>
-                        <td class="stock-val ${isLowStock ? 'low-stock-text' : ''}" style="color: #28a745; font-weight: bold; font-size: 1.1em;">${currentStock}</td>
-                        ${actionHTML}
-                    `;
+                    tr.innerHTML = `<td><strong>${p.productCode}</strong></td><td>${p.sector || '-'}</td><td>${p.type || '-'}</td><td>${p.grade || '-'}</td><td>${p.length || '-'} mm</td><td>${p.af || '-'}</td><td>${p.weightPerPc || '0'}g</td><td style="color: #17a2b8; font-weight: bold;">${wipStock}</td><td style="color: #28a745; font-weight: bold;">${currentStock}</td>${actionHTML}`;
                     tbody.appendChild(tr);
                 });
                 filterInventory();
-            } catch (error) { console.error("Failed to load inventory:", error); }
+            } catch (error) { }
         }
 
         async function updateStock(productId) {
             const newStock = document.getElementById(`stock-${productId}`).value;
             try {
                 const response = await fetch(`${API_URL}/inventory/${productId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ stock: Number(newStock) }) });
-                if (response.ok) { showToast('✅ Stock updated!'); loadInventory(); }
+                if (response.ok) { showToast('✅ Updated!'); loadInventory(); }
             } catch (error) { }
         }
-
-        async function deleteProduct(productId) {
-            if (!confirm('Completely remove this product?')) return;
-            try { const response = await fetch(`${API_URL}/inventory/${productId}`, { method: 'DELETE' }); if (response.ok) loadInventory(); } catch (error) { }
-        }
-
-        function openModal() { document.getElementById('addProductModal').style.display = 'flex'; }
-        function closeModal() { document.getElementById('addProductModal').style.display = 'none'; }
 
         async function submitNewProduct() {
             const productCode = document.getElementById('newProdCode').value;
-            if (!productCode) return alert("Product Code required!");
+            if (!productCode) return alert("Required!");
             const newProd = { productCode: productCode, sector: document.getElementById('newSector').value, type: document.getElementById('newType').value, grade: document.getElementById('newGrade').value, length: parseFloat(document.getElementById('newLength').value) || null, af: parseFloat(document.getElementById('newAF').value) || null, weightPerPc: parseFloat(document.getElementById('newWeight').value) || 0, currentStock: parseInt(document.getElementById('newStock').value) || 0 };
             try {
                 const response = await fetch(`${API_URL}/products`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newProd) });
-                const data = await response.json();
-                if (data.success) { showToast("✅ Added!"); closeModal(); refreshDashboard(); } else showToast("❌ Error: " + data.message, true);
+                if (response.ok) { showToast("✅ Added!"); closeModal(); refreshDashboard(); }
             } catch (error) { }
         }
 
+        // --- Other System Logic ---
         async function loadTransactions() {
             try {
                 const response = await fetch(`${API_URL}/transactions`);
@@ -1414,15 +1382,10 @@
                 transactions.forEach(tx => {
                     const txDate = new Date(tx.date);
                     const isoDate = txDate.toISOString().split('T')[0];
-                    let typeColor = '#333'; let sign = '';
-                    if (tx.type === 'INWARD' || tx.type === 'PRODUCTION' || tx.type === 'QC_APPROVAL') { typeColor = '#28a745'; sign = '+'; }
-                    if (tx.type === 'DISPATCH') { typeColor = '#dc3545'; sign = '-'; }
-
+                    let typeColor = (tx.type === 'DISPATCH') ? '#dc3545' : '#28a745';
                     const tr = document.createElement('tr');
                     tr.setAttribute('data-date', isoDate);
-                    tr.innerHTML = `<td><span class="date-text">${txDate.toLocaleDateString()}</span> <span class="time-text">${txDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span></td>
-                        <td><strong>${tx.barcode}</strong></td><td style="color: ${typeColor}; font-weight: bold;">${tx.type} <span style="font-size:11px; color:#555;">(👤 ${tx.user || 'Unknown'})</span></td>
-                        <td><strong>${sign}${tx.quantity}</strong></td><td style="color: #007bff; font-weight: bold;">${tx.resultingStock !== undefined ? tx.resultingStock : '-'}</td>`;
+                    tr.innerHTML = `<td>${txDate.toLocaleDateString()} ${txDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td><td><strong>${tx.barcode}</strong></td><td style="color: ${typeColor}; font-weight: bold;">${tx.type} (👤 ${tx.user || 'Unknown'})</td><td><strong>${tx.quantity}</strong></td><td style="color: #007bff; font-weight: bold;">${tx.resultingStock || '-'}</td>`;
                     tbody.appendChild(tr);
                 });
                 applyTxFilters();
@@ -1437,48 +1400,22 @@
                 tbody.innerHTML = '';
                 materials.forEach(m => {
                     const tr = document.createElement('tr');
-                    const isLow = m.currentStockKg < 100;
-                    if (isLow) tr.className = "low-stock";
-                    let dateStr = "N/A", timeStr = "";
-                    if (m.lastUpdate) { const dt = new Date(m.lastUpdate); dateStr = dt.toLocaleDateString(); timeStr = dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); }
-
-                    tr.innerHTML = `
-                        <td><strong>${m.materialCode}</strong></td><td>${m.materialName || 'Steel Stock'}</td>
-                        <td><strong>${m.grade || '-'}</strong></td> <td class="${isLow ? 'low-stock-text' : ''}" style="font-weight: bold; font-size: 1.1em; color: #007bff;">${m.currentStockKg} Kg</td>
-                        <td>${m.lastSupplier || '-'}</td> <td><span style="font-size: 12px; color:#555;">👤 ${m.lastUpdatedBy || '-'}</span></td>
-                        <td><span class="date-text">${dateStr}</span> <span class="time-text">${timeStr}</span></td>
-                    `;
+                    tr.innerHTML = `<td><strong>${m.materialCode}</strong></td><td>${m.materialName}</td><td>${m.grade || '-'}</td><td style="font-weight: bold; color: #007bff;">${m.currentStockKg} Kg</td><td>${m.lastSupplier || '-'}</td><td>${m.lastUpdatedBy || '-'}</td><td>${new Date(m.lastUpdate).toLocaleDateString()}</td>`;
                     tbody.appendChild(tr);
                 });
             } catch (error) { }
         }
 
-        function openReceiveModal() { document.getElementById('receiveStockModal').style.display = 'flex'; }
-        function closeReceiveModal() {
-            document.getElementById('receiveStockModal').style.display = 'none';
-            document.getElementById('rawCodeInput').value = ''; document.getElementById('rawNameInput').value = '';
-            document.getElementById('rawGradeInput').value = ''; document.getElementById('rawSupplierInput').value = '';
-            document.getElementById('rawScopeInput').value = ''; document.getElementById('rawKgInput').value = '';
-        }
-
         async function submitRawMaterial() {
             const code = document.getElementById('rawCodeInput').value.trim().toUpperCase();
-            const name = document.getElementById('rawNameInput').value.trim();
-            const grade = document.getElementById('rawGradeInput').value.trim();
-            const supplier = document.getElementById('rawSupplierInput').value.trim();
-            const scope = document.getElementById('rawScopeInput').value.trim();
-            const kg = document.getElementById('rawKgInput').value;
-
-            if (!code || !kg || isNaN(kg) || Number(kg) <= 0) return showToast("Enter valid code and amount.", true);
-
+            const addedKg = document.getElementById('rawKgInput').value;
+            if (!code || !addedKg) return showToast("Required!", true);
             try {
                 const response = await fetch(`${API_URL}/raw-materials/receive`, {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ materialCode: code, materialName: name, grade: grade, supplier: supplier, scope: scope, addedKg: Number(kg), username: currentUser.username })
+                    body: JSON.stringify({ materialCode: code, materialName: document.getElementById('rawNameInput').value, addedKg: Number(addedKg), username: currentUser.username })
                 });
-                const data = await response.json();
-                if (data.success) { showToast(`✅ Received ${kg}kg`); closeReceiveModal(); loadRawMaterials(); loadTransactions(); }
-                else showToast("❌ Error: " + data.message, true);
+                if (response.ok) { showToast(`✅ Received ${addedKg}kg`); closeReceiveModal(); loadRawMaterials(); }
             } catch (err) { }
         }
 
@@ -1489,46 +1426,103 @@
                 const tbody = document.querySelector('#poTable tbody');
                 tbody.innerHTML = '';
                 pos.forEach(po => {
-                    const isPending = po.status === 'PENDING';
-                    const actionBtn = isPending ? `<button onclick="receivePO('${po._id}')" style="background:#28a745; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-weight:bold;">📥 Mark Received</button>` : `<span style="color:#666; font-size:12px;">Received on<br>${new Date(po.receivedDate).toLocaleDateString()}</span>`;
                     const tr = document.createElement('tr');
-                    tr.innerHTML = `<td><strong>${po.poNumber}</strong><br><span style="font-size:11px; color:#666;">👤 ${po.orderedBy}</span></td><td>${po.supplierName}</td><td><strong>${po.materialCode}</strong></td><td>${po.grade || '-'}</td>
-                        <td><span style="font-size:12px; color:#555;">${po.scope || '-'}</span></td><td><strong>${po.expectedKg} Kg</strong></td><td>₹${po.totalCost.toLocaleString()}</td>
-                        <td style="color:${isPending ? '#ff9800' : '#28a745'}; font-weight:bold;">${po.status}</td><td>${actionBtn}</td>`;
+                    tr.innerHTML = `<td><strong>${po.poNumber}</strong></td><td>${po.supplierName}</td><td>${po.materialCode}</td><td>${po.grade || '-'}</td><td>${po.scope || '-'}</td><td>${po.expectedKg} Kg</td><td>₹${po.totalCost.toLocaleString()}</td><td style="font-weight:bold;">${po.status}</td><td>${po.status === 'PENDING' ? `<button onclick="receivePO('${po._id}')" style="background:#28a745; color:white; border:none; padding:4px; border-radius:4px;">📥 Mark Received</button>` : 'Received'}</td>`;
                     tbody.appendChild(tr);
                 });
-                filterPOs();
             } catch (error) { }
         }
 
-        function openPOModal() { document.getElementById('poModal').style.display = 'flex'; }
-        function closePOModal() { document.getElementById('poModal').style.display = 'none'; document.getElementById('poSupplier').value = ''; document.getElementById('poMaterialCode').value = ''; document.getElementById('poExpectedKg').value = ''; document.getElementById('poCostPerKg').value = ''; }
-
-        async function submitPO() {
-            const supplierName = document.getElementById('poSupplier').value.trim(); const materialCode = document.getElementById('poMaterialCode').value.trim(); const grade = document.getElementById('poGrade').value.trim(); const scope = document.getElementById('poScope').value.trim(); const expectedKg = document.getElementById('poExpectedKg').value; const costPerKg = document.getElementById('poCostPerKg').value;
-            if (!supplierName || !materialCode || !expectedKg || !costPerKg) return showToast("Fill all required fields", true);
-            try {
-                const res = await fetch(`${API_URL}/purchase-orders`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ supplierName, materialCode, grade, scope, expectedKg, costPerKg, username: currentUser.username }) });
-                const data = await res.json();
-                if (res.ok && data.success) { showToast("✅ PO Generated!"); closePOModal(); refreshDashboard(); } else showToast("❌ Error", true);
-            } catch (e) { }
-        }
-
         async function receivePO(poId) {
-            if (!confirm("Are you sure the truck arrived?")) return;
+            if (!confirm("Confirm arrival?")) return;
             try {
                 const res = await fetch(`${API_URL}/purchase-orders/${poId}/receive`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: currentUser.username }) });
-                if (res.ok) { showToast("📦 Stock added to Raw Materials!"); refreshDashboard(); }
+                if (res.ok) { showToast("📦 Received!"); refreshDashboard(); }
             } catch (e) { }
         }
 
+        // --- QC System Logic ---
+        let currentQCView = 'PENDING';
+        async function loadPendingQC() {
+            try {
+                const res = await fetch(`${API_URL}/qc/pending`);
+                pendingQCBatches = await res.json();
+                const tbody = document.querySelector('#qcTable tbody');
+                tbody.innerHTML = '';
+                if (pendingQCBatches.length === 0) { tbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">No pending batches.</td></tr>'; return; }
+                pendingQCBatches.forEach(b => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `<td>${new Date(b.date).toLocaleDateString()}</td><td>${b.stage}</td><td>${b.machineName}</td><td><strong>${b.partNo}</strong></td><td>${b.acceptedQty}</td><td>${b.rejectedQty}</td><td>👤 ${b.loggedBy}</td><td><button onclick="openQCInspection('${b._id}')" style="background:#007bff; color:white; border:none; padding:6px; border-radius:4px; cursor:pointer;">🔍 Inspect</button></td>`;
+                    tbody.appendChild(tr);
+                });
+            } catch (err) { }
+        }
+
+        async function loadQCHistory() {
+            try {
+                const res = await fetch(`${API_URL}/qc/history`);
+                qcHistoryBatches = await res.json();
+                const tbody = document.querySelector('#qcTable tbody');
+                tbody.innerHTML = '';
+                qcHistoryBatches.forEach(b => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `<td>${new Date(b.qcDate || b.date).toLocaleDateString()}</td><td>${b.stage}</td><td>${b.machineName}</td><td>${b.partNo}</td><td>${b.acceptedQty}</td><td><span style="background:${b.qcStatus === 'APPROVED' ? '#28a745' : '#dc3545'}; color:white; padding:4px 8px; border-radius:12px;">${b.qcStatus}</span></td><td>👤 ${b.qcBy}</td><td><button onclick="openQCInspection('${b._id}')" style="background:#6c757d; color:white; border:none; padding:6px; border-radius:4px;">👁️ View</button></td>`;
+                    tbody.appendChild(tr);
+                });
+            } catch (err) { }
+        }
+
+        function openQCInspection(batchId) {
+            let b = pendingQCBatches.find(x => x._id === batchId) || qcHistoryBatches.find(x => x._id === batchId);
+            if (!b) return;
+            document.getElementById('qcModalContent').innerHTML = `
+                <div style="background: white; padding: 15px; border-radius: 8px;">
+                    <h4 style="color:#ff9800; border-bottom: 1px solid #eee;">1. Batch Details</h4>
+                    <p><strong>Stage:</strong> ${b.stage}</p><p><strong>Machine:</strong> ${b.machineName}</p><p><strong>Operator:</strong> ${b.operator}</p>
+                </div>
+                <div style="background: white; padding: 15px; border-radius: 8px;">
+                    <h4 style="color:#007bff; border-bottom: 1px solid #eee;">2. Part Details</h4>
+                    <p><strong>Part No:</strong> ${b.partNo}</p><p><strong>Part Name:</strong> ${b.partName}</p><p><strong>Size:</strong> ${b.partSize} / ${b.length}mm</p>
+                </div>
+                <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; border-left: 5px solid #007bff;">
+                    <h4 style="color:#007bff;">3. Physical Measurements</h4>
+                    <p><strong>Length:</strong> ${b.measuredLength || 'N/A'} mm</p><p><strong>A/F:</strong> ${b.measuredAF || 'N/A'}</p>
+                </div>
+                <div style="background: #e8f5e9; padding: 20px; border-radius: 8px; grid-column: span 3; border-left: 5px solid #28a745;">
+                    <div style="display: flex; justify-content: space-around; font-size: 22px;">
+                        <div><strong>✅ Acc:</strong> ${b.acceptedQty}</div><div><strong>❌ Rej:</strong> ${b.rejectedQty}</div>
+                    </div>
+                </div>`;
+            const footer = document.querySelector('#qcModal div[style*="border-top"]');
+            footer.style.display = b.qcStatus && b.qcStatus !== 'PENDING' ? 'none' : 'flex';
+            document.getElementById('btnQcApprove').onclick = () => submitQC(b._id, 'APPROVED');
+            document.getElementById('btnQcReject').onclick = () => submitQC(b._id, 'REJECTED');
+            document.getElementById('qcModal').style.display = 'flex';
+        }
+
+        async function submitQC(batchId, status) {
+            const remarks = document.getElementById('qcRemarksInput').value.trim();
+            if (status === 'REJECTED' && !remarks) return alert("Remarks mandatory for rejection!");
+            try {
+                const res = await fetch(`${API_URL}/qc/approve/${batchId}`, {
+                    method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ qcBy: currentUser.username, qcRemarks: remarks, status: status })
+                });
+                if (res.ok) { alert(`Batch ${status}!`); document.getElementById('qcModal').style.display = 'none'; refreshDashboard(); }
+            } catch (err) { }
+        }
+
+        function toggleQCView(view) {
+            currentQCView = view;
+            if (view === 'PENDING') loadPendingQC(); else loadQCHistory();
+            document.getElementById('qcHistorySearchSection').style.display = (view === 'HISTORY') ? 'flex' : 'none';
+        }
+
+        // --- Utility Filters ---
         function filterInventory() {
             const filter = document.getElementById('searchInput').value.toUpperCase();
             const tr = document.getElementById('productsTable').getElementsByTagName("tr");
-            for (let i = 1; i < tr.length; i++) {
-                if (tr[i].cells.length === 1) continue;
-                tr[i].style.display = (tr[i].textContent || tr[i].innerText).toUpperCase().indexOf(filter) > -1 ? "" : "none";
-            }
+            for (let i = 1; i < tr.length; i++) tr[i].style.display = tr[i].textContent.toUpperCase().includes(filter) ? "" : "none";
         }
 
         function applyTxFilters() {
@@ -1536,554 +1530,63 @@
             const date = document.getElementById("dateSearchInput").value;
             const tr = document.getElementById("transactionsTable").getElementsByTagName("tr");
             for (let i = 1; i < tr.length; i++) {
-                if (tr[i].cells.length === 1) continue;
-                let itemCode = tr[i].getElementsByTagName("td")[1].textContent.toUpperCase();
-                let rowDate = tr[i].getAttribute("data-date");
-                let matchesText = itemCode.includes(text);
-                let matchesDate = !date || rowDate === date;
-                tr[i].style.display = (matchesText && matchesDate) ? "" : "none";
+                if (tr[i].cells.length < 2) continue;
+                let matchText = tr[i].textContent.toUpperCase().includes(text);
+                let matchDate = !date || tr[i].getAttribute("data-date") === date;
+                tr[i].style.display = (matchText && matchDate) ? "" : "none";
             }
-        }
-
-        function filterPOs() {
-            const searchText = document.getElementById('searchPOInput').value.toUpperCase();
-            const tr = document.getElementById('poTable').getElementsByTagName("tr");
-            for (let i = 1; i < tr.length; i++) {
-                if (tr[i].cells.length === 1) continue;
-                tr[i].style.display = tr[i].textContent.toUpperCase().includes(searchText) ? "" : "none";
-            }
-        }
-
-        function exportTableToCSV(tableId, filename) {
-            let csv = []; let rows = document.querySelectorAll(`#${tableId} tr`);
-            for (let i = 0; i < rows.length; i++) {
-                if (rows[i].style.display === "none") continue;
-                let row = [], cols = rows[i].querySelectorAll("td:not(.admin-actions), th:not(.admin-actions)");
-                for (let j = 0; j < cols.length; j++) row.push('"' + cols[j].innerText.replace(/(\r\n|\n|\r)/gm, " ").trim() + '"');
-                csv.push(row.join(","));
-            }
-            let downloadLink = document.createElement("a"); downloadLink.download = filename;
-            downloadLink.href = window.URL.createObjectURL(new Blob([csv.join("\n")], { type: "text/csv" }));
-            downloadLink.style.display = "none"; document.body.appendChild(downloadLink); downloadLink.click();
         }
 
         function applyProductionFilters() {
             const filterDate = document.getElementById('filterProdDate').value;
             const filterShift = document.getElementById('filterProdShift').value.toUpperCase();
             const filterGlobal = document.getElementById('filterProdGlobal').value.toUpperCase();
-            const activeStageTab = currentLogFilter;
-
-            const table = document.getElementById("productionTable");
-            const rows = table.getElementsByTagName("tr");
-
-            for (let i = 1; i < rows.length; i++) {
+            const rows = document.getElementById("productionTable").getElementsByTagName("tbody")[0].getElementsByTagName("tr");
+            for (let i = 0; i < rows.length; i++) {
                 if (rows[i].cells.length < 5) continue;
-                const rowDate = rows[i].getAttribute('data-date');
-                const rowStage = rows[i].getAttribute('data-stage');
-                const rowShift = rows[i].cells[1].textContent.toUpperCase();
-                const rowFullText = rows[i].textContent.toUpperCase();
-
-                let matchStage = (activeStageTab === 'ALL' || rowStage === activeStageTab);
-                let matchDate = (filterDate === '' || rowDate === filterDate);
-                let matchShift = (filterShift === '' || rowShift === filterShift);
-                let matchGlobal = (filterGlobal === '' || rowFullText.includes(filterGlobal));
-
-                if (matchStage && matchDate && matchShift && matchGlobal) {
-                    rows[i].style.display = "";
-                } else {
-                    rows[i].style.display = "none";
-                }
+                let matchDate = !filterDate || rows[i].getAttribute('data-date') === filterDate;
+                let matchShift = !filterShift || rows[i].cells[1].textContent.toUpperCase() === filterShift;
+                let matchGlobal = !filterGlobal || rows[i].textContent.toUpperCase().includes(filterGlobal);
+                let matchStage = currentLogFilter === 'ALL' || rows[i].getAttribute('data-stage') === currentLogFilter;
+                rows[i].style.display = (matchDate && matchShift && matchGlobal && matchStage) ? "" : "none";
             }
             calculateVisibleTotals();
         }
 
         function calculateVisibleTotals() {
-            try {
-                const table = document.getElementById("productionTable");
-                const headerCells = table.rows[0].cells;
-                let accIdx = 23, rejIdx = 24, rejKgIdx = 25;
-
-                for (let i = 0; i < headerCells.length; i++) {
-                    const headerText = headerCells[i].textContent.trim().toUpperCase();
-                    if (headerText.includes("ACC QTY")) accIdx = i;
-                    if (headerText.includes("REJ QTY")) rejIdx = i;
-                    if (headerText.includes("REJ KG")) rejKgIdx = i;
-                }
-
-                const rows = table.getElementsByTagName("tbody")[0].getElementsByTagName("tr");
-                let totalAcc = 0; let totalRej = 0; let totalRejKg = 0;
-
-                for (let i = 0; i < rows.length; i++) {
-                    if (rows[i].style.display !== "none" && rows[i].cells.length > Math.max(accIdx, rejIdx, rejKgIdx)) {
-                        totalAcc += parseInt(rows[i].cells[accIdx].textContent) || 0;
-                        totalRej += parseInt(rows[i].cells[rejIdx].textContent) || 0;
-                        totalRejKg += parseFloat(rows[i].cells[rejKgIdx].textContent) || 0;
-                    }
-                }
-
-                if (document.getElementById("totalAccQty")) {
-                    document.getElementById("totalAccQty").textContent = totalAcc;
-                    document.getElementById("totalRejQty").textContent = totalRej;
-                    document.getElementById("totalRejKg").textContent = totalRejKg.toFixed(2);
-                }
-            } catch (error) { console.error("🚨 Error calculating totals: ", error); }
-        }
-
-        function filterLogs(stage) {
-            currentLogFilter = stage;
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.getElementById('tab-' + stage).classList.add('active');
-            applyProductionFilters();
-        }
-
-        function clearProductionFilters() {
-            document.getElementById('filterProdDate').value = '';
-            document.getElementById('filterProdShift').value = '';
-            document.getElementById('filterProdGlobal').value = '';
-            applyProductionFilters();
-        }
-
-        async function loadActiveWorkOrders() {
-            try {
-                const res = await fetch(`${API_URL}/work-orders/active`);
-                activeWorkOrders = await res.json();
-                const woDropdown = document.getElementById('prodWO');
-                woDropdown.innerHTML = '<option value="">- Select Active WO -</option>';
-                woDropdown.innerHTML += '<option value="OTHER">Manual Entry...</option>';
-
-                activeWorkOrders.forEach(wo => {
-                    const progress = Math.round((wo.producedQty / wo.targetQty) * 100);
-                    woDropdown.innerHTML += `<option value="${wo.woNumber}">${wo.woNumber} (${wo.partNo}) - ${progress}% Done</option>`;
-                });
-            } catch (e) { console.error("Failed to load WOs"); }
-        }
-
-        function autoFillFromWO() {
-            const selectedWO = document.getElementById('prodWO').value;
-            toggleOtherInput('prodWO', 'prodWOOther');
-            if (selectedWO !== 'OTHER' && selectedWO !== '') {
-                const woData = activeWorkOrders.find(w => w.woNumber === selectedWO);
-                if (woData) {
-                    document.getElementById('prodPartNo').value = woData.partNo || '';
-                    document.getElementById('prodTarget').value = (woData.targetQty - woData.producedQty) || '';
-                    const partNameDropdown = document.getElementById('prodPartName');
-                    if (woData.partName) {
-                        let found = false;
-                        for (let i = 0; i < partNameDropdown.options.length; i++) {
-                            if (partNameDropdown.options[i].value === woData.partName) {
-                                partNameDropdown.selectedIndex = i; found = true; break;
-                            }
-                        }
-                        if (!found) {
-                            partNameDropdown.value = 'OTHER';
-                            toggleOtherInput('prodPartName', 'prodPartNameOther');
-                            document.getElementById('prodPartNameOther').value = woData.partName;
-                        }
-                    }
-                    showToast("ℹ️ Form auto-filled from Work Order");
-                }
-            }
-        }
-
-        function calculateLiveOEE() {
-            try {
-                const todayStr = new Date().toISOString().split('T')[0];
-                const todayBatches = globalBatches.filter(b => {
-                    if (!b.date) return false; return b.date.startsWith(todayStr);
-                });
-
-                if (todayBatches.length === 0) {
-                    document.getElementById('oeeTotal').textContent = "0%";
-                    document.getElementById('oeeAvail').textContent = "0%";
-                    document.getElementById('oeePerf').textContent = "0%";
-                    document.getElementById('oeeQual').textContent = "0%";
-                    return;
-                }
-
-                let totalPlannedHours = 0; let totalDowntimeMins = 0; let totalTargetQty = 0;
-                let totalAcceptedQty = 0; let totalRejectedQty = 0;
-
-                todayBatches.forEach(b => {
-                    totalPlannedHours += (Number(b.prodPlannedHours) || 0);
-                    totalTargetQty += (Number(b.shiftTargetQty) || 0);
-                    totalAcceptedQty += (Number(b.acceptedQty) || 0);
-                    totalRejectedQty += (Number(b.rejectedQty) || 0);
-                    totalDowntimeMins += (Number(b.lossMajorJC) || 0) + (Number(b.lossMinorJC) || 0) +
-                        (Number(b.lossSetting) || 0) + (Number(b.lossMcClean) || 0) +
-                        (Number(b.lossToolRework) || 0) + (Number(b.lossNoTool) || 0) +
-                        (Number(b.lossNoLoad) || 0) + (Number(b.lossNoOperator) || 0) +
-                        (Number(b.lossMMnt) || 0) + (Number(b.lossEMnt) || 0) +
-                        (Number(b.lossNoPower) || 0) + (Number(b.lossNoAirOil) || 0) +
-                        (Number(b.lossNoRm) || 0) + (Number(b.lossRmLoading) || 0) +
-                        (Number(b.lossQaApproval) || 0) + (Number(b.lossCoilChange) || 0) +
-                        (Number(b.lossNoPlan) || 0) + (Number(b.lossNpdTeam) || 0) +
-                        (Number(b.lossUnknown) || 0);
-                });
-
-                let availability = 0; let downtimeHours = totalDowntimeMins / 60;
-                if (totalPlannedHours > 0) {
-                    let operatingHours = Math.max(totalPlannedHours - downtimeHours, 0);
-                    availability = operatingHours / totalPlannedHours;
-                }
-
-                let performance = 0; let totalProduced = totalAcceptedQty + totalRejectedQty;
-                if (totalTargetQty > 0) {
-                    performance = totalProduced / totalTargetQty;
-                    if (performance > 1) performance = 1;
-                }
-
-                let quality = 0;
-                if (totalProduced > 0) quality = totalAcceptedQty / totalProduced;
-
-                let oee = availability * performance * quality;
-
-                document.getElementById('oeeTotal').textContent = (oee * 100).toFixed(1) + "%";
-                document.getElementById('oeeAvail').textContent = (availability * 100).toFixed(1) + "%";
-                document.getElementById('oeeDowntimeText').textContent = downtimeHours.toFixed(1) + " hrs down";
-                document.getElementById('oeePerf').textContent = (performance * 100).toFixed(1) + "%";
-                document.getElementById('oeeSpeedText').textContent = totalProduced + " / " + totalTargetQty;
-                document.getElementById('oeeQual').textContent = (quality * 100).toFixed(1) + "%";
-                document.getElementById('oeeRejText').textContent = totalRejectedQty + " rejected";
-            } catch (error) { console.error("OEE Math Error:", error); }
-        }
-
-        let machineChartInstance = null; let qualityChartInstance = null;
-
-        function renderVisualCharts() {
-            try {
-                const todayStr = new Date().toISOString().split('T')[0];
-                const todayBatches = globalBatches.filter(b => b.date && b.date.startsWith(todayStr));
-                const machineData = {}; let totalAcc = 0; let totalRej = 0;
-
-                todayBatches.forEach(b => {
-                    const macName = b.machineName || 'Unknown Machine';
-                    machineData[macName] = (machineData[macName] || 0) + (Number(b.acceptedQty) || 0);
-                    totalAcc += (Number(b.acceptedQty) || 0);
-                    totalRej += (Number(b.rejectedQty) || 0);
-                });
-
-                const ctxMachine = document.getElementById('machineChart').getContext('2d');
-                if (machineChartInstance) machineChartInstance.destroy();
-                machineChartInstance = new Chart(ctxMachine, {
-                    type: 'bar',
-                    data: {
-                        labels: Object.keys(machineData).length > 0 ? Object.keys(machineData) : ['No Data'],
-                        datasets: [{ label: 'Accepted Parts', data: Object.keys(machineData).length > 0 ? Object.values(machineData) : [0], backgroundColor: '#007bff', borderRadius: 4 }]
-                    },
-                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
-                });
-
-                const ctxQuality = document.getElementById('qualityChart').getContext('2d');
-                if (qualityChartInstance) qualityChartInstance.destroy();
-                qualityChartInstance = new Chart(ctxQuality, {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['Accepted', 'Rejected'],
-                        datasets: [{ data: (totalAcc === 0 && totalRej === 0) ? [1, 0] : [totalAcc, totalRej], backgroundColor: ['#28a745', '#dc3545'], borderWidth: 0 }]
-                    },
-                    options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'bottom' } } }
-                });
-            } catch (error) { console.error("Chart Rendering Error:", error); }
-        }
-
-        function generateDailyPDF() {
-            showToast("⏳ Generating PDF Report... Please wait.");
-            const productionCard = document.getElementById('productionCard');
-            const formSection = productionCard.children[2];
-            const tabSection = document.querySelector('.tab-container');
-            const filterSection = document.querySelector('.search-container[style*="border-left"]');
-            const buttonsSection = document.getElementById('exportButtonsSection');
-
-            if (formSection) formSection.style.display = 'none';
-            if (tabSection) tabSection.style.display = 'none';
-            if (filterSection) filterSection.style.display = 'none';
-            if (buttonsSection) buttonsSection.style.display = 'none';
-
-            const today = new Date().toISOString().split('T')[0];
-            const opt = {
-                margin: 0.3, filename: `Daily_Production_Report_${today}.pdf`,
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true },
-                jsPDF: { unit: 'in', format: 'a3', orientation: 'landscape' }
-            };
-
-            html2pdf().set(opt).from(productionCard).save().then(() => {
-                if (formSection) formSection.style.display = '';
-                if (tabSection) tabSection.style.display = 'flex';
-                if (filterSection) filterSection.style.display = '';
-                if (buttonsSection) buttonsSection.style.display = 'flex';
-                showToast("✅ PDF Report Downloaded Successfully!");
-            }).catch(err => {
-                console.error("PDF Error:", err);
-                showToast("❌ Error generating PDF");
-                if (formSection) formSection.style.display = '';
-                if (tabSection) tabSection.style.display = 'flex';
-                if (filterSection) filterSection.style.display = '';
-                if (buttonsSection) buttonsSection.style.display = 'flex';
-            });
-        }
-
-        let pendingQCBatches = [];
-
-        async function loadPendingQC() {
-            try {
-                const res = await fetch(`${API_URL}/qc/pending`);
-                pendingQCBatches = await res.json();
-                const tbody = document.querySelector('#qcTable tbody');
-                tbody.innerHTML = '';
-                if (pendingQCBatches.length === 0) {
-                    return tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px; color: #28a745; font-weight: bold;">All clear! No batches pending approval.</td></tr>';
-                }
-
-                pendingQCBatches.forEach(b => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td>${new Date(b.date).toLocaleDateString()}</td>
-                        <td><span style="background:#17a2b8; color:white; padding:3px 6px; border-radius:3px; font-size:11px;">${b.stage}</span></td>
-                        <td><strong>${b.machineName || '-'}</strong></td>
-                        <td><strong>${b.partNo || '-'}</strong></td>
-                        <td style="color: green; font-weight: bold;">${b.acceptedQty || 0}</td>
-                        <td style="color: red; font-weight: bold;">${b.rejectedQty || 0}</td>
-                        <td><span style="font-size:12px; color:#555;">👤 ${b.loggedBy || '-'}</span></td>
-                        <td>
-                            <button onclick="openQCInspection('${b._id}')" style="background:#007bff; color:white; border:none; padding:6px 15px; border-radius:4px; font-weight:bold; cursor:pointer;">🔍 Full Inspect</button>
-                        </td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-            } catch (err) { console.error("Error loading QC data:", err); }
-        }
-
-        let qcHistoryBatches = []; // NEW: Global memory for history
-
-        // IMPROVED: Unified Inspection Modal for Pending AND History
-        function openQCInspection(batchId) {  
-            // 1. Find the data in either Pending or History buckets
-            let b = pendingQCBatches.find(x => x._id === batchId);
-            let isHistoryMode = false;
-
-            if (!b) {
-                b = qcHistoryBatches.find(x => x._id === batchId);
-                isHistoryMode = true;
-            }
-
-            if (!b) {
-                console.error("Batch not found in any memory bucket.");
-                return showToast("Error: Data not found", true);
-            }
-
-            // 2. Build the HTML Content (Same as before, but with History awareness)
-            document.getElementById('qcModalContent').innerHTML = `
-        <div style="background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-            <h4 style="margin-top:0; color:#ff9800; border-bottom: 1px solid #eee; padding-bottom: 5px;">1. Shift & Machine</h4>
-            <table style="width:100%; text-align:left;">
-                <tr><td style="color:#666;">Stage:</td><td><strong>${b.stage}</strong></td></tr>
-                <tr><td style="color:#666;">Date:</td><td>${new Date(b.date).toLocaleDateString()}</td></tr>
-                <tr><td style="color:#666;">Machine:</td><td><strong>${b.machineName || '-'}</strong></td></tr>
-                <tr><td style="color:#666;">Operator:</td><td>${b.operator || '-'}</td></tr>
-            </table>
-        </div>
-        
-        <div style="background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-            <h4 style="margin-top:0; color:#007bff; border-bottom: 1px solid #eee; padding-bottom: 5px;">2. Part Details</h4>
-            <table style="width:100%; text-align:left;">
-                <tr><td style="color:#666;">Part No:</td><td><strong>${b.partNo || '-'}</strong></td></tr>
-                <tr><td style="color:#666;">Part Name:</td><td>${b.partName || '-'}</td></tr>
-                <tr><td style="color:#666;">Size / L:</td><td>${b.partSize || '-'} / ${b.length || 0}mm</td></tr>
-            </table>
-        </div>
-
-        <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border-left: 5px solid #007bff;">
-            <h4 style="margin-top:0; color:#007bff;">3. Physical Measurements</h4>
-            <p><strong>Length:</strong> ${b.measuredLength || 'N/A'} mm</p>
-            <p><strong>A/F:</strong> ${b.measuredAF || 'N/A'}</p>
-            <p><strong>Thread Gauge:</strong> ${b.threadGauge || 'N/A'}</p>
-        </div>
-
-        <div style="background: #e8f5e9; padding: 20px; border-radius: 8px; grid-column: span 3; border-left: 5px solid #28a745;">
-            <h4 style="margin-top:0; color:#28a745; text-align:center;">4. Output Verification</h4>
-            <div style="display: flex; justify-content: space-around; font-size: 22px; background: white; padding: 10px; border-radius: 8px;">
-                <div><strong>✅ Acc:</strong> ${b.acceptedQty || 0}</div>
-                <div><strong>❌ Rej:</strong> ${b.rejectedQty || 0}</div>
-            </div>
-            <p style="margin-top:10px;"><strong>QC Remarks:</strong> ${b.qcRemarks || 'None'}</p>
-        </div>
-    `;
-
-            // 3. Control Button Visibility
-            const footer = document.querySelector('#qcModal div[style*="border-top"]');
-            if (isHistoryMode) {
-                footer.style.display = 'none'; // Hide Approve/Reject buttons for history
-            } else {
-                footer.style.display = 'flex'; // Show Approve/Reject for pending
-                document.getElementById('btnQcApprove').onclick = () => submitQC(batchId, 'APPROVED');
-                document.getElementById('btnQcReject').onclick = () => submitQC(batchId, 'REJECTED');
-            }
-
-            // 4. Finally, Open the Modal
-            document.getElementById('qcModal').style.display = 'flex';
-        }
-
-        // 3. Submit the Official Verdict to the Server
-        async function submitQC(batchId, status) {
-            const remarks = document.getElementById('qcRemarksInput').value.trim();
-
-            const qcLength = document.getElementById('qcLength').value;
-            const qcAF = document.getElementById('qcAF').value;
-            const qcThread = document.getElementById('qcThread').value
-
-            // NEW: Grab the overridden numbers from the QC Inspector
-            const overrideAcc = document.getElementById('qcOverrideAcc').value;
-            const overrideRej = document.getElementById('qcOverrideRej').value;
-            const overrideRejKg = document.getElementById('qcOverrideRejKg').value;
-
-            if (status === 'REJECTED' && !remarks) {
-                return alert("QC Remarks are mandatory when rejecting a batch!");
-            }
-
-            if (!confirm(`Are you sure you want to officially mark this batch as ${status}?`)) return;
-
-            try {
-                const qcUsername = (typeof currentUser !== 'undefined' && currentUser.username) ? currentUser.username : 'QC Inspector';
-
-                // NEW: Send the updated quantities in the payload
-                const payload = {
-                    qcBy: qcUsername,
-                    qcRemarks: remarks,
-                    status: status,
-                    accQty: Number(overrideAcc),
-                    rejQty: Number(overrideRej),
-                    rejKg: Number(overrideRejKg),
-                    measuredLength: qcLength ? Number(qcLength) : null,
-                    measuredAF: qcAF || null,
-                    threadGauge: qcThread
-                };
-
-                const res = await fetch(`${API_URL}/qc/approve/${batchId}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                const data = await res.json();
-                if (data.success) {
-                    alert(`✅ Batch ${status} successfully!`);
-                    document.getElementById('qcModal').style.display = 'none';
-                    document.getElementById('qcRemarksInput').value = '';
-
-                    // Refresh the tables
-                    loadPendingQC();
-                    if (typeof loadInventory === 'function') loadInventory();
-                    if (typeof loadProductionBatches === 'function') loadProductionBatches();
-                } else {
-                    alert("Error: " + data.error);
-                }
-            } catch (err) { alert("Failed to connect to server."); }
-        }
-
-
-        let currentQCView = 'PENDING'; // Global state
-
-        async function toggleQCView(view) {
-            currentQCView = view;
-
-            // 1. UI Button Styling
-            const btnPending = document.getElementById('btnShowPending');
-            const btnHistory = document.getElementById('btnShowHistory');
-
-            if (view === 'PENDING') {
-                loadPendingQC();
-            } else {
-                loadQCHistory();
-            }
-            updateQCSearchVisibility()
-        }
-
-        // Fetch and display Approved/Rejected batches
-        async function loadQCHistory() {
-            try {
-                const res = await fetch(`${API_URL}/qc/history`);
-                const history = await res.json();
-                qcHistoryBatches = history;
-
-                const tbody = document.querySelector('#qcTable tbody');
-                tbody.innerHTML = '';
-
-                if (history.length === 0) {
-                    return tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px;">No history records found.</td></tr>';
-                }
-
-                history.forEach(b => {
-                    const statusColor = b.qcStatus === 'APPROVED' ? '#28a745' : '#dc3545';
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                <td>${new Date(b.qcDate || b.date).toLocaleDateString()}</td>
-                <td><span style="background:#17a2b8; color:white; padding:3px 6px; border-radius:3px; font-size:11px;">${b.stage}</span></td>
-                <td><strong>${b.machineName || '-'}</strong></td>
-                <td><strong>${b.partNo || '-'}</strong></td>
-                <td style="color: green; font-weight: bold;">${b.acceptedQty || 0}</td>
-                <td><span style="background:${statusColor}; color:white; padding:3px 8px; border-radius:12px; font-weight:bold; font-size:10px;">${b.qcStatus}</span></td>
-                <td>👤 ${b.qcBy || '-'}</td>
-                <td>
-                    <button onclick="openQCHistoryDetails('${b._id}')" style="background:#6c757d; color:white; border:none; padding:6px 15px; border-radius:4px; font-weight:bold; cursor:pointer;">👁️ View Data</button>
-                </td>
-            `;
-                    tbody.appendChild(tr);
-                });
-            } catch (err) { console.error("Error loading QC History:", err); }
-        }
-
-        // Simple logic to show data without the "Approve/Reject" buttons for history items
-        function openQCHistoryDetails(batchId) {
-            // Search in the history memory instead of pending memory
-            const b = qcHistoryBatches.find(x => x._id === batchId);
-            if (!b) return console.error("Batch not found in history memory");
-
-            // Reuse the main inspection builder
-            openQCInspection(batchId, true);
-        }
-
-
-
-
-        function updateQCSearchVisibility() {
-            const searchSection = document.getElementById('qcHistorySearchSection');
-            searchSection.style.display = (currentQCView === 'HISTORY') ? 'flex' : 'none';
-        }
-
-        // 2. The Filter Engine for QC History
-        function applyQCHistoryFilters() {
-            const filterDate = document.getElementById('filterQCHistoryDate').value; // YYYY-MM-DD
-            const filterText = document.getElementById('filterQCHistoryGlobal').value.toUpperCase();
-
-            const table = document.getElementById("qcTable");
-            const rows = table.getElementsByTagName("tbody")[0].getElementsByTagName("tr");
-
+            const rows = document.getElementById("productionTable").getElementsByTagName("tbody")[0].getElementsByTagName("tr");
+            let tAcc = 0, tRej = 0, tRejKg = 0;
             for (let i = 0; i < rows.length; i++) {
-                // Skip if it's the "No records" row
-                if (rows[i].cells.length < 5) continue;
-
-                // Date is in the first column: we need to parse it back to ISO for comparison
-                // or easier: just look at the text content
-                const rowDateText = rows[i].cells[0].textContent; // e.g. "3/20/2026"
-                const rowFullText = rows[i].textContent.toUpperCase();
-
-                // Convert row date to YYYY-MM-DD for strict comparison
-                const d = new Date(rowDateText);
-                const rowISODate = d.toISOString().split('T')[0];
-
-                let matchDate = (filterDate === '' || rowISODate === filterDate);
-                let matchGlobal = (filterText === '' || rowFullText.includes(filterText));
-
-                rows[i].style.display = (matchDate && matchGlobal) ? "" : "none";
+                if (rows[i].style.display !== "none" && rows[i].cells.length > 25) {
+                    tAcc += parseInt(rows[i].cells[23].textContent) || 0;
+                    tRej += parseInt(rows[i].cells[24].textContent) || 0;
+                    tRejKg += parseFloat(rows[i].cells[25].textContent) || 0;
+                }
             }
+            document.getElementById("totalAccQty").textContent = tAcc;
+            document.getElementById("totalRejQty").textContent = tRej;
+            document.getElementById("totalRejKg").textContent = tRejKg.toFixed(2);
         }
 
-        // 3. Clear Filters
-        function clearQCHistoryFilters() {
-            document.getElementById('filterQCHistoryDate').value = '';
-            document.getElementById('filterQCHistoryGlobal').value = '';
-            applyQCHistoryFilters();
+        function exportTableToCSV(tableId, filename) {
+            let csv = [];
+            let rows = document.querySelectorAll(`#${tableId} tr`);
+            for (let i = 0; i < rows.length; i++) {
+                if (rows[i].style.display === "none") continue;
+                let row = [], cols = rows[i].querySelectorAll("td:not(.admin-actions), th:not(.admin-actions)");
+                for (let j = 0; j < cols.length; j++) row.push('"' + cols[j].innerText.trim() + '"');
+                csv.push(row.join(","));
+            }
+            let link = document.createElement("a");
+            link.href = window.URL.createObjectURL(new Blob([csv.join("\n")], { type: "text/csv" }));
+            link.download = filename;
+            link.click();
+        }
+
+        function filterPOs() {
+            const txt = document.getElementById('searchPOInput').value.toUpperCase();
+            const tr = document.getElementById('poTable').getElementsByTagName("tr");
+            for (let i = 1; i < tr.length; i++) tr[i].style.display = tr[i].textContent.toUpperCase().includes(txt) ? "" : "none";
         }
     </script>
 </body>

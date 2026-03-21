@@ -39,6 +39,7 @@ mongoose.connect(process.env.MONGO_URI)
 const DASHBOARD_USERS = {
     "admin": { pass: "admin123", role: "ADMIN" },
     "buyer": { pass: "buy123", role: "PURCHASE" },
+    "ppc": { pass: "ppc123", role: "PPC" },
     "maker": { pass: "make123", role: "PRODUCTION" },
     "seller": { pass: "sell123", role: "SALES" },
     "qc": { pass: "qc123", role: "QC" }
@@ -48,6 +49,53 @@ const WORKER_USERS = {
     "worker1": { pass: "work123", role: "PRODUCTION" },
     "worker2": { pass: "work456", role: "PRODUCTION" }
 };
+
+
+// PPC APPROVAL & ROUTING ENGINE
+app.put('/api/ppc/verify/:id', async (req, res) => {
+    try {
+        const { status, remarks, nextRoute, username } = req.body;
+        const batch = await ProductionBatch.findById(req.params.id);
+
+        batch.ppcStatus = status;
+        batch.ppcRemarks = remarks;
+        batch.ppcBy = username;
+        batch.ppcDate = new Date();
+
+        if (status === 'APPROVED') {
+            // PPC decides the next process
+            batch.nextProcessRoute = nextRoute; 
+        }
+
+        await batch.save();
+        res.json({ success: true, message: `Batch ${status} by PPC` });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// UPDATED QC APPROVAL: Now only adds to stock IF PPC approved first
+app.put('/api/qc/approve/:id', async (req, res) => {
+    try {
+        const batch = await ProductionBatch.findById(req.params.id);
+        if (batch.ppcStatus !== 'APPROVED') {
+            return res.status(400).json({ error: "PPC Approval required before QC can inspect." });
+        }
+
+        batch.qcStatus = req.body.status;
+        batch.qcBy = req.body.qcBy;
+        batch.qcDate = new Date();
+        
+        // If it's the FINAL STAGE (SEC_OP), add to Ready Stock
+        if (batch.stage === 'SEC_OP' && req.body.status === 'APPROVED') {
+            const product = await Product.findOne({ barcode: batch.partNo });
+            if (product) {
+                product.currentStock += batch.acceptedQty;
+                await product.save();
+            }
+        }
+        await batch.save();
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
 
 app.post('/api/login', (req, res) => {
     const username = req.body.username ? req.body.username.toLowerCase().trim() : '';
@@ -536,5 +584,24 @@ app.get('/api/qc/history', async (req, res) => {
         }).sort({ qcDate: -1 }).limit(100);
         res.json(history);
     } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+//pc approvals
+app.put('/api/ppc/verify/:id', async (req, res) => {
+    const { status, remarks, nextRoute, username } = req.body;
+    try {
+        const batch = await ProductionBatch.findById(req.params.id);
+        batch.ppcStatus = status; // APPROVED or REJECTED
+        batch.ppcRemarks = remarks;
+        batch.ppcBy = username;
+
+        if (status === 'APPROVED') {
+            // If Forging is approved, it automatically queues for QC
+            // If it's the final stage, we set the route
+            if (nextRoute) batch.nextProcessRoute = nextRoute;
+        }
+        await batch.save();
+        res.json({ success: true, message: "PPC decision recorded" });
+    } catch (err) { res.status(500).send(err.message); }
 });
 app.listen(process.env.PORT || 5000, () => console.log(`ERP Server Running on port ${process.env.PORT || 5000}`));
