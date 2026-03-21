@@ -885,23 +885,32 @@
                     <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #6f42c1;">
                         <h4 style="margin-top:0; color:#6f42c1;">➕ Add New Customer / Lead</h4>
                         <div class="form-grid-multi">
-                            <input type="text" id="crmName" class="prod-input" placeholder="* Company / Client Name">
-                            <select id="crmType" class="prod-input">
-                                <option value="DEALER">Dealer</option>
-                                <option value="RETAILER">Retailer</option>
-                                <option value="BULK_BUYER">Bulk Buyer</option>
-                            </select>
+                            <input type="text" id="crmName" class="prod-input" placeholder="* Company / Client Name" style="border-color: #6f42c1; font-weight: bold;">
+                            <input type="text" id="crmSector" class="prod-input" placeholder="Sector (e.g., AUTO SECTOR)">
+                            <input type="text" id="crmTransport" class="prod-input" placeholder="Transport Mode (e.g., VRL)">
                             <input type="text" id="crmPhone" class="prod-input" placeholder="Phone Number">
                             <input type="text" id="crmEmail" class="prod-input" placeholder="Email Address">
-                            <button onclick="submitCustomer()" class="add-btn" style="background: #6f42c1;">Save Customer</button>
+                            <input type="text" id="crmArea" class="prod-input" placeholder="Area / City">
+                            <input type="text" id="crmState" class="prod-input" placeholder="State">
+                            <input type="text" id="crmZone" class="prod-input" placeholder="Zone (e.g., SOUTH-1)">
+                            <input type="text" id="crmPinCode" class="prod-input" placeholder="Pin Code">
+                            <input type="text" id="crmAddress" class="prod-input" placeholder="Full Street Address" style="grid-column: span 2;">
+                            <button onclick="submitCustomer()" class="add-btn" style="background: #6f42c1; grid-column: 1 / -1; font-size: 16px; padding: 10px;">💾 Save Customer Details</button>
                         </div>
                     </div>
                     <div class="table-wrapper">
                         <table id="crmTable">
                             <thead style="background-color: #6f42c1; color: white;">
-                                <tr><th>Customer Name</th><th>Type</th><th>Contact Info</th><th>Added On</th><th>Action</th></tr>
+                                <tr>
+                                    <th>Customer Name</th>
+                                    <th>Sector & Zone</th>
+                                    <th>Contact Info</th>
+                                    <th>Location</th>
+                                    <th>Transport</th>
+                                    <th>Action</th>
+                                </tr>
                             </thead>
-                            <tbody><tr><td colspan="5" style="text-align:center;">Loading Customers...</td></tr></tbody>
+                            <tbody><tr><td colspan="6" style="text-align:center;">Loading Customers...</td></tr></tbody>
                         </table>
                     </div>
                 </div>
@@ -2148,13 +2157,14 @@ async function loadProductionBatches() {
                 soSelect.innerHTML = '<option value="">- Select Customer -</option>';
 
                 customers.forEach(c => {
-                    // Populate Table
+                    // Populate Table with your specific CSV fields
                     tbody.innerHTML += `<tr>
                         <td><strong>${c.name}</strong></td>
-                        <td><span style="background:#17a2b8; color:white; padding:3px 6px; border-radius:3px; font-size:11px;">${c.type}</span></td>
+                        <td><strong>${c.sector || '-'}</strong><br><span style="font-size:11px; color:#666;">Zone: ${c.zone || '-'}</span></td>
                         <td>📞 ${c.phone || '-'} <br> ✉️ ${c.email || '-'}</td>
-                        <td>${new Date(c.createdAt).toLocaleDateString()}</td>
-                        <td><button style="background:#007bff; color:white; border:none; padding:4px 8px; border-radius:4px;">Add Note</button></td>
+                        <td>${c.area || '-'}, ${c.state || '-'}<br><span style="font-size:11px; color:#666;">PIN: ${c.pinCode || '-'}</span></td>
+                        <td><span style="background:#17a2b8; color:white; padding:3px 6px; border-radius:3px; font-size:11px; font-weight:bold;">${c.transportMode || 'N/A'}</span></td>
+                        <td><button style="background:#007bff; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">Add Note</button></td>
                     </tr>`;
                     
                     // Populate Dropdown for Sales Orders
@@ -2171,13 +2181,21 @@ async function loadProductionBatches() {
                 const res = await fetch(`${API_URL}/customers`, {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        name, type: document.getElementById('crmType').value,
-                        phone: document.getElementById('crmPhone').value, email: document.getElementById('crmEmail').value
+                        name: name,
+                        sector: document.getElementById('crmSector').value,
+                        transportMode: document.getElementById('crmTransport').value,
+                        phone: document.getElementById('crmPhone').value,
+                        email: document.getElementById('crmEmail').value,
+                        address: document.getElementById('crmAddress').value,
+                        area: document.getElementById('crmArea').value,
+                        state: document.getElementById('crmState').value,
+                        zone: document.getElementById('crmZone').value,
+                        pinCode: document.getElementById('crmPinCode').value
                     })
                 });
                 if (res.ok) {
-                    showToast("👥 Customer Added!");
-                    ['crmName', 'crmPhone', 'crmEmail'].forEach(id => document.getElementById(id).value = '');
+                    showToast("👥 Customer Added Successfully!");
+                    ['crmName', 'crmSector', 'crmTransport', 'crmPhone', 'crmEmail', 'crmAddress', 'crmArea', 'crmState', 'crmZone', 'crmPinCode'].forEach(id => document.getElementById(id).value = '');
                     loadCustomers();
                 }
             } catch (err) { showToast("❌ Error saving customer", true); }

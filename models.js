@@ -140,14 +140,19 @@ const workOrderSchema = new mongoose.Schema({
 // --- CUSTOMER (CRM) SCHEMA ---
 const CustomerSchema = new mongoose.Schema({
     name: { type: String, required: true },
-    type: { type: String, enum: ['DEALER', 'RETAILER', 'BULK_BUYER', 'OTHER'], default: 'RETAILER' },
-    contactPerson: { type: String },
+    sector: { type: String },         // e.g., AUTO SECTOR, OEM SECTOR
+    transportMode: { type: String },  // e.g., VRL(TOPAY)
     phone: { type: String },
     email: { type: String },
     address: { type: String },
+    area: { type: String },           // e.g., BANGALORE, DHANABAD
+    pinCode: { type: String },
+    state: { type: String },
+    zone: { type: String },           // e.g., SOUTH-1, WEST-II
+    type: { type: String, enum: ['DEALER', 'RETAILER', 'BULK_BUYER', 'OTHER'], default: 'RETAILER' },
     interactions: [{
         date: { type: Date, default: Date.now },
-        type: { type: String }, // CALL, EMAIL, MEETING
+        type: { type: String }, 
         notes: { type: String }
     }],
     createdAt: { type: Date, default: Date.now }
