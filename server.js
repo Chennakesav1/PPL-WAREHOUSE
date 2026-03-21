@@ -127,6 +127,9 @@ app.put('/api/qc/approve/:id', async (req, res) => {
         const batch = await ProductionBatch.findById(req.params.id);
         if (!batch) return res.status(404).json({ error: "Batch not found" });
         if (batch.ppcStatus !== 'APPROVED') return res.status(400).json({ error: "PPC Approval required before QC." });
+        if (batch.qcStatus === 'APPROVED' || batch.qcStatus === 'REJECTED') {
+            return res.status(400).json({ error: "This batch has already been processed by QC! Stock cannot be added twice." });
+        }
 
         const incomingStatus = req.body.status || 'APPROVED'; 
         

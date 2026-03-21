@@ -1834,7 +1834,7 @@ async function loadProductionBatches() {
                 const rowShift = rows[i].cells[1].textContent.toUpperCase();
                 const rowFullText = rows[i].textContent.toUpperCase();
 
-                let matchStage = (activeStageTab === 'ALL' || rowStage === activeStageTab);
+                let matchStage = (activeStageTab === 'ALL' || activeStageTab === 'COMPLETED' || rowStage === activeStageTab);
                 let matchDate = (filterDate === '' || rowDate === filterDate);
                 let matchShift = (filterShift === '' || rowShift === filterShift);
                 let matchGlobal = (filterGlobal === '' || rowFullText.includes(filterGlobal));
