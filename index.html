@@ -1857,7 +1857,7 @@
         let qcHistoryBatches = []; // NEW: Global memory for history
 
         // IMPROVED: Unified Inspection Modal for Pending AND History
-        function openQCInspection(batchId) {
+        function openQCInspection(batchId) {  
             // 1. Find the data in either Pending or History buckets
             let b = pendingQCBatches.find(x => x._id === batchId);
             let isHistoryMode = false;
