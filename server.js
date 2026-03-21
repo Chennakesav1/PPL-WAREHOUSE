@@ -508,58 +508,47 @@ app.delete('/api/inventory/:id', async (req, res) => {
         res.status(500).json({ message: "Server error deleting item", details: error.message });
     }
 });
+
+
+
 // ==========================================
 // 7. QUALITY CONTROL (QC) GATEKEEPER
 // ==========================================
 
-// FIX: Only fetch batches that have been APPROVED by PPC first
+// Get all batches waiting for inspection
 app.get('/api/qc/pending', async (req, res) => {
     try {
-        const pendingBatches = await ProductionBatch.find({ 
-            qcStatus: 'PENDING',
-            ppcStatus: 'APPROVED' // This prevents the QC deadlock
-        }).sort({ date: -1 });
+        const pendingBatches = await ProductionBatch.find({ qcStatus: 'PENDING' }).sort({ date: -1 });
         res.json(pendingBatches);
-    } catch (err) { 
-        res.status(500).json({ error: "Server error fetching QC pending list" }); 
-    }
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// FIX: Robust QC Approval with Inventory Sync
+// QC Approves OR Rejects the batch (WITH QUANTITY OVERRIDES)
 app.put('/api/qc/approve/:id', async (req, res) => {
     try {
         const batch = await ProductionBatch.findById(req.params.id);
-        
-        if (!batch) return res.status(404).json({ error: "Batch not found" });
-        if (batch.qcStatus !== 'PENDING') return res.status(400).json({ error: "Batch already processed" });
-        if (batch.ppcStatus !== 'APPROVED') return res.status(400).json({ error: "PPC Approval required first" });
+        if (!batch || batch.qcStatus !== 'PENDING') {
+            return res.status(400).json({ error: "Batch already processed or not found" });
+        }
 
         const incomingStatus = req.body.status || 'APPROVED'; 
         
-        // Use QC verified numbers, fallback to original if not provided
-        const finalAccQty = req.body.accQty !== undefined ? Number(req.body.accQty) : batch.acceptedQty;
-        const finalRejQty = req.body.rejQty !== undefined ? Number(req.body.rejQty) : batch.rejectedQty;
+        // NEW: Get the overridden numbers from the QC (fallback to worker's original numbers if empty)
+        const finalAccQty = req.body.accQty !== undefined ? req.body.accQty : batch.acceptedQty;
+        const finalRejQty = req.body.rejQty !== undefined ? req.body.rejQty : batch.rejectedQty;
+        const finalRejKg  = req.body.rejKg !== undefined ? req.body.rejKg : batch.rejectionKg;
 
+        // ONLY add to inventory if the QC specifically hit APPROVED
         if (incomingStatus === 'APPROVED') {
-            let lookupCode = (batch.partNo || '').trim();
+            let lookupCode = batch.partNo || batch.productBarcode;
             if (lookupCode) {
-                let product = await Product.findOne({ barcode: lookupCode });
+                let product = await Product.findOne({ barcode: lookupCode.trim() });
                 if (product) {
                     if (batch.stage === 'FORGING') {
-                        // Forging moves to Work-In-Progress
-                        product.wipStock = (product.wipStock || 0) + finalAccQty; 
+                        product.wipStock += finalAccQty; // Forging -> WIP using QC's Number!
                     } else {
-                        // Rolling/Sec_Op moves to Finished Goods
-                        product.currentStock = (product.currentStock || 0) + finalAccQty; 
-                        
-                        // Log the inventory movement
-                        await new Transaction({ 
-                            barcode: product.barcode, 
-                            type: 'QC_APPROVAL', 
-                            quantity: finalAccQty, 
-                            resultingStock: product.currentStock, 
-                            user: req.body.qcBy || 'QC System' 
-                        }).save();
+                        product.currentStock += finalAccQty; // Rolling -> Ready Stock using QC's Number!
+                        await new Transaction({ barcode: product.barcode, type: 'QC_APPROVAL', quantity: finalAccQty, resultingStock: product.currentStock, user: req.body.qcBy }).save();
                     }
                     product.lastUpdated = new Date();
                     await product.save();
@@ -567,51 +556,34 @@ app.put('/api/qc/approve/:id', async (req, res) => {
             }
         }
 
-        // Finalize Batch Record
+        // UPDATE the production batch with the QC's final verified numbers
         batch.acceptedQty = finalAccQty;
         batch.rejectedQty = finalRejQty;
+        batch.rejectionKg = finalRejKg;
+
+        batch.measuredLength = req.body.measuredLength;
+        batch.measuredAF = req.body.measuredAF;
+        batch.threadGauge = req.body.threadGauge;
+        
         batch.qcStatus = incomingStatus;
         batch.qcBy = req.body.qcBy || 'QC Inspector';
         batch.qcDate = new Date();
         batch.qcRemarks = req.body.qcRemarks || '';
-        
-        // Save physical measurements if provided
-        if(req.body.measuredLength) batch.measuredLength = req.body.measuredLength;
-        if(req.body.measuredAF) batch.measuredAF = req.body.measuredAF;
-        if(req.body.threadGauge) batch.threadGauge = req.body.threadGauge;
-
         await batch.save();
-        res.json({ success: true, message: `Batch ${incomingStatus}` });
+
+        res.json({ success: true, message: `QC ${incomingStatus} Successfully!` });
     } catch (err) { 
-        console.error("QC Approval Error:", err);
-        res.status(500).json({ error: "Internal Server Error during QC approval" }); 
+        res.status(500).json({ error: err.message }); 
     }
 });
-
-// FIX: Production Submission (Remove immediate stock addition to prevent duplicates)
-app.post('/api/production/batch', async (req, res) => {
+// Get QC History (last 100 approved/rejected batches)
+app.get('/api/qc/history', async (req, res) => {
     try {
-        // Material deduction still happens at Forging entry to lock raw stock
-        if (req.body.stage === 'FORGING' && req.body.rawMaterialCode) {
-            const material = await RawMaterial.findOne({ materialCode: req.body.rawMaterialCode.trim().toUpperCase() });
-            if (material) {
-                material.currentStockKg -= (Number(req.body.rawMaterialConsumedKg) || 0);
-                await material.save();
-            }
-        }
-
-        const newBatch = new ProductionBatch({
-            ...req.body,
-            qcStatus: 'PENDING',
-            ppcStatus: 'PENDING', // Every new batch starts at PPC
-            date: req.body.date ? new Date(req.body.date) : new Date()
-        });
-
-        await newBatch.save();
-        res.json({ success: true, message: "Production logged. Pending PPC Approval." });
-    } catch (err) {
-        res.status(500).json({ error: "Production Log Error", details: err.message });
-    }
+        const history = await ProductionBatch.find({ 
+            qcStatus: { $in: ['APPROVED', 'REJECTED'] } 
+        }).sort({ qcDate: -1 }).limit(100);
+        res.json(history);
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 //pc approvals

@@ -1029,8 +1029,6 @@
         }
 
         function unlockDashboard(userData) {
-
-
             currentUser = userData;
             document.getElementById('loginOverlay').style.display = 'none';
             document.getElementById('mainDashboard').style.display = 'block';
@@ -1055,15 +1053,6 @@
             document.getElementById('nav-po').style.display = 'none';
 
             let styleTag = document.getElementById('adminStyleOverride');
-
-            // Inside unlockDashboard(userData)
-            if (currentUser.role === 'QC') {
-                document.getElementById('nav-qc').style.display = 'block';
-                document.getElementById('nav-inv').style.display = 'block';
-                // Ensure QC starts on the Pending view
-                currentQCView = 'PENDING';
-                switchMainTab('qcCard', 'nav-qc');
-            }
             if (!styleTag) { styleTag = document.createElement('style'); styleTag.id = 'adminStyleOverride'; document.head.appendChild(styleTag); }
 
             // 2. EXACT ROLE LOGIC & NAVIGATION
@@ -1275,8 +1264,6 @@
                         <td>${b.lossQaApproval || 0}</td><td>${b.lossCoilChange || 0}</td><td>${b.lossNoPlan || 0}</td>
                         <td>${b.lossNpdTeam || 0}</td><td>${b.lossUnknown || 0}</td><td>${b.remarks || '-'}</td>
                         <td><span style="color:#666; font-size:11px;">👤 ${b.loggedBy || '-'}</span></td>
-
-                        
                         ${(() => {
                             let qcColor = '#ffc107'; // Yellow for Pending
                             let textColor = '#000';

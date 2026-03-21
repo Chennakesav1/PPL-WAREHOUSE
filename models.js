@@ -112,6 +112,8 @@ const productionBatchSchema = new mongoose.Schema({
     qcRemarks: String,
 
 
+
+
 // --- PPC GATEKEEPER ---
     ppcStatus: { type: String, enum: ['PENDING', 'APPROVED', 'REJECTED'], default: 'PENDING' },
     ppcBy: String,
