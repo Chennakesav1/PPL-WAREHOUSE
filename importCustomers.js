@@ -21,7 +21,7 @@ async function importData() {
         // 2. Read and Parse the CSV File
         console.log("⏳ Reading CSV File...");
         fs.createReadStream(CSV_FILE_PATH)
-            .pipe(csv())
+            .pipe(csv({ skipLines: 1 }))
             .on('data', (row) => {
                 // Skip completely empty rows
                 if (!row['CUSTOMERS NAME']) return;
