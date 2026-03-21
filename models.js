@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 
+// --- PRODUCT / INVENTORY SCHEMA ---
 const productSchema = new mongoose.Schema({
     barcode: { type: String, required: true, unique: true },
     productCode: String,
@@ -11,6 +12,7 @@ const productSchema = new mongoose.Schema({
     weightPerPc: Number,
     currentStock: { type: Number, default: 0 },
     wipStock: { type: Number, default: 0 },
+    reservedStock: { type: Number, default: 0 }, // <-- Added for Sales Orders
     lastUpdated: { type: Date, default: Date.now }
 });
 
@@ -27,9 +29,8 @@ const rawMaterialSchema = new mongoose.Schema({
     materialCode: { type: String, required: true, unique: true },
     materialName: String,
     grade: String,  
-    scope: String,         // NEW: Links to PO Grade
-    lastSupplier: String,  
-      // NEW: Links to PO Supplier
+    scope: String,         // Links to PO Grade
+    lastSupplier: String,  // Links to PO Supplier
     currentStockKg: { type: Number, default: 0 },
     lastUpdatedBy: String,
     lastUpdate: { type: Date, default: Date.now }
@@ -82,7 +83,6 @@ const productionBatchSchema = new mongoose.Schema({
     rejectionReason: String,
     remarks: String,
     
-    
     // Downtime Losses
     lossMajorJC: { type: Number, default: 0 },
     lossMinorJC: { type: Number, default: 0 },
@@ -104,33 +104,28 @@ const productionBatchSchema = new mongoose.Schema({
     lossNpdTeam: { type: Number, default: 0 },
     lossUnknown: { type: Number, default: 0 },
     
-    
     loggedBy: String,
+    
     qcStatus: { type: String, enum: ['PENDING', 'APPROVED', 'REJECTED'], default: 'PENDING' },
     qcBy: String,
     qcDate: Date,
     qcRemarks: String,
 
-
-
-
-// --- PPC GATEKEEPER ---
+    // --- PPC GATEKEEPER ---
     ppcStatus: { type: String, enum: ['PENDING', 'APPROVED', 'REJECTED'], default: 'PENDING' },
     ppcBy: String,
     ppcRemarks: String,
     ppcDate: Date,
     isReadyForNextStage: { type: Boolean, default: false },
     nextProcessRoute: { type: String },
-
     
     // Measurements (Filled by QC)
     measuredLength: Number,
     measuredAF: String,
     threadGauge: { type: String, enum: ['PASS', 'FAIL', 'N/A'], default: 'N/A' }
-
 });
 
-// NEW: Work Order Schema
+// Work Order Schema
 const workOrderSchema = new mongoose.Schema({
     woNumber: { type: String, required: true, unique: true },
     partNo: String,
@@ -141,7 +136,6 @@ const workOrderSchema = new mongoose.Schema({
     createdBy: String,
     createdAt: { type: Date, default: Date.now }
 });
-
 
 // --- CUSTOMER (CRM) SCHEMA ---
 const CustomerSchema = new mongoose.Schema({
@@ -179,19 +173,28 @@ const SalesOrderSchema = new mongoose.Schema({
     createdBy: { type: String }
 });
 
+// ==============================================================
+// COMPILE ALL MODELS ONCE
+// ==============================================================
+const Product = mongoose.model('Product', productSchema);
+const Transaction = mongoose.model('Transaction', transactionSchema);
+const RawMaterial = mongoose.model('RawMaterial', rawMaterialSchema);
+const PurchaseOrder = mongoose.model('PurchaseOrder', purchaseOrderSchema);
+const ProductionBatch = mongoose.model('ProductionBatch', productionBatchSchema);
+const WorkOrder = mongoose.model('WorkOrder', workOrderSchema);
 const Customer = mongoose.model('Customer', CustomerSchema);
 const SalesOrder = mongoose.model('SalesOrder', SalesOrderSchema);
 
-// Update your exports to include them!
-module.exports = { Product, Transaction, RawMaterial, PurchaseOrder, ProductionBatch, WorkOrder, Customer, SalesOrder };
-
-
-module.exports = {
-    
-    Product: mongoose.model('Product', productSchema),
-    Transaction: mongoose.model('Transaction', transactionSchema),
-    RawMaterial: mongoose.model('RawMaterial', rawMaterialSchema),
-    PurchaseOrder: mongoose.model('PurchaseOrder', purchaseOrderSchema),
-    ProductionBatch: mongoose.model('ProductionBatch', productionBatchSchema),
-    WorkOrder: mongoose.model('WorkOrder', workOrderSchema) // <-- ADD THIS
+// ==============================================================
+// EXPORT THEM CLEANLY IN ONE SINGLE STATEMENT
+// ==============================================================
+module.exports = { 
+    Product, 
+    Transaction, 
+    RawMaterial, 
+    PurchaseOrder, 
+    ProductionBatch, 
+    WorkOrder, 
+    Customer, 
+    SalesOrder 
 };
