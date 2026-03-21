@@ -626,6 +626,7 @@
                     <button class="tab-btn" id="tab-ROLLING" onclick="filterLogs('ROLLING')">Rolling</button>
                     <button class="tab-btn" id="tab-HEAT_TREAT" onclick="filterLogs('HEAT_TREAT')">Heat Treat</button>
                     <button class="tab-btn" id="tab-POLISHING" onclick="filterLogs('POLISHING')">Polishing</button>
+                    <button class="tab-btn" id="tab-COMPLETED" onclick="filterLogs('COMPLETED')" style="margin-left: 20px; border-left: 2px solid #ccc; color: #28a745;">✅ Completed Logs</button>
                 </div>
 
                 <div class="search-container"
@@ -1212,7 +1213,18 @@
                 let count = 0;
 
                 batches.forEach(b => {
-                    if (currentLogFilter !== 'ALL' && b.stage !== currentLogFilter) return;
+                    // 1. Determine if the batch is 100% finished
+                    const isFinished = b.nextProcessRoute === 'READY_STOCK' && b.qcStatus === 'APPROVED';
+
+                    // 2. New Routing Logic for the Tabs
+                    if (currentLogFilter === 'COMPLETED') {
+                        if (!isFinished) return; // ONLY show finished items in the Completed Tab
+                    } else if (currentLogFilter === 'ALL') {
+                        if (isFinished) return;  // HIDE finished items from the Active Floor
+                    } else {
+                        if (b.stage !== currentLogFilter || isFinished) return; // HIDE finished items from specific stages
+                    }
+                    
                     count++;
 
                     let ppcBadge = `<span style="background:#6c757d; color:white; padding:3px 6px; border-radius:3px; font-size:11px;">PENDING</span>`;
@@ -1237,7 +1249,7 @@
 
                     tr.innerHTML = `
                         <td><strong>${displayDate}</strong></td><td>${b.shift || '-'}</td>
-                        <td><span style="background:${stageColor}; color:white; padding:3px 6px; border-radius:3px; font-weight:bold; font-size:11px;">${b.stage}</span></td>
+                        <td><span style="background:${stageColor}; color:${b.nextProcessRoute === 'READY_STOCK' && b.qcStatus !== 'APPROVED' ? '#000' : 'white'}; padding:3px 6px; border-radius:3px; font-weight:bold; font-size:11px;">${stageText}</span></td>
                         <td><strong>${b.machineName || '-'}</strong></td><td>${b.operator || '-'}</td><td>${b.operation || '-'}</td>
                         <td>${b.workOrderNo || '-'}</td><td><strong>${b.partNo || '-'}</strong></td><td>${b.partName || '-'}</td>
                         
@@ -1286,18 +1298,34 @@
                             `<button onclick="openPPCModal('${b._id}')" style="background:#6f42c1; color:white; border:none; padding:5px; border-radius:4px; cursor:pointer; font-weight:bold; font-size: 11px; width: 100%;">Assign Route</button>` : ''}
                             
                             ${(() => {
-                                // 1. Checks if the route is READY_STOCK
-                                const isFinished = b.nextProcessRoute === 'READY_STOCK';
-                                
-                                // 2. THIS IS THE LINE! It decides if the button should be locked.
-                                const isDisabled = b.qcStatus !== 'APPROVED' || isFinished;
-                                
-                                // 3. Changes the text and color based on if it's finished
-                                const btnText = isFinished ? '✅ Finished' : '⏭️ Next Stage';
-                                const btnColor = isFinished ? '#28a745' : '#007bff';
-                                
-                                return `<button onclick="autoFillNextStage('${b._id}')" style="background:${btnColor}; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-weight:bold; flex: 1; ${isDisabled ? 'opacity:0.5; cursor:not-allowed;' : ''}" ${isDisabled ? 'disabled' : ''}>${btnText}</button>`;
-                            })()}
+                            // 1. Checks if the route is READY_STOCK
+                            const isFinished = b.nextProcessRoute === 'READY_STOCK';
+
+                            // 2. THIS IS THE LINE! It decides if the button should be locked.
+                            const isDisabled = b.qcStatus !== 'APPROVED' || isFinished;
+
+                            // 3. Stage & Date Formatting
+                            let stageText = b.stage;
+                            let stageColor = b.stage === 'FORGING' ? '#ff9800' : (b.stage === 'ROLLING' ? '#17a2b8' : '#28a745');
+
+                            // NEW LOGIC: Override the Stage name if it is heading to Ready Stock
+                            if (b.nextProcessRoute === 'READY_STOCK') {
+                                if (b.qcStatus === 'APPROVED') {
+                                    stageText = '📦 IN INVENTORY';
+                                    stageColor = '#28a745'; // Solid Green
+                                } else {
+                                    stageText = '⏳ AWAITING QC';
+                                    stageColor = '#ffc107'; // Warning Yellow
+                                    textColor = '#000';
+                                }
+                            }
+
+                            const rawDate = new Date(b.date);
+                            const hiddenDateTag = rawDate.toISOString().split('T')[0];
+                            const displayDate = rawDate.toLocaleDateString();
+
+                            return `<button onclick="autoFillNextStage('${b._id}')" style="background:${btnColor}; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-weight:bold; flex: 1; ${isDisabled ? 'opacity:0.5; cursor:not-allowed;' : ''}" ${isDisabled ? 'disabled' : ''}>${btnText}</button>`;
+                        })()}
                             
                             <button class="admin-actions" onclick="deleteProductionBatch('${b._id}')" style="background:#dc3545; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-weight:bold;">🗑️</button>
                         </td>
@@ -1866,11 +1894,13 @@
             } catch (error) { console.error("Error calculating totals: ", error); }
         }
 
-        function filterLogs(stage) {
+       function filterLogs(stage) {
             currentLogFilter = stage;
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             document.getElementById('tab-' + stage).classList.add('active');
-            applyProductionFilters();
+            
+            // Rebuilds the table to pull items in or out of the Completed archive
+            loadProductionBatches(); 
         }
 
         function clearProductionFilters() {
@@ -2010,9 +2040,9 @@
         async function loadActiveWorkOrders() {
             try {
                 const res = await fetch(`${API_URL}/work-orders/active`);
-                if (!res.ok) return; 
+                if (!res.ok) return;
                 activeWorkOrders = await res.json();
-                
+
                 const woDropdown = document.getElementById('prodWO');
                 woDropdown.innerHTML = '<option value="">- Select Active WO -</option><option value="OTHER">Manual Entry...</option>';
 
@@ -2020,17 +2050,17 @@
                     const progress = wo.targetQty ? Math.round((wo.producedQty / wo.targetQty) * 100) : 0;
                     woDropdown.innerHTML += `<option value="${wo.woNumber}">${wo.woNumber} (${wo.partNo}) - ${progress}% Done</option>`;
                 });
-            } catch (e) { 
-                console.error("Failed to load WOs", e); 
+            } catch (e) {
+                console.error("Failed to load WOs", e);
             }
         }
 
         function autoFillFromWO() {
             const selectedWO = document.getElementById('prodWO').value;
-            
+
             // This line makes the "Manual Entry" box appear!
             toggleOtherInput('prodWO', 'prodWOOther');
-            
+
             if (selectedWO !== 'OTHER' && selectedWO !== '') {
                 const woData = activeWorkOrders.find(w => w.woNumber === selectedWO);
                 if (woData) {
