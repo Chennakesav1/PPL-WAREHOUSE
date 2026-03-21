@@ -142,19 +142,30 @@ app.put('/api/qc/approve/:id', async (req, res) => {
                     product = new Product({ barcode: lookupCode.trim(), productCode: lookupCode.trim(), currentStock: 0, wipStock: 0 });
                 }
 
-                // ROUTING LOGIC based on Stage
-                // ROUTING LOGIC based on Stage OR PPC Route
-                if (batch.stage === 'POLISHING' || batch.stage === 'SEC_OP' || batch.nextProcessRoute === 'READY_STOCK') {
-                    // Final Stage -> Move to Ready Stock
+                // 🚨 THE CRITICAL INVENTORY ROUTING LOGIC 🚨
+                // If PPC assigned READY_STOCK, or it's the final stage, move it to Inventory!
+                if (batch.nextProcessRoute === 'READY_STOCK' || batch.stage === 'POLISHING' || batch.stage === 'SEC_OP') {
+                    
+                    // 1. Add to Finished Goods
                     product.currentStock += finalAccQty;
-                    // Deduct from WIP since it finished
+                    
+                    // 2. Remove from WIP (Floor)
                     product.wipStock = Math.max((product.wipStock || 0) - (finalAccQty + finalRejQty), 0);
-                    await new Transaction({ barcode: product.barcode, type: 'QC_APPROVAL', quantity: finalAccQty, resultingStock: product.currentStock, user: req.body.qcBy }).save();
+                    
+                    // 3. Log the transaction in the Movements tab
+                    await new Transaction({ 
+                        barcode: product.barcode, 
+                        type: 'QC_APPROVAL', 
+                        quantity: finalAccQty, 
+                        resultingStock: product.currentStock, 
+                        user: req.body.qcBy || 'QC Inspector' 
+                    }).save();
+                    
                 } else if (batch.stage === 'FORGING') {
-                    // Stage 1 -> Add to WIP
+                    // Stage 1 -> Raw Material becomes WIP
                     product.wipStock = (product.wipStock || 0) + finalAccQty;
                 } else {
-                    // Intermediate stages (Rolling, Heat Treat) -> Stays in WIP, just deduct rejects
+                    // Intermediate stages -> Stays in WIP, just deduct the rejects
                     product.wipStock = Math.max((product.wipStock || 0) - finalRejQty, 0);
                 }
                 
@@ -176,9 +187,10 @@ app.put('/api/qc/approve/:id', async (req, res) => {
         await batch.save();
 
         res.json({ success: true, message: `QC ${incomingStatus} Successfully!` });
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    } catch (err) { 
+        res.status(500).json({ error: err.message }); 
+    }
 });
-
 // ==========================================
 // 4. PRODUCTION DEPT
 // ==========================================
