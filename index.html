@@ -1201,8 +1201,7 @@
                 } else showToast("❌ Error: " + result.message, true);
             } catch (err) { showToast("❌ Server Error", true); }
         }
-
-        async function loadProductionBatches() {
+async function loadProductionBatches() {
             try {
                 const response = await fetch(`${API_URL}/production/batches`);
                 const batches = await response.json();
@@ -1218,15 +1217,16 @@
 
                     // 2. New Routing Logic for the Tabs
                     if (currentLogFilter === 'COMPLETED') {
-                        if (!isFinished) return; // ONLY show finished items in the Completed Tab
+                        if (!isFinished) return; // ONLY show finished items here
                     } else if (currentLogFilter === 'ALL') {
-                        if (isFinished) return;  // HIDE finished items from the Active Floor
+                        if (isFinished) return;  // HIDE finished items from Active Floor
                     } else {
-                        if (b.stage !== currentLogFilter || isFinished) return; // HIDE finished items from specific stages
+                        if (b.stage !== currentLogFilter || isFinished) return; // Hide finished from stage tabs
                     }
                     
                     count++;
 
+                    // 3. PPC & Routing Badges
                     let ppcBadge = `<span style="background:#6c757d; color:white; padding:3px 6px; border-radius:3px; font-size:11px;">PENDING</span>`;
                     if (b.ppcStatus === 'APPROVED') ppcBadge = `<span style="background:#28a745; color:white; padding:3px 6px; border-radius:3px; font-size:11px;">✅ READY</span>`;
                     if (b.ppcStatus === 'REJECTED') ppcBadge = `<span style="background:#dc3545; color:white; padding:3px 6px; border-radius:3px; font-size:11px;">❌ HOLD</span>`;
@@ -1234,7 +1234,22 @@
                     let routeDisplay = b.nextProcessRoute || 'TBD';
                     let routeColor = (b.ppcStatus === 'APPROVED') ? '#6f42c1' : '#dee2e6';
 
+                    // 4. Dynamic Stage Badge (Awaiting QC vs In Inventory)
+                    let stageText = b.stage;
                     let stageColor = b.stage === 'FORGING' ? '#ff9800' : (b.stage === 'ROLLING' ? '#17a2b8' : '#28a745');
+                    let stageTextColor = 'white';
+
+                    if (b.nextProcessRoute === 'READY_STOCK') {
+                        if (b.qcStatus === 'APPROVED') {
+                            stageText = '📦 IN INVENTORY';
+                            stageColor = '#28a745'; 
+                        } else {
+                            stageText = '⏳ AWAITING QC';
+                            stageColor = '#ffc107'; 
+                            stageTextColor = '#000';
+                        }
+                    }
+
                     const rawDate = new Date(b.date);
                     const hiddenDateTag = rawDate.toISOString().split('T')[0];
                     const displayDate = rawDate.toLocaleDateString();
@@ -1242,14 +1257,15 @@
                     const tr = document.createElement('tr');
                     tr.setAttribute('data-date', hiddenDateTag);
                     tr.setAttribute('data-stage', b.stage);
-
+                    
                     if (b.ppcStatus === 'APPROVED' && b.qcStatus === 'APPROVED') {
                         tr.style.borderLeft = "5px solid #28a745";
                     }
 
+                    // 5. Build the massive row
                     tr.innerHTML = `
                         <td><strong>${displayDate}</strong></td><td>${b.shift || '-'}</td>
-                        <td><span style="background:${stageColor}; color:${b.nextProcessRoute === 'READY_STOCK' && b.qcStatus !== 'APPROVED' ? '#000' : 'white'}; padding:3px 6px; border-radius:3px; font-weight:bold; font-size:11px;">${stageText}</span></td>
+                        <td><span style="background:${stageColor}; color:${stageTextColor}; padding:3px 6px; border-radius:3px; font-weight:bold; font-size:11px;">${stageText}</span></td>
                         <td><strong>${b.machineName || '-'}</strong></td><td>${b.operator || '-'}</td><td>${b.operation || '-'}</td>
                         <td>${b.workOrderNo || '-'}</td><td><strong>${b.partNo || '-'}</strong></td><td>${b.partName || '-'}</td>
                         
@@ -1271,7 +1287,7 @@
                         <td>${b.lossNpdTeam || 0}</td><td>${b.lossUnknown || 0}</td><td>${b.remarks || '-'}</td>
                         <td><span style="color:#666; font-size:11px;">👤 ${b.loggedBy || '-'}</span></td>
                         ${(() => {
-                            let qcColor = '#ffc107';
+                            let qcColor = '#ffc107'; 
                             let textColor = '#000';
                             if (b.qcStatus === 'APPROVED') { qcColor = '#28a745'; textColor = '#fff'; }
                             if (b.qcStatus === 'REJECTED') { qcColor = '#dc3545'; textColor = '#fff'; }
@@ -1281,51 +1297,17 @@
                                 <td style="color:#dc3545; font-weight:500; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${b.qcRemarks || ''}">${b.qcRemarks || '-'}</td>
                             `;
                         })()}
-                        ${(() => {
-                            let qcColor = '#ffc107';
-                            let textColor = '#000';
-                            if (b.qcStatus === 'APPROVED') { qcColor = '#28a745'; textColor = '#fff'; }
-                            if (b.qcStatus === 'REJECTED') { qcColor = '#dc3545'; textColor = '#fff'; }
-
-                            return `
-                                <td><span style="background:${qcColor}; color:${textColor}; padding:4px 8px; border-radius:4px; font-weight:bold; font-size:11px;">${b.qcStatus || 'PENDING'}</span></td>
-                                <td style="color:#dc3545; font-weight:500; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${b.qcRemarks || ''}">${b.qcRemarks || '-'}</td>
-                            `;
-                        })()}
-                        
                         <td style="display: flex; gap: 5px; flex-wrap: wrap; min-width: 140px;">
-                            ${(currentUser.role === 'PPC' || currentUser.role === 'ADMIN') ?
-                            `<button onclick="openPPCModal('${b._id}')" style="background:#6f42c1; color:white; border:none; padding:5px; border-radius:4px; cursor:pointer; font-weight:bold; font-size: 11px; width: 100%;">Assign Route</button>` : ''}
+                            ${(currentUser.role === 'PPC' || currentUser.role === 'ADMIN') ? 
+                                `<button onclick="openPPCModal('${b._id}')" style="background:#6f42c1; color:white; border:none; padding:5px; border-radius:4px; cursor:pointer; font-weight:bold; font-size: 11px; width: 100%;">Assign Route</button>` : ''}
                             
                             ${(() => {
-                            // 1. Checks if the route is READY_STOCK
-                            const isFinished = b.nextProcessRoute === 'READY_STOCK';
-
-                            // 2. THIS IS THE LINE! It decides if the button should be locked.
-                            const isDisabled = b.qcStatus !== 'APPROVED' || isFinished;
-
-                            // 3. Stage & Date Formatting
-                            let stageText = b.stage;
-                            let stageColor = b.stage === 'FORGING' ? '#ff9800' : (b.stage === 'ROLLING' ? '#17a2b8' : '#28a745');
-
-                            // NEW LOGIC: Override the Stage name if it is heading to Ready Stock
-                            if (b.nextProcessRoute === 'READY_STOCK') {
-                                if (b.qcStatus === 'APPROVED') {
-                                    stageText = '📦 IN INVENTORY';
-                                    stageColor = '#28a745'; // Solid Green
-                                } else {
-                                    stageText = '⏳ AWAITING QC';
-                                    stageColor = '#ffc107'; // Warning Yellow
-                                    textColor = '#000';
-                                }
-                            }
-
-                            const rawDate = new Date(b.date);
-                            const hiddenDateTag = rawDate.toISOString().split('T')[0];
-                            const displayDate = rawDate.toLocaleDateString();
-
-                            return `<button onclick="autoFillNextStage('${b._id}')" style="background:${btnColor}; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-weight:bold; flex: 1; ${isDisabled ? 'opacity:0.5; cursor:not-allowed;' : ''}" ${isDisabled ? 'disabled' : ''}>${btnText}</button>`;
-                        })()}
+                                const isDisabled = b.qcStatus !== 'APPROVED' || isFinished;
+                                const btnText = isFinished ? '✅ Finished' : '⏭️ Next Stage';
+                                const btnColor = isFinished ? '#28a745' : '#007bff';
+                                
+                                return `<button onclick="autoFillNextStage('${b._id}')" style="background:${btnColor}; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-weight:bold; flex: 1; ${isDisabled ? 'opacity:0.5; cursor:not-allowed;' : ''}" ${isDisabled ? 'disabled' : ''}>${btnText}</button>`;
+                            })()}
                             
                             <button class="admin-actions" onclick="deleteProductionBatch('${b._id}')" style="background:#dc3545; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-weight:bold;">🗑️</button>
                         </td>
@@ -1333,7 +1315,7 @@
                     tbody.appendChild(tr);
                 });
 
-                if (count === 0) tbody.innerHTML = '<tr><td colspan="53" style="text-align: center;">No logs found for this stage.</td></tr>';
+                if (count === 0) tbody.innerHTML = '<tr><td colspan="53" style="text-align: center; padding: 20px;">No logs found for this filter.</td></tr>';
                 applyProductionFilters();
                 calculateLiveOEE();
                 renderVisualCharts();
