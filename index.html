@@ -810,7 +810,10 @@
                                 <th>A/F</th>
                                 <th>Wt/Pc</th>
                                 <th style="color: #17a2b8;">WIP (Floor)</th>
-                                <th style="color: #28a745;">Ready Stock</th>
+                                <th style="color: #6f42c1;">Prod. Readied</th>
+                                <th style="color: #ff9800;">FG Check</th>
+                                <th style="color: #dc3545;">Difference</th>
+                                <th style="color: #28a745;">Current Stock</th>
                                 <th class="admin-actions">Actions</th>
                             </tr>
                         </thead>
@@ -1686,7 +1689,11 @@ async function loadProductionBatches() {
                 products.forEach(p => {
                     const currentStock = p.currentStock || 0;
                     const wipStock = p.wipStock || 0;
+                    const prodReadied = p.productionReadied || 0;
+                    const fgCheck = p.fgCheck || 0;
+                    const difference = prodReadied - fgCheck; // Calculate Difference
                     const isLowStock = currentStock <= 10;
+                    
                     const tr = document.createElement('tr');
                     if (isLowStock) tr.className = "low-stock";
 
@@ -1703,6 +1710,11 @@ async function loadProductionBatches() {
                         <td><strong>${p.productCode || 'N/A'}</strong></td><td>${p.sector || '-'}</td><td>${p.type || '-'}</td>
                         <td>${p.grade || '-'}</td><td>${p.length ? p.length + ' mm' : '-'}</td><td>${p.af !== undefined && p.af !== null ? p.af : '-'}</td>
                         <td>${p.weightPerPc || '0'}g</td><td style="color: #17a2b8; font-weight: bold; font-size: 1.1em;">${wipStock}</td>
+                        
+                        <td style="color: #6f42c1; font-weight: bold; font-size: 1.1em;">${prodReadied}</td>
+                        <td style="color: #ff9800; font-weight: bold; font-size: 1.1em;">${fgCheck}</td>
+                        <td style="color: ${difference === 0 ? '#28a745' : '#dc3545'}; font-weight: bold; font-size: 1.1em;">${difference}</td>
+                        
                         <td class="stock-val ${isLowStock ? 'low-stock-text' : ''}" style="color: #28a745; font-weight: bold; font-size: 1.1em;">${currentStock}</td>
                         ${actionHTML}
                     `;

@@ -148,8 +148,8 @@ app.put('/api/qc/approve/:id', async (req, res) => {
                 // If PPC assigned READY_STOCK, or it's the final stage, move it to Inventory!
                 if (batch.nextProcessRoute === 'READY_STOCK' || batch.stage === 'POLISHING' || batch.stage === 'SEC_OP') {
                     
-                    // 1. Add to Finished Goods
-                    product.currentStock += finalAccQty;
+                    // 1. Add to Production Readied (App will scan to add to FG Check & Current Stock)
+                    product.productionReadied = (product.productionReadied || 0) + finalAccQty;
                     
                     // 2. Remove from WIP (Floor)
                     product.wipStock = Math.max((product.wipStock || 0) - (finalAccQty + finalRejQty), 0);
@@ -548,5 +548,44 @@ app.put('/api/sales-orders/:id/status', async (req, res) => {
 SalesOrder.syncIndexes().then(() => {
     console.log("✅ Ghost indexes cleared from Sales Orders!");
 }).catch(err => console.log(err));
+
+
+// ==========================================
+// MOBILE APP SCANNER ENDPOINT (FG-CHECK)
+// ==========================================
+app.post('/api/stock', async (req, res) => {
+    try {
+        const { barcode, type, quantity, username } = req.body;
+        if (!barcode || !quantity) return res.status(400).json({ error: "Missing data" });
+
+        let product = await Product.findOne({ barcode });
+        if (!product) return res.status(404).json({ error: "Product not found" });
+
+        const parsedQty = Number(quantity);
+
+        if (type === 'INWARD') {
+            // Add to FG-Check AND make it officially Current Stock
+            product.fgCheck = (product.fgCheck || 0) + parsedQty;
+            product.currentStock = (product.currentStock || 0) + parsedQty;
+        } else if (type === 'DISPATCH') {
+            product.currentStock = Math.max((product.currentStock || 0) - parsedQty, 0);
+        }
+
+        product.lastUpdated = new Date();
+        await product.save();
+
+        await new Transaction({
+            barcode: product.barcode, 
+            type: type, 
+            quantity: parsedQty, 
+            resultingStock: product.currentStock, 
+            user: username || 'App Scanner'
+        }).save();
+
+        res.json({ success: true, newStock: product.currentStock });
+    } catch (err) { 
+        res.status(500).json({ error: err.message }); 
+    }
+});
 
 app.listen(process.env.PORT || 5000, () => console.log(`ERP Server Running on port ${process.env.PORT || 5000}`));

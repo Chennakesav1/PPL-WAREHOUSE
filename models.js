@@ -47,6 +47,8 @@ const purchaseOrderSchema = new mongoose.Schema({
     totalCost: Number,
     status: { type: String, enum: ['PENDING', 'RECEIVED'], default: 'PENDING' },
     orderedBy: String,
+    productionReadied: { type: Number, default: 0 }, // <-- ADD THIS
+    fgCheck: { type: Number, default: 0 },
     orderDate: { type: Date, default: Date.now },
     receivedDate: Date
 });
