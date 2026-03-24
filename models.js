@@ -12,7 +12,9 @@ const productSchema = new mongoose.Schema({
     weightPerPc: Number,
     currentStock: { type: Number, default: 0 },
     wipStock: { type: Number, default: 0 },
-    reservedStock: { type: Number, default: 0 }, // <-- Added for Sales Orders
+    reservedStock: { type: Number, default: 0 }, 
+    productionReadied: { type: Number, default: 0 }, // <-- MOVED HERE
+    fgCheck: { type: Number, default: 0 },           // <-- MOVED HERE
     lastUpdated: { type: Date, default: Date.now }
 });
 
@@ -47,8 +49,6 @@ const purchaseOrderSchema = new mongoose.Schema({
     totalCost: Number,
     status: { type: String, enum: ['PENDING', 'RECEIVED'], default: 'PENDING' },
     orderedBy: String,
-    productionReadied: { type: Number, default: 0 }, // <-- ADD THIS
-    fgCheck: { type: Number, default: 0 },
     orderDate: { type: Date, default: Date.now },
     receivedDate: Date
 });

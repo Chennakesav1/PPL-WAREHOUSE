@@ -48,21 +48,31 @@ const WORKER_USERS = {
     "worker2": { pass: "work456", role: "PRODUCTION" }
 };
 
+// ==========================================
+// 1. UNIFIED ROLE-BASED LOGIN (Web & App)
+// ==========================================
 app.post('/api/login', (req, res) => {
     const username = req.body.username ? req.body.username.toLowerCase().trim() : '';
     const password = req.body.password ? req.body.password.trim() : '';
 
+    // 1. Check Master Admin Password (No username needed)
     if (password === 'Admin12345' && !username) {
         return res.json({ success: true, role: "ADMIN", username: "Admin" });
     }
 
+    // 2. Check Dashboard Users (Admin, Buyer, QC, etc.)
     if (DASHBOARD_USERS[username] && DASHBOARD_USERS[username].pass === password) {
-        res.json({ success: true, role: DASHBOARD_USERS[username].role, username: username });
-    } else {
-        res.status(401).json({ success: false, message: "Access Denied: Dashboard credentials required." });
+        return res.json({ success: true, role: DASHBOARD_USERS[username].role, username: username });
+    } 
+    
+    // 3. Check Mobile App Workers (worker1, worker2)
+    if (WORKER_USERS[username] && WORKER_USERS[username].pass === password) {
+        return res.json({ success: true, role: WORKER_USERS[username].role, username: username });
     }
-});
 
+    // If none match, reject
+    res.status(401).json({ success: false, message: "Incorrect username or password." });
+});
 app.post('/api/app-login', (req, res) => {
     const username = req.body.username ? req.body.username.toLowerCase().trim() : '';
     const password = req.body.password ? req.body.password.trim() : '';
@@ -291,7 +301,9 @@ app.post('/api/products', async (req, res) => {
         if (existing) return res.status(400).json({ success: false, message: "Product Code already exists!" });
 
         const newProduct = new Product({
-            barcode, productCode: barcode, sector, type, grade, af: af || null, length: length || null, weightPerPc: weightPerPc || 0, currentStock: currentStock || 0, wipStock: 0
+            barcode, productCode: barcode, sector, type, grade, 
+            af: af || null, length: length || null, weightPerPc: weightPerPc || 0, 
+            currentStock: currentStock || 0, wipStock: 0, productionReadied: 0, fgCheck: 0
         });
         await newProduct.save();
 
