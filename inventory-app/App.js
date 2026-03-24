@@ -30,29 +30,26 @@ export default function App() {
     return () => clearTimeout(timer);
   }, []);
 
-  const handleLogin = async () => {
+  // ✅ Use your NEW live server URL
+const API_URL = "https://ppl-warehouse-1qn1.onrender.com/api";
+
+const handleLogin = async () => {
     if (!usernameInput || !passwordInput) return Alert.alert("Error", "Please enter credentials");
     try {
-      // 1. Alert exactly where the app is trying to connect
-      console.log(`Connecting to: ${API_URL}/app-login`);
-      
-      const res = await axios.post(`${API_URL}/app-login`, {
+      const res = await axios.post(`${API_URL}/login`, {
         username: usernameInput.toLowerCase().trim(),
         password: passwordInput.trim()
       });
-      
       if (res.data.success) {
         setUser({ username: res.data.username, role: res.data.role });
         setPasswordInput(''); 
       }
     } catch (err) {
-      // 2. STOP HIDING THE REAL ERROR!
-      const realError = err.response?.data?.message || err.message || "Server offline / Network Error";
-      console.log("SERVER ERROR DETAILS:", err);
-      
-      Alert.alert("🚨 THE REAL ERROR IS:", realError);
+      // ✅ Tells you the ACTUAL error (e.g., Network Error vs Incorrect Password)
+      const errorMsg = err.response?.data?.message || "Cannot connect to server. Check your internet.";
+      Alert.alert("Login Failed ❌", errorMsg);
     }
-  };
+};
 
   const handleSearch = async (searchCode) => {
     if (!searchCode) return Alert.alert("Error", "Please enter a code");
