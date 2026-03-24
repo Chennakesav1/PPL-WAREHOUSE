@@ -35,7 +35,7 @@ export default function App() {
   const handleLogin = async () => {
     if (!usernameInput || !passwordInput) return Alert.alert("Error", "Please enter credentials");
     try {
-      const res = await axios.post(`${API_URL}/login`, {
+      const res = await axios.post(`${API_URL}/app-login`, {
         username: usernameInput.toLowerCase().trim(),
         password: passwordInput.trim()
       });
