@@ -3,7 +3,7 @@ import { Text, View, StyleSheet, TouchableOpacity, Alert, TextInput, ScrollView,
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import axios from 'axios';
 
-// UPDATE TO YOUR RENDER URL OR LAPTOP IP
+// ✅ FIXED URL: Pointing to the correct updated server
 const API_URL = "https://ppl-warehouse-1qn1.onrender.com/api";
 
 export default function App() {
@@ -11,7 +11,7 @@ export default function App() {
   
   // Authentication & Splash States
   const [showSplash, setShowSplash] = useState(true);
-  const [user, setUser] = useState(null); // Replaces isAuthenticated. Stores { username, role }
+  const [user, setUser] = useState(null); 
   const [usernameInput, setUsernameInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
 
@@ -31,7 +31,7 @@ export default function App() {
     return () => clearTimeout(timer);
   }, []);
 
-  // 2. Role-Based Login
+  // 2. Role-Based Login (Upgraded Error Handling)
   const handleLogin = async () => {
     if (!usernameInput || !passwordInput) return Alert.alert("Error", "Please enter credentials");
     try {
@@ -41,10 +41,12 @@ export default function App() {
       });
       if (res.data.success) {
         setUser({ username: res.data.username, role: res.data.role });
-        setPasswordInput(''); // Clear password for security
+        setPasswordInput(''); 
       }
     } catch (err) {
-      Alert.alert("Access Denied ❌", "Incorrect username or password.");
+      // ✅ Now it tells you exactly what failed
+      const errorMsg = err.response?.data?.message || "Cannot reach the server. Is it awake?";
+      Alert.alert("Login Failed ❌", errorMsg);
     }
   };
 
@@ -61,7 +63,7 @@ export default function App() {
     }
   };
 
-  // 4. ADMIN & PURCHASE: Standard Stock Update (Inward / Dispatch)
+  // 4. ADMIN & PURCHASE: Standard Stock Update (FG-Check & Current Stock)
   const handleStandardUpdate = async (type) => {
     if (!quantity || isNaN(parseInt(quantity)) || parseInt(quantity) <= 0) return Alert.alert("Error", "Enter a valid quantity");
     try {
@@ -72,7 +74,9 @@ export default function App() {
         username: user.username 
       });
       Alert.alert("Success! ✅", `${type} recorded.\nNew Stock: ${res.data.newStock}`, [{ text: "Scan Next", onPress: resetApp }]);
-    } catch (err) { Alert.alert("Failed", "Server Error."); }
+    } catch (err) { 
+      Alert.alert("Failed", err.response?.data?.error || "Server Error."); 
+    }
   };
 
   // 5. PRODUCTION: Record a batch and consume raw steel
@@ -213,7 +217,7 @@ export default function App() {
               {/* 3. ADMIN OR PURCHASE ROLE */}
               {(user.role === 'ADMIN' || user.role === 'PURCHASE') && (
                 <View style={styles.roleBox}>
-                  <Text style={styles.roleBoxTitle}>⚙️ Manual Stock Adjustment</Text>
+                  <Text style={styles.roleBoxTitle}>⚙️ Manual Stock Adjustment (FG-Check)</Text>
                   <View style={styles.btnRow}>
                     <TouchableOpacity style={styles.btnGreen} onPress={() => handleStandardUpdate('INWARD')}><Text style={styles.btnText}>+ INWARD</Text></TouchableOpacity>
                     <TouchableOpacity style={styles.btnRed} onPress={() => handleStandardUpdate('DISPATCH')}><Text style={styles.btnText}>- DISPATCH</Text></TouchableOpacity>
