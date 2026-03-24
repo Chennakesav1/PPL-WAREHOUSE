@@ -55,7 +55,7 @@ app.post('/api/login', (req, res) => {
     const username = req.body.username ? req.body.username.toLowerCase().trim() : '';
     const password = req.body.password ? req.body.password.trim() : '';
 
-    // 1. Master Admin check
+    // 1. Check Master Admin (No username needed)
     if (password === 'Admin12345' && !username) {
         return res.json({ success: true, role: "ADMIN", username: "Admin" });
     }
@@ -65,12 +65,12 @@ app.post('/api/login', (req, res) => {
         return res.json({ success: true, role: DASHBOARD_USERS[username].role, username: username });
     } 
     
-    // 3. Check Worker Users (worker1, worker2)
+    // 3. Check Mobile App Workers (worker1, worker2)
     if (WORKER_USERS[username] && WORKER_USERS[username].pass === password) {
         return res.json({ success: true, role: WORKER_USERS[username].role, username: username });
     }
 
-    res.status(401).json({ success: false, message: "Incorrect username or password." });
+    res.status(401).json({ success: false, message: "Access Denied: Incorrect username or password." });
 });
 
 // ==========================================

@@ -30,9 +30,10 @@ export default function App() {
     return () => clearTimeout(timer);
   }, []);
 
-  // ✅ Use your NEW live server URL
+ // ✅ CORRECT LIVE URL
 const API_URL = "https://ppl-warehouse-1qn1.onrender.com/api";
 
+// Use the standard login route
 const handleLogin = async () => {
     if (!usernameInput || !passwordInput) return Alert.alert("Error", "Please enter credentials");
     try {
