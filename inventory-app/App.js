@@ -3,7 +3,7 @@ import { Text, View, StyleSheet, TouchableOpacity, Alert, TextInput, ScrollView,
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import axios from 'axios';
 
-// ✅ FIXED URL: Pointing to the correct updated server
+// ✅ CORRECT LIVE URL
 const API_URL = "https://ppl-warehouse-1qn1.onrender.com/api";
 
 export default function App() {
@@ -21,36 +21,36 @@ export default function App() {
   const [quantity, setQuantity] = useState('1');
   const [manualCode, setManualCode] = useState('');
 
-  // Extra States for Production Department
+  // Extra States for Production
   const [rawMaterialCode, setRawMaterialCode] = useState('');
   const [rawMaterialKg, setRawMaterialKg] = useState('');
 
-  // 1. Splash Screen Timer
   useEffect(() => {
     const timer = setTimeout(() => { setShowSplash(false); }, 5000);
     return () => clearTimeout(timer);
   }, []);
 
-  // 2. Role-Based Login (Upgraded Error Handling)
+  // 🚨 SMART LOGIN LOGIC
   const handleLogin = async () => {
     if (!usernameInput || !passwordInput) return Alert.alert("Error", "Please enter credentials");
     try {
+      // Pointing directly to the worker login door
       const res = await axios.post(`${API_URL}/app-login`, {
         username: usernameInput.toLowerCase().trim(),
         password: passwordInput.trim()
       });
+      
       if (res.data.success) {
         setUser({ username: res.data.username, role: res.data.role });
         setPasswordInput(''); 
       }
     } catch (err) {
-      // ✅ Now it tells you exactly what failed
-      const errorMsg = err.response?.data?.message || "Cannot reach the server. Is it awake?";
+      // 🚨 SMART ERROR: Tells you exactly what went wrong!
+      const errorMsg = err.response?.data?.message || err.message || "Cannot reach the server. Is it asleep?";
       Alert.alert("Login Failed ❌", errorMsg);
     }
   };
 
-  // 3. Search / Scan Product
   const handleSearch = async (searchCode) => {
     if (!searchCode) return Alert.alert("Error", "Please enter a code");
     setScanned(true); 
@@ -63,7 +63,6 @@ export default function App() {
     }
   };
 
-  // 4. ADMIN & PURCHASE: Standard Stock Update (FG-Check & Current Stock)
   const handleStandardUpdate = async (type) => {
     if (!quantity || isNaN(parseInt(quantity)) || parseInt(quantity) <= 0) return Alert.alert("Error", "Enter a valid quantity");
     try {
@@ -74,12 +73,9 @@ export default function App() {
         username: user.username 
       });
       Alert.alert("Success! ✅", `${type} recorded.\nNew Stock: ${res.data.newStock}`, [{ text: "Scan Next", onPress: resetApp }]);
-    } catch (err) { 
-      Alert.alert("Failed", err.response?.data?.error || "Server Error."); 
-    }
+    } catch (err) { Alert.alert("Failed", "Server Error."); }
   };
 
-  // 5. PRODUCTION: Record a batch and consume raw steel
   const handleProduction = async () => {
     if (!quantity || !rawMaterialCode || !rawMaterialKg) return Alert.alert("Error", "Fill all production fields");
     try {
@@ -90,20 +86,19 @@ export default function App() {
         rawMaterialConsumedKg: parseFloat(rawMaterialKg),
         username: user.username
       });
-      Alert.alert("Success! 🏭", "Batch produced & Steel consumed!", [{ text: "Scan Next", onPress: resetApp }]);
+      Alert.alert("Success! 🏭", "Batch produced!", [{ text: "Scan Next", onPress: resetApp }]);
     } catch (err) {
       Alert.alert("Failed", err.response?.data?.message || "Production Error");
     }
   };
 
-  // 6. SALES: Dispatch an order
   const handleSales = async () => {
     if (!quantity || isNaN(parseInt(quantity)) || parseInt(quantity) <= 0) return Alert.alert("Error", "Enter a valid quantity");
     try {
       await axios.post(`${API_URL}/sales/order`, {
         productBarcode: product.barcode || product.productCode,
         quantitySold: parseInt(quantity),
-        customerName: "Walk-in Customer / App Order",
+        customerName: "App Order",
         username: user.username
       });
       Alert.alert("Success! 📦", "Order Dispatched!", [{ text: "Scan Next", onPress: resetApp }]);
@@ -112,15 +107,12 @@ export default function App() {
     }
   };
 
-  // Reset Scanner
   const resetApp = () => { 
     setScanned(false); setProduct(null); setQuantity('1'); 
     setRawMaterialCode(''); setRawMaterialKg(''); 
   };
 
   const handleLogout = () => { setUser(null); setUsernameInput(''); };
-
-  // --- UI RENDER BLOCKS ---
 
   if (!permission?.granted) {
     return (
@@ -182,21 +174,12 @@ export default function App() {
             <View style={{width: '100%'}}>
               <Text style={styles.itemTitle}>{String(product.productCode || 'N/A')}</Text>
               <View style={styles.card}>
-                <View style={styles.infoRow}><Text style={styles.label}>Sector:</Text><Text style={styles.val}>{String(product.sector || '-')}</Text></View>
-                <View style={styles.infoRow}><Text style={styles.label}>Type:</Text><Text style={styles.val}>{String(product.type || '-')}</Text></View>
-                <View style={styles.infoRow}><Text style={styles.label}>Grade:</Text><Text style={styles.val}>{String(product.grade || '-')}</Text></View>
-                <View style={styles.infoRow}><Text style={styles.label}>A/F:</Text><Text style={styles.val}>{String(product.af !== undefined && product.af !== null ? product.af : '-')}</Text></View>
-                <View style={styles.infoRow}><Text style={styles.label}>Length:</Text><Text style={styles.val}>{String(product.length || 0)} mm</Text></View>
-                <View style={styles.infoRow}><Text style={styles.label}>Wt/Pc:</Text><Text style={styles.val}>{String(product.weightPerPc || 0)} g</Text></View>
                 <View style={styles.infoRow}><Text style={styles.label}>Stock:</Text><Text style={[styles.val, {color: '#007bff', fontSize: 18}]}>{String(product.currentStock || 0)}</Text></View>
               </View>
 
               <Text style={styles.qtyLabel}>Quantity (Bolts):</Text>
               <TextInput style={styles.inputBig} keyboardType="numeric" value={quantity} onChangeText={setQuantity} autoFocus={true} />
 
-              {/* DYNAMIC ROLE-BASED CONTROLS */}
-              
-              {/* 1. PRODUCTION ROLE */}
               {user.role === 'PRODUCTION' && (
                 <View style={styles.roleBox}>
                   <Text style={styles.roleBoxTitle}>🏭 Raw Material Consumed</Text>
@@ -206,18 +189,9 @@ export default function App() {
                 </View>
               )}
 
-              {/* 2. SALES ROLE */}
-              {user.role === 'SALES' && (
-                <View style={styles.roleBox}>
-                  <Text style={styles.roleBoxTitle}>📦 Order Fulfillment</Text>
-                  <TouchableOpacity style={styles.btnBlue} onPress={handleSales}><Text style={styles.btnText}>Dispatch Sales Order</Text></TouchableOpacity>
-                </View>
-              )}
-
-              {/* 3. ADMIN OR PURCHASE ROLE */}
               {(user.role === 'ADMIN' || user.role === 'PURCHASE') && (
                 <View style={styles.roleBox}>
-                  <Text style={styles.roleBoxTitle}>⚙️ Manual Stock Adjustment (FG-Check)</Text>
+                  <Text style={styles.roleBoxTitle}>⚙️ Manual Stock Adjustment</Text>
                   <View style={styles.btnRow}>
                     <TouchableOpacity style={styles.btnGreen} onPress={() => handleStandardUpdate('INWARD')}><Text style={styles.btnText}>+ INWARD</Text></TouchableOpacity>
                     <TouchableOpacity style={styles.btnRed} onPress={() => handleStandardUpdate('DISPATCH')}><Text style={styles.btnText}>- DISPATCH</Text></TouchableOpacity>
