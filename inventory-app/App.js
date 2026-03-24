@@ -30,11 +30,12 @@ export default function App() {
     return () => clearTimeout(timer);
   }, []);
 
-  // 🚨 SMART LOGIN LOGIC
   const handleLogin = async () => {
     if (!usernameInput || !passwordInput) return Alert.alert("Error", "Please enter credentials");
     try {
-      // Pointing directly to the worker login door
+      // 1. Alert exactly where the app is trying to connect
+      console.log(`Connecting to: ${API_URL}/app-login`);
+      
       const res = await axios.post(`${API_URL}/app-login`, {
         username: usernameInput.toLowerCase().trim(),
         password: passwordInput.trim()
@@ -45,9 +46,11 @@ export default function App() {
         setPasswordInput(''); 
       }
     } catch (err) {
-      // 🚨 SMART ERROR: Tells you exactly what went wrong!
-      const errorMsg = err.response?.data?.message || err.message || "Cannot reach the server. Is it asleep?";
-      Alert.alert("Login Failed ❌", errorMsg);
+      // 2. STOP HIDING THE REAL ERROR!
+      const realError = err.response?.data?.message || err.message || "Server offline / Network Error";
+      console.log("SERVER ERROR DETAILS:", err);
+      
+      Alert.alert("🚨 THE REAL ERROR IS:", realError);
     }
   };
 
