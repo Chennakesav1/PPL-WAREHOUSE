@@ -1687,11 +1687,11 @@ async function loadProductionBatches() {
                 if (!Array.isArray(products) || products.length === 0) return tbody.innerHTML = '<tr><td colspan="10" style="text-align: center;">No goods found.</td></tr>';
 
                 products.forEach(p => {
-                    const currentStock = p.currentStock || 0;
-                    const wipStock = p.wipStock || 0;
-                    const prodReadied = p.productionReadied || 0;
-                    const fgCheck = p.fgCheck || 0;
-                    const difference = prodReadied - fgCheck; // Calculate Difference
+                    const currentStock = Number(p.currentStock) || 0;
+                    const wipStock = Number(p.wipStock) || 0;
+                    const prodReadied = Number(p.productionReadied) || 0;
+                    const fgCheck = Number(p.fgCheck) || 0;
+                    const difference = prodReadied - fgCheck; 
                     const isLowStock = currentStock <= 10;
                     
                     const tr = document.createElement('tr');
@@ -1707,14 +1707,17 @@ async function loadProductionBatches() {
                     }
 
                     tr.innerHTML = `
-                        <td><strong>${p.productCode || 'N/A'}</strong></td><td>${p.sector || '-'}</td><td>${p.type || '-'}</td>
-                        <td>${p.grade || '-'}</td><td>${p.length ? p.length + ' mm' : '-'}</td><td>${p.af !== undefined && p.af !== null ? p.af : '-'}</td>
-                        <td>${p.weightPerPc || '0'}g</td><td style="color: #17a2b8; font-weight: bold; font-size: 1.1em;">${wipStock}</td>
-                        
+                        <td><strong>${p.productCode || 'N/A'}</strong></td>
+                        <td>${p.sector || '-'}</td>
+                        <td>${p.type || '-'}</td>
+                        <td>${p.grade || '-'}</td>
+                        <td>${p.length ? p.length + ' mm' : '-'}</td>
+                        <td>${p.af !== undefined && p.af !== null ? p.af : '-'}</td>
+                        <td>${p.weightPerPc || '0'}g</td>
+                        <td style="color: #17a2b8; font-weight: bold; font-size: 1.1em;">${wipStock}</td>
                         <td style="color: #6f42c1; font-weight: bold; font-size: 1.1em;">${prodReadied}</td>
                         <td style="color: #ff9800; font-weight: bold; font-size: 1.1em;">${fgCheck}</td>
                         <td style="color: ${difference === 0 ? '#28a745' : '#dc3545'}; font-weight: bold; font-size: 1.1em;">${difference}</td>
-                        
                         <td class="stock-val ${isLowStock ? 'low-stock-text' : ''}" style="color: #28a745; font-weight: bold; font-size: 1.1em;">${currentStock}</td>
                         ${actionHTML}
                     `;

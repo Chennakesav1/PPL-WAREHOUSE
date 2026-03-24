@@ -145,21 +145,20 @@ app.put('/api/qc/approve/:id', async (req, res) => {
                 }
 
                 // 🚨 THE CRITICAL INVENTORY ROUTING LOGIC 🚨
-                // If PPC assigned READY_STOCK, or it's the final stage, move it to Inventory!
                 if (batch.nextProcessRoute === 'READY_STOCK' || batch.stage === 'POLISHING' || batch.stage === 'SEC_OP') {
                     
-                    // 1. Add to Production Readied (App will scan to add to FG Check & Current Stock)
+                    // 1. Add to Production Readied (Waiting for App Scan)
                     product.productionReadied = (product.productionReadied || 0) + finalAccQty;
                     
-                    // 2. Remove from WIP (Floor)
+                    // 2. Remove from WIP (Floor) - THIS KEEPS WIP ACCURATE
                     product.wipStock = Math.max((product.wipStock || 0) - (finalAccQty + finalRejQty), 0);
                     
-                    // 3. Log the transaction in the Movements tab
+                    // 3. Log the transaction
                     await new Transaction({ 
                         barcode: product.barcode, 
                         type: 'QC_APPROVAL', 
                         quantity: finalAccQty, 
-                        resultingStock: product.currentStock, 
+                        resultingStock: product.currentStock, // Current stock stays same until App scan
                         user: req.body.qcBy || 'QC Inspector' 
                     }).save();
                     
@@ -175,6 +174,7 @@ app.put('/api/qc/approve/:id', async (req, res) => {
                 await product.save();
             }
         }
+        
 
         batch.acceptedQty = finalAccQty;
         batch.rejectedQty = finalRejQty;
