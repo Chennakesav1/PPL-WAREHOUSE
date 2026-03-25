@@ -33,12 +33,13 @@ export default function App() {
  // ✅ CORRECT LIVE URL
 const API_URL = "https://ppl-warehouse-1qn1.onrender.com/api";
 
-// Use the standard login route
 const handleLogin = async () => {
-    if (!usernameInput || !passwordInput) return Alert.alert("Error", "Please enter credentials");
+    // Only block if BOTH are empty, or if password is empty
+    if (!passwordInput) return Alert.alert("Error", "Please enter a password");
+    
     try {
       const res = await axios.post(`${API_URL}/login`, {
-        username: usernameInput.toLowerCase().trim(),
+        username: usernameInput ? usernameInput.toLowerCase().trim() : '',
         password: passwordInput.trim()
       });
       if (res.data.success) {
@@ -46,7 +47,6 @@ const handleLogin = async () => {
         setPasswordInput(''); 
       }
     } catch (err) {
-      // ✅ Tells you the ACTUAL error (e.g., Network Error vs Incorrect Password)
       const errorMsg = err.response?.data?.message || "Cannot connect to server. Check your internet.";
       Alert.alert("Login Failed ❌", errorMsg);
     }
