@@ -3,7 +3,7 @@ import { Text, View, StyleSheet, TouchableOpacity, Alert, TextInput, ScrollView,
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import axios from 'axios';
 
-// ✅ POINTING TO LIVE RENDER SERVER
+// ✅ POINTING DIRECTLY TO YOUR LIVE RENDER BACKEND
 const API_URL = "https://ppl-warehouse-1qn1.onrender.com/api";
 
 export default function App() {
@@ -28,11 +28,11 @@ export default function App() {
   }, []);
 
   const handleLogin = async () => {
-    if (!passwordInput) return Alert.alert("Error", "Please enter a password");
+    if (!passwordInput || !usernameInput) return Alert.alert("Error", "Please enter credentials");
     
     try {
       const res = await axios.post(`${API_URL}/login`, {
-        username: usernameInput ? usernameInput.toLowerCase().trim() : '',
+        username: usernameInput.toLowerCase().trim(),
         password: passwordInput.trim()
       });
       if (res.data.success) {

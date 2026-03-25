@@ -25,10 +25,6 @@
         "android.permission.CAMERA"
       ]
     },
-    "web": {
-      "output": "static",
-      "favicon": "./assets/icon.png"
-    },
     "plugins": [
       "expo-router",
       [
@@ -37,14 +33,6 @@
           "cameraPermission": "Allow PPL Warehouse to scan barcodes."
         }
       ]
-    ],
-    "experiments": {
-      "typedRoutes": true
-    },
-    "extra": {
-      "eas": {
-        "projectId": "60599b8e-bcac-4f99-85f0-b301de749966"
-      }
-    }
+    ]
   }
 }
