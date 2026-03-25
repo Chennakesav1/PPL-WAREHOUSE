@@ -4,7 +4,7 @@ import { CameraView, useCameraPermissions } from 'expo-camera';
 import axios from 'axios';
 
 // ✅ CORRECT LIVE URL
-const API_URL = "https://ppl-warehouse-1qn1.onrender.com/api";
+const API_URL = "http://192.168.1.6:5000/api";
 
 export default function App() {
   const [permission, requestPermission] = useCameraPermissions();
@@ -31,7 +31,7 @@ export default function App() {
   }, []);
 
  // ✅ CORRECT LIVE URL
-const API_URL = "https://ppl-warehouse-1qn1.onrender.com/api";
+const API_URL = "http://192.168.1.6:5000/api";
 
 const handleLogin = async () => {
     // Only block if BOTH are empty, or if password is empty
