@@ -52,8 +52,10 @@ const WORKER_USERS = {
 // 1. UNIFIED ROLE-BASED LOGIN (Web & App)
 // ==========================================
 app.post('/api/login', (req, res) => {
+    
     const username = req.body.username ? req.body.username.toLowerCase().trim() : '';
     const password = req.body.password ? req.body.password.trim() : '';
+    console.log(`🚨 [LOGIN ATTEMPT] Username: "${username}" | Password: "${password}"`);
 
     // 1. Check Master Admin (No username needed)
     if (password === 'Admin12345' && !username) {
@@ -193,6 +195,7 @@ app.put('/api/qc/approve/:id', async (req, res) => {
 // ==========================================
 app.get('/api/production/batches', async (req, res) => {
     try {
+        axios.get('${API_URL}/product/${searchCode.trim()}')
         const batches = await ProductionBatch.find().sort({ date: -1, _id: -1 }).limit(200);
         res.json(batches);
     } catch (err) { res.status(500).json({ error: err.message }); }
