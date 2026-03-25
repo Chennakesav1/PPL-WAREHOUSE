@@ -3,25 +3,22 @@ import { Text, View, StyleSheet, TouchableOpacity, Alert, TextInput, ScrollView,
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import axios from 'axios';
 
-// ✅ CORRECT LIVE URL
+// ✅ POINTING TO LIVE RENDER SERVER
 const API_URL = "https://ppl-warehouse-1qn1.onrender.com/api";
 
 export default function App() {
   const [permission, requestPermission] = useCameraPermissions();
   
-  // Authentication & Splash States
   const [showSplash, setShowSplash] = useState(true);
   const [user, setUser] = useState(null); 
   const [usernameInput, setUsernameInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
 
-  // App States (Scanning & Products)
   const [scanned, setScanned] = useState(false);
   const [product, setProduct] = useState(null);
   const [quantity, setQuantity] = useState('1');
   const [manualCode, setManualCode] = useState('');
 
-  // Extra States for Production
   const [rawMaterialCode, setRawMaterialCode] = useState('');
   const [rawMaterialKg, setRawMaterialKg] = useState('');
 
@@ -30,9 +27,7 @@ export default function App() {
     return () => clearTimeout(timer);
   }, []);
 
-
-const handleLogin = async () => {
-    // Only block if BOTH are empty, or if password is empty
+  const handleLogin = async () => {
     if (!passwordInput) return Alert.alert("Error", "Please enter a password");
     
     try {
@@ -48,7 +43,7 @@ const handleLogin = async () => {
       const errorMsg = err.response?.data?.message || "Cannot connect to server. Check your internet.";
       Alert.alert("Login Failed ❌", errorMsg);
     }
-};
+  };
 
   const handleSearch = async (searchCode) => {
     if (!searchCode) return Alert.alert("Error", "Please enter a code");
@@ -241,7 +236,6 @@ const styles = StyleSheet.create({
   btnRow: { flexDirection: 'row', justifyContent: 'space-between', width: '100%' },
   btnGreen: { flex: 1, backgroundColor: '#28a745', padding: 18, borderRadius: 10, alignItems: 'center', marginHorizontal: 2 },
   btnRed: { flex: 1, backgroundColor: '#dc3545', padding: 18, borderRadius: 10, alignItems: 'center', marginHorizontal: 2 },
-  btnBlue: { width: '100%', backgroundColor: '#007bff', padding: 18, borderRadius: 10, alignItems: 'center' },
   btnText: { color: 'white', fontWeight: 'bold', fontSize: 16 },
   cancelBtn: { marginTop: 20, alignSelf: 'center' },
   cancelText: { color: '#666', fontSize: 16, fontWeight: 'bold' }
