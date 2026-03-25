@@ -271,6 +271,21 @@ app.delete('/api/production/batch/:id', async (req, res) => {
     } catch (err) { res.status(500).json({ success: false, error: err.message }); }
 });
 
+
+// ==========================================
+// MOBILE APP: Fetch Single Product by Barcode
+// ==========================================
+app.get('/api/product/:barcode', async (req, res) => {
+    try {
+        const product = await Product.findOne({ barcode: req.params.barcode.trim() });
+        if (!product) {
+            return res.status(404).json({ error: "Product not found in system" });
+        }
+        res.json(product);
+    } catch (error) { 
+        res.status(500).json({ error: error.message }); 
+    }
+});
 // ==========================================
 // 5. INVENTORY & TRANSACTIONS
 // ==========================================
