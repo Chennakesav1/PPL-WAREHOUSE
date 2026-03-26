@@ -988,28 +988,24 @@
             <div id="marketingModal" class="modal">
                 <div class="modal-content">
                     <span class="close-btn" onclick="closeMarketingModal()">×</span>
-                    <h2 style="color: #e83e8c; margin-bottom: 5px;">📢 Send Promotional Offers</h2>
-                    <p style="font-size: 13px; color: #666; margin-top: 0; margin-bottom: 15px;">Target and blast emails
-                        to your subscribers.</p>
+                    <h2 style="color: #e83e8c; margin-bottom: 5px;">📢 Send Offers</h2>
 
                     <div class="form-grid" style="grid-template-columns: 1fr;">
-                        <label style="font-size:12px; font-weight:bold; color:#555;">Target Audience:</label>
-                        <select id="promoFilter" class="prod-input full-width"
-                            style="margin-top:-10px; margin-bottom:10px;">
-                            <option value="all">All Subscribed Customers</option>
-                            <option value="vip">VIP Customers (Spent > ₹1,00,000)</option>
-                            <option value="inactive">Inactive Customers (No purchases in 3 months)</option>
+                        <label style="font-size:12px; font-weight:bold; color:#555;">Send to Filtered Group:</label>
+                        <select id="promoFilter" class="prod-input full-width">
+                            <option value="all">All Customers</option>
+                            <option value="vip">VIP Customers</option>
                         </select>
 
+                        <label style="font-size:12px; font-weight:bold; color:#555; margin-top: 10px;">OR Send to Single
+                            Customer:</label>
                         <input type="email" id="promoSpecificEmail" class="prod-input full-width"
-                            placeholder="OR Enter a single Customer Email to send to just them..."
-                            style="border-color: #e83e8c;">
+                            placeholder="Enter exact email (overrides filter)" style="border-color: #e83e8c;">
 
-                        <input type="text" id="promoSubject" class="prod-input full-width"
-                            placeholder="* Email Subject (e.g., Exclusive 20% Discount!)" required>
-                        <textarea id="promoBody" class="prod-input full-width" rows="8"
-                            placeholder="* Type your message here... You can use standard text or HTML."
-                            style="resize: vertical; font-family: inherit;" required></textarea>
+                        <input type="text" id="promoSubject" class="prod-input full-width" placeholder="* Email Subject"
+                            style="margin-top: 10px;" required>
+                        <textarea id="promoBody" class="prod-input full-width" rows="6"
+                            placeholder="* Type your message..." style="resize: vertical;" required></textarea>
                     </div>
 
                     <button class="save-btn" style="background-color: #e83e8c; margin-top: 15px;" id="promoSubmitBtn"
@@ -1128,26 +1124,7 @@
     </div>
 
 
-    <div id="marketingModal" class="modal">
-        <div class="modal-content">
-            <span class="close-btn" onclick="closeMarketingModal()">×</span>
-            <h2 style="color: #e83e8c; margin-bottom: 5px;">📢 Send Promotional Offers</h2>
-            <p style="font-size: 13px; color: #666; margin-top: 0; margin-bottom: 20px;">
-                Blast an email to all registered customers with an email address.
-            </p>
-            <div class="form-grid" style="grid-template-columns: 1fr;">
-                <input type="text" id="promoSubject" class="prod-input full-width"
-                    placeholder="* Email Subject (e.g., Exclusive 20% Discount!)" required>
-                <textarea id="promoBody" class="prod-input full-width" rows="8"
-                    placeholder="* Type your message here... You can use standard text or HTML."
-                    style="resize: vertical; font-family: inherit;" required></textarea>
-            </div>
-            <button class="save-btn" style="background-color: #e83e8c; margin-top: 15px;" id="promoSubmitBtn"
-                onclick="sendMarketingEmails()">
-                🚀 Send Email Blast
-            </button>
-        </div>
-    </div>
+   
 
     <script>
         const API_URL = 'https://ppl-warehouse-1qn1.onrender.com/api';
@@ -2313,6 +2290,7 @@
             } catch (err) { showToast("❌ Error saving customer", true); }
         }
 
+        // UPDATE: Load Sales Orders to show Sector, Grade, Length, A/F
         async function loadSalesOrders() {
             try {
                 const res = await fetch(`${API_URL}/sales-orders`);
@@ -2321,9 +2299,18 @@
                 tbody.innerHTML = '';
 
                 orders.forEach(o => {
-                    let itemsHtml = o.items.map(i => `<div style="margin-bottom: 4px;"><b>${i.quantity}x ${i.productCode}</b></div>`).join('');
+                    // Map the exact details to the frontend view
+                    let itemsHtml = o.items.map(i => `
+                        <div style="margin-bottom: 8px; border-bottom: 1px solid #ddd; padding-bottom: 4px;">
+                            <strong>${i.quantity}x ${i.productCode}</strong><br>
+                            <span style="font-size:10px; color:#555;">
+                                Sec: ${i.sector || '-'} | Gr: ${i.grade || '-'} | L: ${i.length || '-'}mm | A/F: ${i.af || '-'}
+                            </span>
+                        </div>
+                    `).join('');
+
                     let statusColor = o.status === 'QUOTATION' ? '#6c757d' : (o.status === 'CONFIRMED' ? '#007bff' : (o.status === 'DISPATCHED' ? '#28a745' : '#ff9800'));
-                    let payColor = o.paymentStatus === 'PAID' ? '#28a745' : (o.paymentStatus === 'OVERDUE' ? '#dc3545' : '#ffc107');
+                    let payColor = o.paymentStatus === 'PAID' ? '#28a745' : '#dc3545';
 
                     tbody.innerHTML += `<tr>
                         <td><strong>${o.orderNo}</strong></td>
@@ -2334,15 +2321,39 @@
                         <td><span style="background:${statusColor}; color:white; padding:4px 8px; border-radius:4px; font-weight:bold; font-size:11px;">${o.status}</span></td>
                         <td><span style="color:${payColor}; font-weight:bold; font-size:12px;">${o.paymentStatus}</span></td>
                         <td>
-                            ${o.status === 'QUOTATION' ? `<button onclick="updateOrderStatus('${o._id}', 'CONFIRMED')" style="background:#007bff; color:white; border:none; padding:4px; border-radius:4px; cursor:pointer; margin-bottom:2px; width:100%;">Confirm & Email Invoice</button>` : ''}
-                            ${o.status === 'CONFIRMED' ? `<button onclick="updateOrderStatus('${o._id}', 'DISPATCHED')" style="background:#ff9800; color:white; border:none; padding:4px; border-radius:4px; cursor:pointer; margin-bottom:2px; width:100%;">📦 Dispatch</button>` : ''}
-                            ${o.status === 'DISPATCHED' ? `<button onclick="updateOrderStatus('${o._id}', 'SHIPPED')" style="background:#17a2b8; color:white; border:none; padding:4px; border-radius:4px; cursor:pointer; margin-bottom:2px; width:100%;">🚚 Ship (Add Link)</button>` : ''}
-                            ${o.status === 'SHIPPED' ? `<button onclick="updateOrderStatus('${o._id}', 'DELIVERED')" style="background:#28a745; color:white; border:none; padding:4px; border-radius:4px; cursor:pointer; margin-bottom:2px; width:100%;">✅ Mark Delivered</button>` : ''}
-                            ${o.paymentStatus !== 'PAID' ? `<button onclick="updateOrderPayment('${o._id}', 'PAID')" style="background:#6c757d; color:white; border:none; padding:4px; border-radius:4px; cursor:pointer; width:100%;">💰 Mark Paid</button>` : ''}
+                            ${o.status === 'QUOTATION' ? `<button onclick="updateOrderStatus('${o._id}', 'CONFIRMED')" style="background:#007bff; color:white; border:none; padding:4px; border-radius:4px; cursor:pointer; width:100%;">Confirm & Email</button>` : ''}
                         </td>
                     </tr>`;
                 });
             } catch (err) { console.error("Error loading orders", err); }
+        }
+
+        // UPDATE: Send Marketing Emails
+        async function sendMarketingEmails() {
+            const subject = document.getElementById('promoSubject').value.trim();
+            const messageHtml = document.getElementById('promoBody').value.trim();
+            const filter = document.getElementById('promoFilter').value;
+            const specificEmail = document.getElementById('promoSpecificEmail').value.trim(); // Grab the single email
+
+            if (!subject || !messageHtml) return showToast("⚠️ Subject and Message are required!", true);
+
+            const btn = document.getElementById('promoSubmitBtn');
+            btn.innerHTML = "⏳ Sending..."; btn.disabled = true;
+
+            try {
+                const res = await fetch(`${API_URL}/marketing/send-offers`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ subject, messageHtml, filter, specificEmail })
+                });
+                const data = await res.json();
+                if (data.success) { 
+                    showToast(`✅ ${data.message}`); 
+                    closeMarketingModal(); 
+                } else { 
+                    showToast("❌ Error: " + data.error, true); 
+                }
+            } catch (err) { showToast("❌ Failed to connect to server.", true); } 
+            finally { btn.innerHTML = "🚀 Send Email"; btn.disabled = false; }
         }
 
         // Updated Update Order Status with Tracking Link Prompt
@@ -2370,43 +2381,14 @@
         }
 
         function openMarketingModal() { document.getElementById('marketingModal').style.display = 'flex'; }
-        function closeMarketingModal() { 
-            document.getElementById('marketingModal').style.display = 'none'; 
+        function closeMarketingModal() {
+            document.getElementById('marketingModal').style.display = 'none';
             document.getElementById('promoSubject').value = '';
             document.getElementById('promoBody').value = '';
             document.getElementById('promoSpecificEmail').value = '';
         }
 
-        async function sendMarketingEmails() {
-            const subject = document.getElementById('promoSubject').value.trim();
-            const messageHtml = document.getElementById('promoBody').value.trim();
-            const filter = document.getElementById('promoFilter').value;
-            const specificEmail = document.getElementById('promoSpecificEmail').value.trim();
-
-            if (!subject || !messageHtml) return showToast("⚠️ Subject and Message are required!", true);
-            
-            let confirmMsg = specificEmail ? `Send this email ONLY to ${specificEmail}?` : `Send this email to ${filter.toUpperCase()} target group?`;
-            if (!confirm(confirmMsg)) return;
-
-            const btn = document.getElementById('promoSubmitBtn');
-            btn.innerHTML = "⏳ Sending Emails..."; btn.disabled = true;
-
-            try {
-                const res = await fetch(`${API_URL}/marketing/send-offers`, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    // NEW: passing specificEmail to backend
-                    body: JSON.stringify({ subject, messageHtml, filter, specificEmail })
-                });
-                const data = await res.json();
-                if (data.success) { 
-                    showToast(`✅ ${data.message}`); 
-                    closeMarketingModal(); 
-                } 
-                else { showToast("❌ Error: " + data.error, true); }
-            } catch (err) { showToast("❌ Failed to connect to server.", true); } 
-            finally { btn.innerHTML = "🚀 Send Email"; btn.disabled = false; }
-        }
-
+        
         async function submitSalesOrder() {
             const customerSelect = document.getElementById('soCustomer');
             const productCode = document.getElementById('soProduct').value;
@@ -2490,42 +2472,7 @@
             document.getElementById('promoBody').value = '';
         }
 
-        async function sendMarketingEmails() {
-            const subject = document.getElementById('promoSubject').value.trim();
-            const messageHtml = document.getElementById('promoBody').value.trim();
-
-            if (!subject || !messageHtml) {
-                return showToast("⚠️ Subject and Message are required!", true);
-            }
-
-            if (!confirm("Are you sure you want to send this email to ALL your customers?")) return;
-
-            const btn = document.getElementById('promoSubmitBtn');
-            btn.innerHTML = "⏳ Sending Emails...";
-            btn.disabled = true; // Prevent clicking twice
-
-            try {
-                const res = await fetch(`${API_URL}/marketing/send-offers`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ subject, messageHtml })
-                });
-
-                const data = await res.json();
-
-                if (data.success) {
-                    showToast(`✅ ${data.message}`);
-                    closeMarketingModal();
-                } else {
-                    showToast("❌ Error: " + data.error, true);
-                }
-            } catch (err) {
-                showToast("❌ Failed to connect to server.", true);
-            } finally {
-                btn.innerHTML = "🚀 Send Email Blast";
-                btn.disabled = false;
-            }
-        }
+        
     </script>
 </body>
 
