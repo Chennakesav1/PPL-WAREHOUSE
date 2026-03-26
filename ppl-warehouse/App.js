@@ -8,9 +8,9 @@ const API_URL = "https://ppl-warehouse-1qn1.onrender.com/api";
 
 export default function App() {
   const [permission, requestPermission] = useCameraPermissions();
-  
+
   const [showSplash, setShowSplash] = useState(true);
-  const [user, setUser] = useState(null); 
+  const [user, setUser] = useState(null);
   const [usernameInput, setUsernameInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
 
@@ -26,7 +26,7 @@ export default function App() {
 
   const handleLogin = async () => {
     if (!passwordInput || !usernameInput) return Alert.alert("Error", "Please enter credentials");
-    
+
     try {
       const res = await axios.post(`${API_URL}/login`, {
         username: usernameInput.toLowerCase().trim(),
@@ -34,7 +34,7 @@ export default function App() {
       });
       if (res.data.success) {
         setUser({ username: res.data.username, role: res.data.role });
-        setPasswordInput(''); 
+        setPasswordInput('');
       }
     } catch (err) {
       const errorMsg = err.response?.data?.message || "Cannot connect to server. Check your internet.";
@@ -44,11 +44,11 @@ export default function App() {
 
   const handleSearch = async (searchCode) => {
     if (!searchCode) return Alert.alert("Error", "Please enter a code");
-    setScanned(true); 
+    setScanned(true);
     try {
       const res = await axios.get(`${API_URL}/product/${searchCode.trim()}`);
       setProduct(res.data);
-      setManualCode(''); 
+      setManualCode('');
     } catch (err) {
       Alert.alert("Not Found", `Code ${searchCode} is not in the system.`, [{ text: "OK", onPress: () => setScanned(false) }]);
     }
@@ -58,44 +58,44 @@ export default function App() {
     if (!quantity || isNaN(parseInt(quantity)) || parseInt(quantity) <= 0) {
       return Alert.alert("Error", "Please enter a valid quantity.");
     }
-    
+
     try {
       const res = await axios.post(`${API_URL}/stock`, {
-        barcode: product.barcode || product.productCode, 
-        type: type, 
+        barcode: product.barcode || product.productCode,
+        type: type,
         quantity: parseInt(quantity),
-        username: user.username 
+        username: user.username
       });
-      
+
       // Force the alert to show the actual server response
       Alert.alert(
-        "Success! ✅", 
-        `${type} of ${quantity} recorded.\nNew Stock: ${res.data.newStock || 'Updated'}`, 
+        "Success! ✅",
+        `${type} of ${quantity} recorded.\nNew Stock: ${res.data.newStock || 'Updated'}`,
         [{ text: "Scan Next", onPress: resetApp }]
       );
 
-    } catch (err) { 
+    } catch (err) {
       // If it fails, explicitly show WHY it failed
       const errorMsg = err.response?.data?.message || err.message || "Server Error. Check terminal.";
-      Alert.alert("Update Failed ❌", errorMsg); 
+      Alert.alert("Update Failed ❌", errorMsg);
     }
   };
 
-  const resetApp = () => { 
-    setScanned(false); 
-    setProduct(null); 
-    setQuantity(''); 
+  const resetApp = () => {
+    setScanned(false);
+    setProduct(null);
+    setQuantity('');
   };
 
-  const handleLogout = () => { 
-    setUser(null); 
-    setUsernameInput(''); 
+  const handleLogout = () => {
+    setUser(null);
+    setUsernameInput('');
   };
 
   if (!permission?.granted) {
     return (
       <View style={styles.centered}>
-        <Text style={{marginBottom: 20}}>Camera permission required.</Text>
+        <Text style={{ marginBottom: 20 }}>Camera permission required.</Text>
         <TouchableOpacity style={styles.btnGreen} onPress={requestPermission}><Text style={styles.btnText}>Enable Camera</Text></TouchableOpacity>
       </View>
     );
@@ -128,30 +128,30 @@ export default function App() {
   return (
     <SafeAreaView style={styles.container}>
       {!scanned ? (
-        <View style={{flex: 1}}>
+        <View style={{ flex: 1 }}>
           <View style={styles.header}>
             <View>
               <Text style={styles.headerText}>Inventory Scanner</Text>
-              <Text style={{color: '#e0e0e0', fontSize: 12}}>User: {user.username}</Text>
+              <Text style={{ color: '#e0e0e0', fontSize: 12 }}>User: {user.username}</Text>
             </View>
-            <TouchableOpacity onPress={handleLogout} style={styles.logoutBtn}><Text style={{color: 'white', fontWeight: 'bold'}}>Logout</Text></TouchableOpacity>
+            <TouchableOpacity onPress={handleLogout} style={styles.logoutBtn}><Text style={{ color: 'white', fontWeight: 'bold' }}>Logout</Text></TouchableOpacity>
           </View>
-          
+
           <View style={styles.searchContainer}>
             <TextInput style={styles.searchInput} placeholder="Type product code..." value={manualCode} onChangeText={setManualCode} autoCapitalize="characters" />
             <TouchableOpacity style={styles.searchBtn} onPress={() => handleSearch(manualCode)}><Text style={styles.searchBtnText}>Search</Text></TouchableOpacity>
           </View>
 
           <View style={styles.cameraContainer}>
-             <CameraView style={StyleSheet.absoluteFillObject} onBarcodeScanned={({data}) => handleSearch(data)} />
+            <CameraView style={StyleSheet.absoluteFillObject} onBarcodeScanned={({ data }) => handleSearch(data)} />
           </View>
         </View>
       ) : (
         <ScrollView contentContainerStyle={styles.detailsBox}>
           {product && (
-            <View style={{width: '100%'}}>
+            <View style={{ width: '100%' }}>
               <Text style={styles.itemTitle}>{String(product.productCode || 'UNKNOWN CODE')}</Text>
-              
+
               {/* --- INVENTORY DETAILS TABLE --- */}
               <View style={styles.card}>
                 <View style={styles.infoRow}>
@@ -162,7 +162,7 @@ export default function App() {
                 {/* Checks all possible database names for Weight */}
                 <View style={styles.infoRow}>
                   <Text style={styles.label}>Wt/Pc (kg):</Text>
-                  <Text style={styles.val}>{product.weight || product.wtPc || product.wt_pc || product.Wt/Pc || 'N/A'}</Text>
+                  <Text style={styles.val}>{product.weight || product.wt_pc || 'N/A'}</Text>
                 </View>
 
                 <View style={styles.infoRow}>
@@ -183,31 +183,31 @@ export default function App() {
 
                 <View style={styles.infoRow}>
                   <Text style={styles.label}>Prod. Readied (FG):</Text>
-                  <Text style={[styles.val, {color: '#28a745'}]}>{String(product.productionReadied || product.fg || 0)}</Text>
+                  <Text style={[styles.val, { color: '#28a745' }]}>{String(product.productionReadied || product.fg || 0)}</Text>
                 </View>
 
-                <View style={[styles.infoRow, {borderBottomWidth: 0, marginTop: 5}]}>
-                  <Text style={[styles.label, {fontSize: 16, color: '#333'}]}>Current Stock:</Text>
-                  <Text style={[styles.val, {color: '#007bff', fontSize: 20}]}>{String(product.currentStock || 0)}</Text>
+                <View style={[styles.infoRow, { borderBottomWidth: 0, marginTop: 5 }]}>
+                  <Text style={[styles.label, { fontSize: 16, color: '#333' }]}>Current Stock:</Text>
+                  <Text style={[styles.val, { color: '#007bff', fontSize: 20 }]}>{String(product.currentStock || 0)}</Text>
                 </View>
               </View>
 
               {/* --- ACTION AREA --- */}
               <View style={styles.actionBox}>
                 <Text style={styles.qtyLabel}>Enter Quantity:</Text>
-                <TextInput 
-                  style={styles.inputBig} 
-                  keyboardType="numeric" 
+                <TextInput
+                  style={styles.inputBig}
+                  keyboardType="numeric"
                   placeholder="0"
-                  value={quantity} 
-                  onChangeText={setQuantity} 
+                  value={quantity}
+                  onChangeText={setQuantity}
                 />
 
                 <View style={styles.btnRow}>
                   <TouchableOpacity style={styles.btnGreen} onPress={() => handleStandardUpdate('INWARD')}>
                     <Text style={styles.btnText}>+ INWARD</Text>
                   </TouchableOpacity>
-                  
+
                   <TouchableOpacity style={styles.btnRed} onPress={() => handleStandardUpdate('DISPATCH')}>
                     <Text style={styles.btnText}>- DISPATCH</Text>
                   </TouchableOpacity>
