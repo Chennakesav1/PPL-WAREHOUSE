@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Text, View, StyleSheet, TouchableOpacity, Alert, TextInput, ScrollView, SafeAreaView, ActivityIndicator } from 'react-native';
+import { Text, View, StyleSheet, TouchableOpacity, Alert, TextInput, ScrollView, SafeAreaView, ActivityIndicator, Vibration } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 
-// ✅ LOCAL SERVER IP 
+// ✅ SERVER SETTINGS
 const API_URL = "https://ppl-warehouse-1qn1.onrender.com/api";
+const LOW_STOCK_THRESHOLD = 50; // Change this number to whatever you consider "Low Stock"
 
 export default function App() {
   const [permission, requestPermission] = useCameraPermissions();
@@ -27,7 +28,7 @@ export default function App() {
   const [showInventory, setShowInventory] = useState(false);
   const [inventoryList, setInventoryList] = useState([]);
   const [isLoadingInventory, setIsLoadingInventory] = useState(false);
-  const [inventorySearchQuery, setInventorySearchQuery] = useState(''); // NEW: Inventory Search State
+  const [inventorySearchQuery, setInventorySearchQuery] = useState(''); 
 
   // Check for saved login on startup
   useEffect(() => {
@@ -77,7 +78,7 @@ export default function App() {
   const fetchFullInventory = async () => {
     setShowInventory(true);
     setIsLoadingInventory(true);
-    setInventorySearchQuery(''); // Clear search when opening
+    setInventorySearchQuery(''); 
     try {
       const res = await axios.get(`${API_URL}/products`);
       setInventoryList(res.data);
@@ -91,12 +92,16 @@ export default function App() {
 
   const handleSearch = async (searchCode) => {
     if (!searchCode) return Alert.alert("Error", "Please enter a code");
+    
+    Vibration.vibrate(100);
+
     setScanned(true); 
     try {
       const res = await axios.get(`${API_URL}/product/${searchCode.trim()}`);
       setProduct(res.data);
       setManualCode(''); 
     } catch (err) {
+      Vibration.vibrate(500);
       Alert.alert("Not Found", `Code ${searchCode} is not in the system.`, [{ text: "OK", onPress: () => setScanned(false) }]);
     }
   };
@@ -117,6 +122,8 @@ export default function App() {
         username: user.username 
       });
       
+      Vibration.vibrate([0, 150, 100, 150]);
+
       Alert.alert(
         "Success! ✅", 
         `${type} of ${quantity} recorded.\nNew Stock: ${res.data.newStock || 'Updated'}`, 
@@ -124,6 +131,7 @@ export default function App() {
       );
 
     } catch (err) { 
+      Vibration.vibrate(500);
       const errorMsg = err.response?.data?.message || err.message || "Server Error. Check terminal.";
       Alert.alert("Update Failed ❌", errorMsg); 
     } finally {
@@ -174,7 +182,6 @@ export default function App() {
 
   // View: Full Inventory Dashboard
   if (showInventory) {
-    // NEW: Live filtering logic
     const filteredInventory = inventoryList.filter(item => 
       (item.productCode || '').toLowerCase().includes(inventorySearchQuery.toLowerCase())
     );
@@ -188,7 +195,6 @@ export default function App() {
           </TouchableOpacity>
         </View>
 
-        {/* NEW: Inventory Search Bar */}
         <View style={styles.searchContainer}>
           <TextInput 
             style={[styles.searchInput, {flex: 1}]} 
@@ -211,18 +217,29 @@ export default function App() {
             {filteredInventory.length === 0 ? (
               <Text style={{textAlign: 'center', marginTop: 20, color: '#666', fontSize: 16}}>No products found matching "{inventorySearchQuery}"</Text>
             ) : (
-              filteredInventory.map((item, index) => (
-                <View key={index} style={styles.inventoryCard}>
-                  <Text style={styles.inventoryTitle}>{item.productCode || 'N/A'}</Text>
-                  <View style={styles.invRow}><Text style={styles.invLabel}>A/F:</Text><Text style={styles.invVal}>{item.af || '-'}</Text></View>
-                  <View style={styles.invRow}><Text style={styles.invLabel}>Length:</Text><Text style={styles.invVal}>{item.length || '-'}</Text></View>
-                  <View style={styles.invRow}><Text style={styles.invLabel}>Grade:</Text><Text style={styles.invVal}>{item.grade || '-'}</Text></View>
-                  <View style={styles.invRow}><Text style={styles.invLabel}>Wt/Pc:</Text><Text style={styles.invVal}>{item.weightPerPc  || item.wt_pc || '-'}</Text></View>
-                  <View style={styles.invRow}><Text style={styles.invLabel}>Sector:</Text><Text style={styles.invVal}>{item.sector || item.sectr || '-'}</Text></View>
-                  <View style={styles.invRow}><Text style={styles.invLabel}>FG Readied:</Text><Text style={[styles.invVal, {color: '#28a745'}]}>{item.productionReadied || item.fg || 0}</Text></View>
-                  <View style={[styles.invRow, {borderBottomWidth: 0}]}><Text style={[styles.invLabel, {color: '#333'}]}>Current Stock:</Text><Text style={[styles.invVal, {color: '#007bff', fontSize: 16}]}>{item.currentStock || 0}</Text></View>
-                </View>
-              ))
+              filteredInventory.map((item, index) => {
+                const isLowStock = parseInt(item.currentStock || 0) < LOW_STOCK_THRESHOLD;
+
+                return (
+                  <View key={index} style={[styles.inventoryCard, isLowStock && { borderColor: '#dc3545', borderWidth: 1 }]}>
+                    <Text style={[styles.inventoryTitle, isLowStock && { color: '#dc3545', borderColor: '#dc3545' }]}>
+                      {item.productCode || 'N/A'} {isLowStock && '⚠️'}
+                    </Text>
+                    <View style={styles.invRow}><Text style={styles.invLabel}>A/F:</Text><Text style={styles.invVal}>{item.af || '-'}</Text></View>
+                    <View style={styles.invRow}><Text style={styles.invLabel}>Length:</Text><Text style={styles.invVal}>{item.length || '-'}</Text></View>
+                    <View style={styles.invRow}><Text style={styles.invLabel}>Grade:</Text><Text style={styles.invVal}>{item.grade || '-'}</Text></View>
+                    <View style={styles.invRow}><Text style={styles.invLabel}>Wt/Pc:</Text><Text style={styles.invVal}>{item.weightPerPc  || item.wt_pc || '-'}</Text></View>
+                    <View style={styles.invRow}><Text style={styles.invLabel}>Sector:</Text><Text style={styles.invVal}>{item.sector || item.sectr || '-'}</Text></View>
+                    <View style={styles.invRow}><Text style={styles.invLabel}>FG Readied:</Text><Text style={[styles.invVal, {color: '#28a745'}]}>{item.productionReadied || item.fg || 0}</Text></View>
+                    <View style={[styles.invRow, {borderBottomWidth: 0}]}>
+                      <Text style={[styles.invLabel, {color: '#333'}]}>Current Stock:</Text>
+                      <Text style={[styles.invVal, {color: isLowStock ? '#dc3545' : '#007bff', fontSize: 16}]}>
+                        {item.currentStock || 0} {isLowStock && ' (LOW)'}
+                      </Text>
+                    </View>
+                  </View>
+                );
+              })
             )}
           </ScrollView>
         )}
@@ -263,40 +280,51 @@ export default function App() {
         </View>
       ) : (
         <ScrollView contentContainerStyle={styles.detailsBox}>
-          {product && (
-            <View style={{width: '100%'}}>
-              <Text style={styles.itemTitle}>{String(product.productCode || 'UNKNOWN CODE')}</Text>
-              
-              <View style={styles.card}>
-                <View style={styles.infoRow}><Text style={styles.label}>A/F:</Text><Text style={styles.val}>{product.af || 'N/A'}</Text></View>
-                <View style={styles.infoRow}><Text style={styles.label}>Wt/Pc (kg):</Text><Text style={styles.val}>{product.weightPerPc  || product.wt_pc || 'N/A'}</Text></View>
-                <View style={styles.infoRow}><Text style={styles.label}>Grade:</Text><Text style={styles.val}>{product.grade || 'N/A'}</Text></View>
-                <View style={styles.infoRow}><Text style={styles.label}>Length:</Text><Text style={styles.val}>{product.length || 'N/A'}</Text></View>
-                <View style={styles.infoRow}><Text style={styles.label}>Sector:</Text><Text style={styles.val}>{product.sector || product.sectr || 'N/A'}</Text></View>
-                <View style={styles.infoRow}><Text style={styles.label}>Prod. Readied (FG):</Text><Text style={[styles.val, {color: '#28a745'}]}>{String(product.productionReadied || product.fg || 0)}</Text></View>
-                <View style={[styles.infoRow, {borderBottomWidth: 0, marginTop: 5}]}><Text style={[styles.label, {fontSize: 16, color: '#333'}]}>Current Stock:</Text><Text style={[styles.val, {color: '#007bff', fontSize: 20}]}>{String(product.currentStock || 0)}</Text></View>
-              </View>
+          {product && (() => {
+            const isLowStock = parseInt(product.currentStock || 0) < LOW_STOCK_THRESHOLD;
 
-              <View style={styles.actionBox}>
-                <Text style={styles.qtyLabel}>Enter Quantity:</Text>
-                <TextInput style={styles.inputBig} keyboardType="numeric" placeholder="0" value={quantity} onChangeText={setQuantity} editable={!isSubmitting} />
-
-                <View style={styles.btnRow}>
-                  <TouchableOpacity style={[styles.btnGreen, isSubmitting && {opacity: 0.5}]} onPress={() => handleStandardUpdate('INWARD')} disabled={isSubmitting}>
-                    <Text style={styles.btnText}>{isSubmitting ? "Processing..." : "+ INWARD"}</Text>
-                  </TouchableOpacity>
+            return (
+              <View style={{width: '100%'}}>
+                <Text style={styles.itemTitle}>{String(product.productCode || 'UNKNOWN CODE')}</Text>
+                
+                <View style={styles.card}>
+                  <View style={styles.infoRow}><Text style={styles.label}>A/F:</Text><Text style={styles.val}>{product.af || 'N/A'}</Text></View>
+                  <View style={styles.infoRow}><Text style={styles.label}>Wt/Pc (kg):</Text><Text style={styles.val}>{product.weightPerPc  || product.wt_pc || 'N/A'}</Text></View>
+                  <View style={styles.infoRow}><Text style={styles.label}>Grade:</Text><Text style={styles.val}>{product.grade || 'N/A'}</Text></View>
+                  <View style={styles.infoRow}><Text style={styles.label}>Length:</Text><Text style={styles.val}>{product.length || 'N/A'}</Text></View>
+                  <View style={styles.infoRow}><Text style={styles.label}>Sector:</Text><Text style={styles.val}>{product.sector || product.sectr || 'N/A'}</Text></View>
+                  <View style={styles.infoRow}><Text style={styles.label}>Prod. Readied (FG):</Text><Text style={[styles.val, {color: '#28a745'}]}>{String(product.productionReadied || product.fg || 0)}</Text></View>
                   
-                  <TouchableOpacity style={[styles.btnRed, isSubmitting && {opacity: 0.5}]} onPress={() => handleStandardUpdate('DISPATCH')} disabled={isSubmitting}>
-                    <Text style={styles.btnText}>{isSubmitting ? "Processing..." : "- DISPATCH"}</Text>
-                  </TouchableOpacity>
+                  {/* NEW: Low Stock Warning in Scanner */}
+                  <View style={[styles.infoRow, {borderBottomWidth: 0, marginTop: 5}]}>
+                    <Text style={[styles.label, {fontSize: 16, color: '#333'}]}>Current Stock:</Text>
+                    <Text style={[styles.val, {color: isLowStock ? '#dc3545' : '#007bff', fontSize: 20}]}>
+                      {String(product.currentStock || 0)} {isLowStock && '⚠️ LOW'}
+                    </Text>
+                  </View>
                 </View>
-              </View>
 
-              <TouchableOpacity style={styles.cancelBtn} onPress={resetApp} disabled={isSubmitting}>
-                <Text style={styles.cancelText}>Cancel & Rescan</Text>
-              </TouchableOpacity>
-            </View>
-          )}
+                <View style={styles.actionBox}>
+                  <Text style={styles.qtyLabel}>Enter Quantity:</Text>
+                  <TextInput style={styles.inputBig} keyboardType="numeric" placeholder="0" value={quantity} onChangeText={setQuantity} editable={!isSubmitting} />
+
+                  <View style={styles.btnRow}>
+                    <TouchableOpacity style={[styles.btnGreen, isSubmitting && {opacity: 0.5}]} onPress={() => handleStandardUpdate('INWARD')} disabled={isSubmitting}>
+                      <Text style={styles.btnText}>{isSubmitting ? "Processing..." : "+ INWARD"}</Text>
+                    </TouchableOpacity>
+                    
+                    <TouchableOpacity style={[styles.btnRed, isSubmitting && {opacity: 0.5}]} onPress={() => handleStandardUpdate('DISPATCH')} disabled={isSubmitting}>
+                      <Text style={styles.btnText}>{isSubmitting ? "Processing..." : "- DISPATCH"}</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                <TouchableOpacity style={styles.cancelBtn} onPress={resetApp} disabled={isSubmitting}>
+                  <Text style={styles.cancelText}>Cancel & Rescan</Text>
+                </TouchableOpacity>
+              </View>
+            );
+          })()}
         </ScrollView>
       )}
     </SafeAreaView>
