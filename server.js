@@ -211,7 +211,6 @@ app.post('/api/marketing/send-offers', async (req, res) => {
         } else {
             const allCustomers = await Customer.find({ phone: { $exists: true, $ne: "" } });
             if (filter === 'all') targetCustomers = allCustomers;
-            // Add VIP/Inactive logic here if needed
         }
 
         if (targetCustomers.length === 0) return res.status(400).json({ error: "No valid customers with phone numbers found." });
@@ -219,11 +218,14 @@ app.post('/api/marketing/send-offers', async (req, res) => {
         let messagesSent = 0;
         for (let customer of targetCustomers) {
             const personalizedMessage = `*PPL ENTERPRISES* 📢\n\nHi ${customer.name},\n${messageText}`;
-            await sendWhatsAppMessage(customer.phone, personalizedMessage);
+            await sendWhatsAppMessage(customer.phone, personalizedMessage); // Make sure sendWhatsAppMessage function is at the top of your file!
             messagesSent++;
         }
         res.json({ success: true, message: `WhatsApp messages sent to ${messagesSent} customers.` });
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    } catch (err) { 
+        console.error("Marketing Error:", err);
+        res.status(500).json({ error: err.message }); 
+    }
 });
 // Serve the Frontend Dashboard
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
