@@ -3,7 +3,7 @@ import { Text, View, StyleSheet, TouchableOpacity, Alert, TextInput, ScrollView,
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import axios from 'axios';
 
-// ✅ POINTING DIRECTLY TO YOUR LIVE RENDER BACKEND
+// ✅ POINTING TO YOUR LOCAL SERVER FOR TESTING
 const API_URL = "https://ppl-warehouse-1qn1.onrender.com/api";
 
 export default function App() {
@@ -16,14 +16,11 @@ export default function App() {
 
   const [scanned, setScanned] = useState(false);
   const [product, setProduct] = useState(null);
-  const [quantity, setQuantity] = useState('1');
+  const [quantity, setQuantity] = useState('');
   const [manualCode, setManualCode] = useState('');
 
-  const [rawMaterialCode, setRawMaterialCode] = useState('');
-  const [rawMaterialKg, setRawMaterialKg] = useState('');
-
   useEffect(() => {
-    const timer = setTimeout(() => { setShowSplash(false); }, 5000);
+    const timer = setTimeout(() => { setShowSplash(false); }, 3000);
     return () => clearTimeout(timer);
   }, []);
 
@@ -58,7 +55,10 @@ export default function App() {
   };
 
   const handleStandardUpdate = async (type) => {
-    if (!quantity || isNaN(parseInt(quantity)) || parseInt(quantity) <= 0) return Alert.alert("Error", "Enter a valid quantity");
+    if (!quantity || isNaN(parseInt(quantity)) || parseInt(quantity) <= 0) {
+      return Alert.alert("Error", "Please enter a valid quantity.");
+    }
+    
     try {
       const res = await axios.post(`${API_URL}/stock`, {
         barcode: product.barcode || product.productCode, 
@@ -67,46 +67,21 @@ export default function App() {
         username: user.username 
       });
       Alert.alert("Success! ✅", `${type} recorded.\nNew Stock: ${res.data.newStock}`, [{ text: "Scan Next", onPress: resetApp }]);
-    } catch (err) { Alert.alert("Failed", "Server Error."); }
-  };
-
-  const handleProduction = async () => {
-    if (!quantity || !rawMaterialCode || !rawMaterialKg) return Alert.alert("Error", "Fill all production fields");
-    try {
-      await axios.post(`${API_URL}/production/batch`, {
-        productBarcode: product.barcode || product.productCode,
-        quantityProduced: parseInt(quantity),
-        rawMaterialCode: rawMaterialCode.trim(),
-        rawMaterialConsumedKg: parseFloat(rawMaterialKg),
-        username: user.username
-      });
-      Alert.alert("Success! 🏭", "Batch produced!", [{ text: "Scan Next", onPress: resetApp }]);
-    } catch (err) {
-      Alert.alert("Failed", err.response?.data?.message || "Production Error");
-    }
-  };
-
-  const handleSales = async () => {
-    if (!quantity || isNaN(parseInt(quantity)) || parseInt(quantity) <= 0) return Alert.alert("Error", "Enter a valid quantity");
-    try {
-      await axios.post(`${API_URL}/sales/order`, {
-        productBarcode: product.barcode || product.productCode,
-        quantitySold: parseInt(quantity),
-        customerName: "App Order",
-        username: user.username
-      });
-      Alert.alert("Success! 📦", "Order Dispatched!", [{ text: "Scan Next", onPress: resetApp }]);
-    } catch (err) {
-      Alert.alert("Failed", err.response?.data?.message || "Sales Error");
+    } catch (err) { 
+      Alert.alert("Failed", "Server Error. Could not update stock."); 
     }
   };
 
   const resetApp = () => { 
-    setScanned(false); setProduct(null); setQuantity('1'); 
-    setRawMaterialCode(''); setRawMaterialKg(''); 
+    setScanned(false); 
+    setProduct(null); 
+    setQuantity(''); 
   };
 
-  const handleLogout = () => { setUser(null); setUsernameInput(''); };
+  const handleLogout = () => { 
+    setUser(null); 
+    setUsernameInput(''); 
+  };
 
   if (!permission?.granted) {
     return (
@@ -147,14 +122,14 @@ export default function App() {
         <View style={{flex: 1}}>
           <View style={styles.header}>
             <View>
-              <Text style={styles.headerText}>{user.role} Tools</Text>
+              <Text style={styles.headerText}>Inventory Scanner</Text>
               <Text style={{color: '#e0e0e0', fontSize: 12}}>User: {user.username}</Text>
             </View>
             <TouchableOpacity onPress={handleLogout} style={styles.logoutBtn}><Text style={{color: 'white', fontWeight: 'bold'}}>Logout</Text></TouchableOpacity>
           </View>
           
           <View style={styles.searchContainer}>
-            <TextInput style={styles.searchInput} placeholder="Type code..." value={manualCode} onChangeText={setManualCode} autoCapitalize="characters" />
+            <TextInput style={styles.searchInput} placeholder="Type product code..." value={manualCode} onChangeText={setManualCode} autoCapitalize="characters" />
             <TouchableOpacity style={styles.searchBtn} onPress={() => handleSearch(manualCode)}><Text style={styles.searchBtnText}>Search</Text></TouchableOpacity>
           </View>
 
@@ -166,34 +141,61 @@ export default function App() {
         <ScrollView contentContainerStyle={styles.detailsBox}>
           {product && (
             <View style={{width: '100%'}}>
-              <Text style={styles.itemTitle}>{String(product.productCode || 'N/A')}</Text>
+              <Text style={styles.itemTitle}>{String(product.productCode || 'UNKNOWN CODE')}</Text>
+              
+              {/* --- INVENTORY DETAILS TABLE --- */}
               <View style={styles.card}>
-                <View style={styles.infoRow}><Text style={styles.label}>Stock:</Text><Text style={[styles.val, {color: '#007bff', fontSize: 18}]}>{String(product.currentStock || 0)}</Text></View>
+                <View style={styles.infoRow}>
+                  <Text style={styles.label}>A/F:</Text>
+                  <Text style={styles.val}>{product.af || 'N/A'}</Text>
+                </View>
+                <View style={styles.infoRow}>
+                  <Text style={styles.label}>Weight:</Text>
+                  <Text style={styles.val}>{product.weight || 'N/A'}</Text>
+                </View>
+                <View style={styles.infoRow}>
+                  <Text style={styles.label}>Grade:</Text>
+                  <Text style={styles.val}>{product.grade || 'N/A'}</Text>
+                </View>
+                <View style={styles.infoRow}>
+                  <Text style={styles.label}>Length:</Text>
+                  <Text style={styles.val}>{product.length || 'N/A'}</Text>
+                </View>
+                <View style={styles.infoRow}>
+                  <Text style={styles.label}>Prod. Readied (FG):</Text>
+                  <Text style={[styles.val, {color: '#28a745'}]}>{String(product.productionReadied || 0)}</Text>
+                </View>
+                <View style={[styles.infoRow, {borderBottomWidth: 0, marginTop: 5}]}>
+                  <Text style={[styles.label, {fontSize: 16, color: '#333'}]}>Current Stock:</Text>
+                  <Text style={[styles.val, {color: '#007bff', fontSize: 20}]}>{String(product.currentStock || 0)}</Text>
+                </View>
               </View>
 
-              <Text style={styles.qtyLabel}>Quantity (Bolts):</Text>
-              <TextInput style={styles.inputBig} keyboardType="numeric" value={quantity} onChangeText={setQuantity} autoFocus={true} />
+              {/* --- ACTION AREA --- */}
+              <View style={styles.actionBox}>
+                <Text style={styles.qtyLabel}>Enter Quantity:</Text>
+                <TextInput 
+                  style={styles.inputBig} 
+                  keyboardType="numeric" 
+                  placeholder="0"
+                  value={quantity} 
+                  onChangeText={setQuantity} 
+                />
 
-              {user.role === 'PRODUCTION' && (
-                <View style={styles.roleBox}>
-                  <Text style={styles.roleBoxTitle}>🏭 Raw Material Consumed</Text>
-                  <TextInput style={styles.inputSmall} placeholder="Steel Code (e.g., STL-10MM)" value={rawMaterialCode} onChangeText={setRawMaterialCode} />
-                  <TextInput style={styles.inputSmall} placeholder="Weight Used (Kg)" keyboardType="numeric" value={rawMaterialKg} onChangeText={setRawMaterialKg} />
-                  <TouchableOpacity style={styles.btnGreen} onPress={handleProduction}><Text style={styles.btnText}>Record Production Batch</Text></TouchableOpacity>
+                <View style={styles.btnRow}>
+                  <TouchableOpacity style={styles.btnGreen} onPress={() => handleStandardUpdate('INWARD')}>
+                    <Text style={styles.btnText}>+ INWARD</Text>
+                  </TouchableOpacity>
+                  
+                  <TouchableOpacity style={styles.btnRed} onPress={() => handleStandardUpdate('DISPATCH')}>
+                    <Text style={styles.btnText}>- DISPATCH</Text>
+                  </TouchableOpacity>
                 </View>
-              )}
+              </View>
 
-              {(user.role === 'ADMIN' || user.role === 'PURCHASE') && (
-                <View style={styles.roleBox}>
-                  <Text style={styles.roleBoxTitle}>⚙️ Manual Stock Adjustment</Text>
-                  <View style={styles.btnRow}>
-                    <TouchableOpacity style={styles.btnGreen} onPress={() => handleStandardUpdate('INWARD')}><Text style={styles.btnText}>+ INWARD</Text></TouchableOpacity>
-                    <TouchableOpacity style={styles.btnRed} onPress={() => handleStandardUpdate('DISPATCH')}><Text style={styles.btnText}>- DISPATCH</Text></TouchableOpacity>
-                  </View>
-                </View>
-              )}
-
-              <TouchableOpacity style={styles.cancelBtn} onPress={resetApp}><Text style={styles.cancelText}>Cancel & Rescan</Text></TouchableOpacity>
+              <TouchableOpacity style={styles.cancelBtn} onPress={resetApp}>
+                <Text style={styles.cancelText}>Cancel & Rescan</Text>
+              </TouchableOpacity>
             </View>
           )}
         </ScrollView>
@@ -223,20 +225,18 @@ const styles = StyleSheet.create({
   searchBtnText: { color: 'white', fontWeight: 'bold', fontSize: 16 },
   cameraContainer: { flex: 1, margin: 20, borderRadius: 20, overflow: 'hidden', backgroundColor: 'black' },
   detailsBox: { padding: 20, alignItems: 'center' },
-  itemTitle: { fontSize: 28, fontWeight: 'bold', marginBottom: 15, textAlign: 'center' },
-  card: { backgroundColor: 'white', width: '100%', padding: 15, borderRadius: 10, elevation: 3, marginBottom: 20 },
-  infoRow: { flexDirection: 'row', justifyContent: 'space-between', borderBottomWidth: 1, borderColor: '#eee', paddingVertical: 8 },
-  label: { color: '#666', fontWeight: 'bold' },
-  val: { fontWeight: 'bold', color: '#333' },
-  qtyLabel: { fontSize: 18, fontWeight: 'bold', marginBottom: 5 },
-  inputBig: { borderBottomWidth: 3, borderColor: '#007bff', width: 120, fontSize: 36, textAlign: 'center', marginBottom: 20, alignSelf: 'center' },
-  roleBox: { backgroundColor: '#fff', padding: 15, borderRadius: 10, borderWidth: 1, borderColor: '#ddd', width: '100%', marginBottom: 15 },
-  roleBoxTitle: { fontSize: 16, fontWeight: 'bold', color: '#444', marginBottom: 15, textAlign: 'center' },
-  inputSmall: { borderWidth: 1, borderColor: '#ccc', borderRadius: 8, padding: 12, marginBottom: 10, fontSize: 16, backgroundColor: '#f9f9f9' },
+  itemTitle: { fontSize: 28, fontWeight: 'bold', marginBottom: 15, textAlign: 'center', color: '#333' },
+  card: { backgroundColor: 'white', width: '100%', padding: 20, borderRadius: 10, elevation: 3, marginBottom: 20 },
+  infoRow: { flexDirection: 'row', justifyContent: 'space-between', borderBottomWidth: 1, borderColor: '#eee', paddingVertical: 10 },
+  label: { color: '#666', fontWeight: 'bold', fontSize: 15 },
+  val: { fontWeight: 'bold', color: '#222', fontSize: 15 },
+  actionBox: { backgroundColor: '#fff', padding: 20, borderRadius: 10, borderWidth: 1, borderColor: '#ddd', width: '100%', marginBottom: 15, alignItems: 'center' },
+  qtyLabel: { fontSize: 18, fontWeight: 'bold', marginBottom: 10, color: '#444' },
+  inputBig: { borderBottomWidth: 3, borderColor: '#007bff', width: 150, fontSize: 40, textAlign: 'center', marginBottom: 25, color: '#333', paddingBottom: 5 },
   btnRow: { flexDirection: 'row', justifyContent: 'space-between', width: '100%' },
-  btnGreen: { flex: 1, backgroundColor: '#28a745', padding: 18, borderRadius: 10, alignItems: 'center', marginHorizontal: 2 },
-  btnRed: { flex: 1, backgroundColor: '#dc3545', padding: 18, borderRadius: 10, alignItems: 'center', marginHorizontal: 2 },
-  btnText: { color: 'white', fontWeight: 'bold', fontSize: 16 },
-  cancelBtn: { marginTop: 20, alignSelf: 'center' },
-  cancelText: { color: '#666', fontSize: 16, fontWeight: 'bold' }
+  btnGreen: { flex: 1, backgroundColor: '#28a745', padding: 18, borderRadius: 8, alignItems: 'center', marginHorizontal: 5, elevation: 2 },
+  btnRed: { flex: 1, backgroundColor: '#dc3545', padding: 18, borderRadius: 8, alignItems: 'center', marginHorizontal: 5, elevation: 2 },
+  btnText: { color: 'white', fontWeight: 'bold', fontSize: 16, letterSpacing: 1 },
+  cancelBtn: { marginTop: 15, alignSelf: 'center', padding: 10 },
+  cancelText: { color: '#888', fontSize: 16, fontWeight: 'bold' }
 });
