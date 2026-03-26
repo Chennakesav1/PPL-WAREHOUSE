@@ -1001,6 +1001,10 @@
                             <option value="inactive">Inactive Customers (No purchases in 3 months)</option>
                         </select>
 
+                        <input type="email" id="promoSpecificEmail" class="prod-input full-width"
+                            placeholder="OR Enter a single Customer Email to send to just them..."
+                            style="border-color: #e83e8c;">
+
                         <input type="text" id="promoSubject" class="prod-input full-width"
                             placeholder="* Email Subject (e.g., Exclusive 20% Discount!)" required>
                         <textarea id="promoBody" class="prod-input full-width" rows="8"
@@ -1010,7 +1014,7 @@
 
                     <button class="save-btn" style="background-color: #e83e8c; margin-top: 15px;" id="promoSubmitBtn"
                         onclick="sendMarketingEmails()">
-                        🚀 Send Email Blast
+                        🚀 Send Email
                     </button>
                 </div>
             </div>
@@ -2309,7 +2313,7 @@
             } catch (err) { showToast("❌ Error saving customer", true); }
         }
 
-       async function loadSalesOrders() {
+        async function loadSalesOrders() {
             try {
                 const res = await fetch(`${API_URL}/sales-orders`);
                 const orders = await res.json();
@@ -2355,31 +2359,34 @@
 
             try {
                 const res = await fetch(`${API_URL}/sales-orders/${id}/status`, {
-                    method: 'PUT', headers: { 'Content-Type': 'application/json' }, 
+                    method: 'PUT', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
-                if (res.ok) { 
-                    showToast(`✅ Order ${newStatus} & Email Sent!`); 
-                    loadSalesOrders(); loadInventory(); loadTransactions(); 
+                if (res.ok) {
+                    showToast(`✅ Order ${newStatus} & Email Sent!`);
+                    loadSalesOrders(); loadInventory(); loadTransactions();
                 }
             } catch (err) { showToast("Error updating order", true) }
         }
 
-        // Marketing Modal JS
         function openMarketingModal() { document.getElementById('marketingModal').style.display = 'flex'; }
         function closeMarketingModal() { 
             document.getElementById('marketingModal').style.display = 'none'; 
             document.getElementById('promoSubject').value = '';
             document.getElementById('promoBody').value = '';
+            document.getElementById('promoSpecificEmail').value = '';
         }
 
         async function sendMarketingEmails() {
             const subject = document.getElementById('promoSubject').value.trim();
             const messageHtml = document.getElementById('promoBody').value.trim();
             const filter = document.getElementById('promoFilter').value;
+            const specificEmail = document.getElementById('promoSpecificEmail').value.trim();
 
             if (!subject || !messageHtml) return showToast("⚠️ Subject and Message are required!", true);
-            if (!confirm(`Send this email to ${filter.toUpperCase()} target group?`)) return;
+            
+            let confirmMsg = specificEmail ? `Send this email ONLY to ${specificEmail}?` : `Send this email to ${filter.toUpperCase()} target group?`;
+            if (!confirm(confirmMsg)) return;
 
             const btn = document.getElementById('promoSubmitBtn');
             btn.innerHTML = "⏳ Sending Emails..."; btn.disabled = true;
@@ -2387,13 +2394,17 @@
             try {
                 const res = await fetch(`${API_URL}/marketing/send-offers`, {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ subject, messageHtml, filter })
+                    // NEW: passing specificEmail to backend
+                    body: JSON.stringify({ subject, messageHtml, filter, specificEmail })
                 });
                 const data = await res.json();
-                if (data.success) { showToast(`✅ ${data.message}`); closeMarketingModal(); } 
+                if (data.success) { 
+                    showToast(`✅ ${data.message}`); 
+                    closeMarketingModal(); 
+                } 
                 else { showToast("❌ Error: " + data.error, true); }
             } catch (err) { showToast("❌ Failed to connect to server.", true); } 
-            finally { btn.innerHTML = "🚀 Send Email Blast"; btn.disabled = false; }
+            finally { btn.innerHTML = "🚀 Send Email"; btn.disabled = false; }
         }
 
         async function submitSalesOrder() {

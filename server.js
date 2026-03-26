@@ -131,35 +131,52 @@ app.get('/api/unsubscribe/:id', async (req, res) => {
 // ==========================================
 app.post('/api/marketing/send-offers', async (req, res) => {
     try {
-        const { subject, messageHtml, filter } = req.body;
-        // Only target customers who have an email AND are subscribed
-        const allCustomers = await Customer.find({ email: { $exists: true, $ne: "" }, isSubscribed: true });
-        
+        const { subject, messageHtml, filter, specificEmail } = req.body;
         let targetCustomers = [];
-        
-        for (let c of allCustomers) {
-            if (filter === 'all') {
-                targetCustomers.push(c);
-                continue;
+
+        // NEW: Check if a specific email was provided, override filters if so
+        if (specificEmail && specificEmail.trim() !== "") {
+            const singleCustomer = await Customer.findOne({ email: specificEmail.trim() });
+            if (!singleCustomer) {
+                return res.status(404).json({ error: "Customer with that email not found." });
             }
-
-            const orders = await SalesOrder.find({ customerId: c._id, status: { $ne: 'CANCELLED' } });
-            let totalSpent = 0;
-            let lastOrderDate = null;
+            if (!singleCustomer.isSubscribed) {
+                return res.status(400).json({ error: "Customer has unsubscribed from marketing emails." });
+            }
+            targetCustomers.push(singleCustomer);
+        } 
+        else {
+            // Normal Filter Logic
+            const allCustomers = await Customer.find({ email: { $exists: true, $ne: "" }, isSubscribed: true });
             
-            orders.forEach(o => {
-                totalSpent += o.grandTotal;
-                if (!lastOrderDate || new Date(o.orderDate) > lastOrderDate) lastOrderDate = new Date(o.orderDate);
-            });
+            for (let c of allCustomers) {
+                if (filter === 'all') {
+                    targetCustomers.push(c);
+                    continue;
+                }
 
-            if (filter === 'vip' && totalSpent >= 100000) targetCustomers.push(c); 
-            else if (filter === 'inactive') { 
-                const threeMonthsAgo = new Date();
-                threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
-                if (!lastOrderDate || lastOrderDate < threeMonthsAgo) targetCustomers.push(c);
+                const orders = await SalesOrder.find({ customerId: c._id, status: { $ne: 'CANCELLED' } });
+                let totalSpent = 0;
+                let lastOrderDate = null;
+                
+                orders.forEach(o => {
+                    totalSpent += o.grandTotal;
+                    if (!lastOrderDate || new Date(o.orderDate) > lastOrderDate) lastOrderDate = new Date(o.orderDate);
+                });
+
+                if (filter === 'vip' && totalSpent >= 100000) targetCustomers.push(c); 
+                else if (filter === 'inactive') { 
+                    const threeMonthsAgo = new Date();
+                    threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+                    if (!lastOrderDate || lastOrderDate < threeMonthsAgo) targetCustomers.push(c);
+                }
             }
         }
         
+        if (targetCustomers.length === 0) {
+            return res.status(400).json({ error: "No valid subscribed customers found for this filter/email." });
+        }
+
         const host = req.get('host');
         let emailsSent = 0;
 
@@ -175,13 +192,17 @@ app.post('/api/marketing/send-offers', async (req, res) => {
                 </div>
             `;
             
-            await transporter.sendMail({
-                from: '"PPL Offers" <chennakesavarao89@gmail.com>',
-                to: customer.email,
-                subject: subject,
-                html: emailTemplate
-            });
-            emailsSent++;
+            try {
+                await transporter.sendMail({
+                    from: '"PPL Offers" <chennakesavarao89@gmail.com>',
+                    to: customer.email,
+                    subject: subject,
+                    html: emailTemplate
+                });
+                emailsSent++;
+            } catch (err) {
+                console.error("Failed to send marketing email to:", customer.email, err);
+            }
         }
         res.json({ success: true, message: `Email successfully sent to ${emailsSent} customers.` });
     } catch (err) { res.status(500).json({ error: err.message }); }
