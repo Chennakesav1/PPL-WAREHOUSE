@@ -2,6 +2,8 @@ const express = require('express');
 const path = require('path');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const nodemailer = require('nodemailer');
+const PDFDocument = require('pdfkit');
 require('dotenv').config();
 
 const app = express();
@@ -9,20 +11,75 @@ const app = express();
 // ==========================================
 // CORS Configuration
 // ==========================================
-app.use(cors({
+app.use(cors({ 
     origin: '*', 
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'Accept']
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], 
+    allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'Accept'] 
 }));
-
 app.use(express.json());
 
 const { Product, Transaction, RawMaterial, PurchaseOrder, ProductionBatch, WorkOrder, Customer, SalesOrder } = require('./models');
 
-// Serve the Frontend Dashboard
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
+// ==========================================
+// EMAIL & PDF SETUP
+// ==========================================
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: 'chennakesavarao89@gmail.com',
+        pass: process.env.EMAIL_APP_PASSWORD // Setup in Google Account -> App Passwords
+    }
 });
+
+// Helper to generate an in-memory PDF Invoice Buffer
+function generateInvoicePDF(order, customer) {
+    return new Promise((resolve, reject) => {
+        try {
+            const doc = new PDFDocument({ margin: 50 });
+            let buffers = [];
+            doc.on('data', buffers.push.bind(buffers));
+            doc.on('end', () => { resolve(Buffer.concat(buffers)); });
+
+            // Header
+            doc.fontSize(24).fillColor('#6f42c1').text('PPL ENTERPRISES', { align: 'center' });
+            doc.fontSize(10).fillColor('#555555').text('Hyderabad, Telangana, India', { align: 'center' });
+            doc.moveDown();
+            doc.fontSize(16).fillColor('#000000').text('TAX INVOICE', { align: 'center', underline: true });
+            doc.moveDown();
+
+            // Details
+            doc.fontSize(12).text(`Order No: ${order.orderNo}`);
+            doc.text(`Date: ${new Date(order.orderDate).toLocaleDateString()}`);
+            doc.moveDown();
+            doc.text(`Billed To:`, { underline: true });
+            doc.text(customer.name);
+            doc.text(customer.address || 'Address not provided');
+            doc.text(`${customer.email || ''} | ${customer.phone || ''}`);
+            doc.moveDown(2);
+
+            // Table Header
+            doc.fontSize(12).text('Product Code                 Qty      Price (INR)     Total (INR)', { underline: true });
+            doc.moveDown(0.5);
+
+            // Table Rows
+            doc.fontSize(10);
+            order.items.forEach(item => {
+                const row = `${item.productCode.padEnd(25)} ${String(item.quantity).padStart(5)}    ${String(item.unitPrice).padStart(8)}      ${String(item.total).padStart(10)}`;
+                doc.text(row);
+            });
+
+            // Totals
+            doc.moveDown(2);
+            doc.fontSize(12).text(`Subtotal: ₹${order.subtotal}`, { align: 'right' });
+            doc.text(`GST (18%): ₹${order.gstAmount.toFixed(2)}`, { align: 'right' });
+            doc.fontSize(14).fillColor('#28a745').text(`Grand Total: ₹${order.grandTotal.toLocaleString()}`, { align: 'right' });
+            doc.end();
+        } catch (err) { reject(err); }
+    });
+}
+
+// Serve the Frontend Dashboard
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 
 // ==========================================
 // DB Connection
@@ -32,7 +89,7 @@ mongoose.connect(process.env.MONGO_URI)
     .catch(err => console.error("❌ MongoDB Connection CRASH:", err));
 
 // ==========================================
-// 1. ROLE-BASED LOGIN
+// AUTHENTICATION
 // ==========================================
 const DASHBOARD_USERS = {
     "admin": { pass: "admin123", role: "ADMIN" },
@@ -42,80 +99,255 @@ const DASHBOARD_USERS = {
     "seller": { pass: "sell123", role: "SALES" },
     "qc": { pass: "qc123", role: "QC" }
 };
+const WORKER_USERS = { "worker1": { pass: "work123", role: "PRODUCTION" } };
 
-const WORKER_USERS = {
-    "worker1": { pass: "work123", role: "PRODUCTION" },
-    "worker2": { pass: "work456", role: "PRODUCTION" }
-};
-
-// ==========================================
-// 1. UNIFIED ROLE-BASED LOGIN (Web & App)
-// ==========================================
 app.post('/api/login', (req, res) => {
-    
     const username = req.body.username ? req.body.username.toLowerCase().trim() : '';
     const password = req.body.password ? req.body.password.trim() : '';
-    console.log(`🚨 [LOGIN ATTEMPT] Username: "${username}" | Password: "${password}"`);
+    console.log(`🚨 [LOGIN ATTEMPT] Username: "${username}"`);
 
-    // 1. Check Master Admin (No username needed)
-    if (password === 'Admin12345' && !username) {
-        return res.json({ success: true, role: "ADMIN", username: "Admin" });
-    }
-
-    // 2. Check Dashboard Users (Admin, Buyer, QC, etc.)
-    if (DASHBOARD_USERS[username] && DASHBOARD_USERS[username].pass === password) {
-        return res.json({ success: true, role: DASHBOARD_USERS[username].role, username: username });
-    } 
+    if (password === 'Admin12345' && !username) return res.json({ success: true, role: "ADMIN", username: "Admin" });
+    if (DASHBOARD_USERS[username] && DASHBOARD_USERS[username].pass === password) return res.json({ success: true, role: DASHBOARD_USERS[username].role, username: username });
+    if (WORKER_USERS[username] && WORKER_USERS[username].pass === password) return res.json({ success: true, role: WORKER_USERS[username].role, username: username });
     
-    // 3. Check Mobile App Workers (worker1, worker2)
-    if (WORKER_USERS[username] && WORKER_USERS[username].pass === password) {
-        return res.json({ success: true, role: WORKER_USERS[username].role, username: username });
-    }
-
-    res.status(401).json({ success: false, message: "Access Denied: Incorrect username or password." });
+    res.status(401).json({ success: false, message: "Access Denied: Incorrect credentials." });
 });
 
 // ==========================================
-// 2. PPC ROUTING ENGINE
+// UNSUBSCRIBE ENDPOINT
+// ==========================================
+app.get('/api/unsubscribe/:id', async (req, res) => {
+    try {
+        await Customer.findByIdAndUpdate(req.params.id, { isSubscribed: false });
+        res.send(`<div style="font-family: Arial; text-align: center; margin-top: 50px; color: #555;">
+            <h1 style="color: #e83e8c;">Unsubscribed Successfully</h1>
+            <p>You have been removed from our marketing mailing list.</p>
+        </div>`);
+    } catch (err) { res.status(500).send("Error unsubscribing."); }
+});
+
+// ==========================================
+// TARGETED MARKETING
+// ==========================================
+app.post('/api/marketing/send-offers', async (req, res) => {
+    try {
+        const { subject, messageHtml, filter } = req.body;
+        // Only target customers who have an email AND are subscribed
+        const allCustomers = await Customer.find({ email: { $exists: true, $ne: "" }, isSubscribed: true });
+        
+        let targetCustomers = [];
+        
+        for (let c of allCustomers) {
+            if (filter === 'all') {
+                targetCustomers.push(c);
+                continue;
+            }
+
+            const orders = await SalesOrder.find({ customerId: c._id, status: { $ne: 'CANCELLED' } });
+            let totalSpent = 0;
+            let lastOrderDate = null;
+            
+            orders.forEach(o => {
+                totalSpent += o.grandTotal;
+                if (!lastOrderDate || new Date(o.orderDate) > lastOrderDate) lastOrderDate = new Date(o.orderDate);
+            });
+
+            if (filter === 'vip' && totalSpent >= 100000) targetCustomers.push(c); 
+            else if (filter === 'inactive') { 
+                const threeMonthsAgo = new Date();
+                threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+                if (!lastOrderDate || lastOrderDate < threeMonthsAgo) targetCustomers.push(c);
+            }
+        }
+        
+        const host = req.get('host');
+        let emailsSent = 0;
+
+        for (let customer of targetCustomers) {
+            const unsubLink = `${req.protocol}://${host}/api/unsubscribe/${customer._id}`;
+            const emailTemplate = `
+                <div style="font-family: Arial, sans-serif; color: #333;">
+                    <p>Hi ${customer.name},</p>
+                    ${messageHtml}
+                    <br><hr style="border:none; border-top:1px solid #eee; margin-top:30px;">
+                    <p style="font-size:10px; color:#999;">You are receiving this email because you are a customer of PPL Enterprises.</p>
+                    <p style="font-size:10px; color:#999;"><a href="${unsubLink}" style="color:#999;">Click here to unsubscribe</a></p>
+                </div>
+            `;
+            
+            await transporter.sendMail({
+                from: '"PPL Offers" <chennakesavarao89@gmail.com>',
+                to: customer.email,
+                subject: subject,
+                html: emailTemplate
+            });
+            emailsSent++;
+        }
+        res.json({ success: true, message: `Email successfully sent to ${emailsSent} customers.` });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ==========================================
+// SALES & CRM MANAGEMENT
+// ==========================================
+app.get('/api/customers', async (req, res) => {
+    try { res.json(await Customer.find().sort({ createdAt: -1 })); } 
+    catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/customers', async (req, res) => {
+    try { await new Customer(req.body).save(); res.json({ success: true, message: "Customer Added!" }); } 
+    catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.get('/api/sales-orders', async (req, res) => {
+    try { res.json(await SalesOrder.find().sort({ orderDate: -1 })); } 
+    catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/sales-orders', async (req, res) => {
+    try {
+        const { customerId, customerName, items, status, createdBy } = req.body;
+        let subtotal = 0; const enrichedItems = []; 
+
+        for (let item of items) {
+            subtotal += (item.quantity * item.unitPrice);
+            let product = await Product.findOne({ barcode: item.productCode });
+            
+            if (product) {
+                if (status === 'CONFIRMED') {
+                    if (product.currentStock < item.quantity) return res.status(400).json({ error: `Not enough stock for ${item.productCode}` });
+                    product.reservedStock = (product.reservedStock || 0) + item.quantity; 
+                    await product.save();
+                }
+                enrichedItems.push({
+                    ...item,
+                    sector: product.sector || 'N/A', grade: product.grade || 'N/A',
+                    length: product.length || 0, af: product.af ? String(product.af) : 'N/A',
+                    weightPerPc: product.weightPerPc || 0
+                });
+            } else {
+                enrichedItems.push({ ...item, sector: 'N/A', grade: 'N/A', length: 0, af: 'N/A', weightPerPc: 0 });
+            }
+        }
+
+        const gstAmount = subtotal * 0.18; 
+        const grandTotal = subtotal + gstAmount;
+
+        await new SalesOrder({
+            orderNo: `SO-${Date.now()}`, customerId, customerName, items: enrichedItems, 
+            subtotal, gstAmount, grandTotal, status, createdBy
+        }).save();
+        
+        res.json({ success: true, message: `Order saved as ${status}` });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// Sales Order Status Update (WITH PDF & EMAILS)
+app.put('/api/sales-orders/:id/status', async (req, res) => {
+    try {
+        const { status, paymentStatus, username, trackingLink } = req.body;
+        const order = await SalesOrder.findById(req.params.id);
+        if (!order) return res.status(404).json({ error: "Order not found" });
+
+        const customer = await Customer.findById(order.customerId);
+
+        // Inventory deduction logic
+        if (order.status !== 'DISPATCHED' && status === 'DISPATCHED') {
+            for (let item of order.items) {
+                let product = await Product.findOne({ barcode: item.productCode });
+                if (product) {
+                    product.currentStock -= item.quantity;
+                    product.reservedStock = Math.max((product.reservedStock || 0) - item.quantity, 0);
+                    await product.save();
+                    await new Transaction({ barcode: product.barcode, type: 'DISPATCH', quantity: item.quantity, resultingStock: product.currentStock, user: username }).save();
+                }
+            }
+        }
+
+        if (status) order.status = status;
+        if (paymentStatus) order.paymentStatus = paymentStatus;
+        if (trackingLink) order.trackingLink = trackingLink;
+        
+        await order.save();
+
+        // Email Dispatch Logic
+        if (customer && customer.email && customer.isSubscribed) {
+            let mailOptions = {
+                from: '"PPL Accounts" <chennakesavarao89@gmail.com>',
+                to: customer.email,
+                subject: '',
+                html: ''
+            };
+
+            if (status === 'CONFIRMED') {
+                mailOptions.subject = `Order Confirmation & Invoice - ${order.orderNo}`;
+                mailOptions.html = `<p>Dear ${customer.name},</p><p>Thank you for your order! Please find your official PDF Invoice attached to this email.</p>`;
+                
+                // Generate and attach PDF
+                const pdfBuffer = await generateInvoicePDF(order, customer);
+                mailOptions.attachments = [{
+                    filename: `Invoice_${order.orderNo}.pdf`,
+                    content: pdfBuffer,
+                    contentType: 'application/pdf'
+                }];
+            } 
+            else if (status === 'DISPATCHED') {
+                mailOptions.subject = `Order Dispatched - ${order.orderNo}`;
+                mailOptions.html = `<p>Dear ${customer.name},</p><p>Your order <strong>${order.orderNo}</strong> has been packed and dispatched from our facility.</p>`;
+            }
+            else if (status === 'SHIPPED') {
+                mailOptions.subject = `Order Shipped 🚚 - ${order.orderNo}`;
+                mailOptions.html = `<p>Dear ${customer.name},</p><p>Your order <strong>${order.orderNo}</strong> is on the way!</p>
+                                    <p>Track your consignment using the link below:</p>
+                                    <br>
+                                    <a href="${trackingLink}" style="background:#007bff; color:white; padding:10px 20px; text-decoration:none; border-radius:5px; display:inline-block;">Track Order</a>`;
+            }
+            else if (status === 'DELIVERED') {
+                mailOptions.subject = `Order Delivered ✅ - ${order.orderNo}`;
+                mailOptions.html = `<p>Dear ${customer.name},</p><p>Your order <strong>${order.orderNo}</strong> has been delivered. Thank you for doing business with PPL!</p>`;
+            }
+
+            if (mailOptions.subject) {
+                transporter.sendMail(mailOptions).catch(err => console.log("Email error:", err));
+            }
+        }
+
+        res.json({ success: true, message: "Order updated successfully" });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// Temporary Index Fix
+SalesOrder.syncIndexes().then(() => console.log("✅ Ghost indexes cleared from Sales Orders!")).catch(err => console.log(err));
+
+// ==========================================
+// PPC ROUTING ENGINE
 // ==========================================
 app.put('/api/ppc/verify/:id', async (req, res) => {
     try {
         const { status, remarks, nextRoute, username } = req.body;
         const batch = await ProductionBatch.findById(req.params.id);
-
         if (!batch) return res.status(404).json({ error: "Batch not found" });
 
-        batch.ppcStatus = status;
-        batch.ppcRemarks = remarks;
-        batch.ppcBy = username;
-        batch.ppcDate = new Date();
-
-        if (status === 'APPROVED') {
-            batch.nextProcessRoute = nextRoute; 
-            batch.isReadyForNextStage = true; 
-        }
-
+        batch.ppcStatus = status; batch.ppcRemarks = remarks; batch.ppcBy = username; batch.ppcDate = new Date();
+        if (status === 'APPROVED') { batch.nextProcessRoute = nextRoute; batch.isReadyForNextStage = true; }
+        
         await batch.save();
         res.json({ success: true, message: `Batch ${status} and routed to ${nextRoute || 'Hold'}` });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 // ==========================================
-// 3. QC GATEKEEPER & INVENTORY MOVEMENT
+// QC GATEKEEPER & INVENTORY MOVEMENT
 // ==========================================
 app.get('/api/qc/pending', async (req, res) => {
-    try {
-        // Only show QC batches that PPC has approved
-        const pendingBatches = await ProductionBatch.find({ qcStatus: 'PENDING', ppcStatus: 'APPROVED' }).sort({ date: -1 });
-        res.json(pendingBatches);
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    try { res.json(await ProductionBatch.find({ qcStatus: 'PENDING', ppcStatus: 'APPROVED' }).sort({ date: -1 })); } 
+    catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 app.get('/api/qc/history', async (req, res) => {
-    try {
-        const history = await ProductionBatch.find({ qcStatus: { $in: ['APPROVED', 'REJECTED'] } }).sort({ qcDate: -1 }).limit(100);
-        res.json(history);
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    try { res.json(await ProductionBatch.find({ qcStatus: { $in: ['APPROVED', 'REJECTED'] } }).sort({ qcDate: -1 }).limit(100)); } 
+    catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 app.put('/api/qc/approve/:id', async (req, res) => {
@@ -123,12 +355,9 @@ app.put('/api/qc/approve/:id', async (req, res) => {
         const batch = await ProductionBatch.findById(req.params.id);
         if (!batch) return res.status(404).json({ error: "Batch not found" });
         if (batch.ppcStatus !== 'APPROVED') return res.status(400).json({ error: "PPC Approval required before QC." });
-        if (batch.qcStatus === 'APPROVED' || batch.qcStatus === 'REJECTED') {
-            return res.status(400).json({ error: "This batch has already been processed by QC! Stock cannot be added twice." });
-        }
+        if (batch.qcStatus === 'APPROVED' || batch.qcStatus === 'REJECTED') return res.status(400).json({ error: "Batch already processed by QC!" });
 
         const incomingStatus = req.body.status || 'APPROVED'; 
-        
         const finalAccQty = req.body.accQty !== undefined ? req.body.accQty : batch.acceptedQty;
         const finalRejQty = req.body.rejQty !== undefined ? req.body.rejQty : batch.rejectedQty;
         const finalRejKg  = req.body.rejKg !== undefined ? req.body.rejKg : batch.rejectionKg;
@@ -137,33 +366,15 @@ app.put('/api/qc/approve/:id', async (req, res) => {
             let lookupCode = batch.partNo || batch.productBarcode;
             if (lookupCode) {
                 let product = await Product.findOne({ barcode: lookupCode.trim() });
-                if (!product) {
-                    product = new Product({ barcode: lookupCode.trim(), productCode: lookupCode.trim(), currentStock: 0, wipStock: 0 });
-                }
+                if (!product) product = new Product({ barcode: lookupCode.trim(), productCode: lookupCode.trim(), currentStock: 0, wipStock: 0 });
 
-                // 🚨 THE CRITICAL INVENTORY ROUTING LOGIC 🚨
                 if (batch.nextProcessRoute === 'READY_STOCK' || batch.stage === 'POLISHING' || batch.stage === 'SEC_OP') {
-                    
-                    // 1. Add to Production Readied (Waiting for App Scan)
                     product.productionReadied = (product.productionReadied || 0) + finalAccQty;
-                    
-                    // 2. Remove from WIP (Floor) - THIS KEEPS WIP ACCURATE
                     product.wipStock = Math.max((product.wipStock || 0) - (finalAccQty + finalRejQty), 0);
-                    
-                    // 3. Log the transaction
-                    await new Transaction({ 
-                        barcode: product.barcode, 
-                        type: 'QC_APPROVAL', 
-                        quantity: finalAccQty, 
-                        resultingStock: product.currentStock, // Current stock stays same until App scan
-                        user: req.body.qcBy || 'QC Inspector' 
-                    }).save();
-                    
+                    await new Transaction({ barcode: product.barcode, type: 'QC_APPROVAL', quantity: finalAccQty, resultingStock: product.currentStock, user: req.body.qcBy || 'QC Inspector' }).save();
                 } else if (batch.stage === 'FORGING') {
-                    // Stage 1 -> Raw Material becomes WIP
                     product.wipStock = (product.wipStock || 0) + finalAccQty;
                 } else {
-                    // Intermediate stages -> Stays in WIP, just deduct the rejects
                     product.wipStock = Math.max((product.wipStock || 0) - finalRejQty, 0);
                 }
                 
@@ -172,190 +383,148 @@ app.put('/api/qc/approve/:id', async (req, res) => {
             }
         }
         
-
-        batch.acceptedQty = finalAccQty;
-        batch.rejectedQty = finalRejQty;
-        batch.rejectionKg = finalRejKg;
-        batch.measuredLength = req.body.measuredLength;
-        batch.measuredAF = req.body.measuredAF;
-        batch.threadGauge = req.body.threadGauge;
-        batch.qcStatus = incomingStatus;
-        batch.qcBy = req.body.qcBy || 'QC Inspector';
-        batch.qcDate = new Date();
-        batch.qcRemarks = req.body.qcRemarks || '';
+        batch.acceptedQty = finalAccQty; batch.rejectedQty = finalRejQty; batch.rejectionKg = finalRejKg;
+        batch.measuredLength = req.body.measuredLength; batch.measuredAF = req.body.measuredAF; batch.threadGauge = req.body.threadGauge;
+        batch.qcStatus = incomingStatus; batch.qcBy = req.body.qcBy || 'QC Inspector'; batch.qcDate = new Date(); batch.qcRemarks = req.body.qcRemarks || '';
+        
         await batch.save();
-
         res.json({ success: true, message: `QC ${incomingStatus} Successfully!` });
-    } catch (err) { 
-        res.status(500).json({ error: err.message }); 
-    }
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
+
 // ==========================================
-// 4. PRODUCTION DEPT
+// PRODUCTION DEPT
 // ==========================================
 app.get('/api/production/batches', async (req, res) => {
-    try {
-        axios.get('${API_URL}/product/${searchCode.trim()}')
-        const batches = await ProductionBatch.find().sort({ date: -1, _id: -1 }).limit(200);
-        res.json(batches);
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    try { res.json(await ProductionBatch.find().sort({ date: -1, _id: -1 }).limit(200)); } 
+    catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 app.post('/api/production/batch', async (req, res) => {
     try {
         let lookupCode = req.body.partNo || req.body.productBarcode; 
         if (lookupCode) {
-            lookupCode = lookupCode.trim();
-            let product = await Product.findOne({ barcode: lookupCode });
-            if (!product) {
-                product = new Product({ barcode: lookupCode, productCode: lookupCode, currentStock: 0, wipStock: 0 });
-            }
+            let product = await Product.findOne({ barcode: lookupCode.trim() });
+            if (!product) product = new Product({ barcode: lookupCode.trim(), productCode: lookupCode.trim(), currentStock: 0, wipStock: 0 });
 
-            // Deduct Raw Material for Stage 1 ONLY
-            if (req.body.stage === 'FORGING') {
-                if (req.body.rawMaterialCode && req.body.rawMaterialConsumedKg) {
-                    const cleanRmCode = req.body.rawMaterialCode.trim().toUpperCase();
-                    const consumedRm = Number(req.body.rawMaterialConsumedKg);
-                    const material = await RawMaterial.findOne({ materialCode: cleanRmCode });
-                    if (material) {
-                        material.currentStockKg -= consumedRm;
-                        material.lastUpdate = new Date();
-                        await material.save();
-                    }
+            if (req.body.stage === 'FORGING' && req.body.rawMaterialCode && req.body.rawMaterialConsumedKg) {
+                const material = await RawMaterial.findOne({ materialCode: req.body.rawMaterialCode.trim().toUpperCase() });
+                if (material) {
+                    material.currentStockKg -= Number(req.body.rawMaterialConsumedKg);
+                    material.lastUpdate = new Date();
+                    await material.save();
                 }
             } 
-            
             product.lastUpdated = new Date(); 
             await product.save();
         }
 
-        const newBatch = new ProductionBatch({
+        await new ProductionBatch({
             ...req.body,
             batchNumber: req.body.batchNumber || `BATCH-${Date.now()}`,
             date: req.body.date ? new Date(req.body.date) : new Date(),
-            length: Number(req.body.length) || 0,
-            rawMaterialConsumedKg: Number(req.body.rawMaterialConsumedKg) || 0,
-            pieceWeightKg: Number(req.body.pieceWeightKg) || 0,
-            scheduleHours: Number(req.body.scheduleHours) || 0,
-            jobChangeHours: Number(req.body.jobChangeHours) || 0,
-            prodPlannedHours: Number(req.body.prodPlannedHours) || 0,
-            speedRpm: Number(req.body.speedRpm) || 0,
-            shiftTargetQty: Number(req.body.shiftTargetQty) || 0,
-            acceptedQty: Number(req.body.acceptedQty) || 0,
-            rejectedQty: Number(req.body.rejectedQty) || 0,
-            rejectionKg: Number(req.body.rejectionKg) || 0,
-            lossMajorJC: Number(req.body.lossMajorJC) || 0, lossMinorJC: Number(req.body.lossMinorJC) || 0,
-            lossSetting: Number(req.body.lossSetting) || 0, lossMcClean: Number(req.body.lossMcClean) || 0,
-            lossToolRework: Number(req.body.lossToolRework) || 0, lossNoTool: Number(req.body.lossNoTool) || 0,
-            lossNoLoad: Number(req.body.lossNoLoad) || 0, lossNoOperator: Number(req.body.lossNoOperator) || 0,
-            lossMMnt: Number(req.body.lossMMnt) || 0, lossEMnt: Number(req.body.lossEMnt) || 0,
-            lossNoPower: Number(req.body.lossNoPower) || 0, lossNoAirOil: Number(req.body.lossNoAirOil) || 0,
-            lossNoRm: Number(req.body.lossNoRm) || 0, lossRmLoading: Number(req.body.lossRmLoading) || 0,
-            lossQaApproval: Number(req.body.lossQaApproval) || 0, lossCoilChange: Number(req.body.lossCoilChange) || 0,
-            lossNoPlan: Number(req.body.lossNoPlan) || 0, lossNpdTeam: Number(req.body.lossNpdTeam) || 0,
-            lossUnknown: Number(req.body.lossUnknown) || 0,
-            ppcStatus: 'PENDING',
-            qcStatus: 'PENDING'
-        });
-
-        await newBatch.save();
+            ppcStatus: 'PENDING', qcStatus: 'PENDING'
+        }).save();
         res.json({ success: true, message: `Production Logged!` });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 app.delete('/api/production/batch/:id', async (req, res) => {
     try {
-        const deletedBatch = await ProductionBatch.findByIdAndDelete(req.params.id);
-        if (!deletedBatch) return res.status(404).json({ success: false, message: "Batch not found" });
+        await ProductionBatch.findByIdAndDelete(req.params.id);
         res.status(200).json({ success: true, message: "Batch deleted successfully" });
     } catch (err) { res.status(500).json({ success: false, error: err.message }); }
 });
 
-
 // ==========================================
-// MOBILE APP: Fetch Single Product by Barcode
+// INVENTORY & TRANSACTIONS
 // ==========================================
 app.get('/api/product/:barcode', async (req, res) => {
     try {
         const product = await Product.findOne({ barcode: req.params.barcode.trim() });
-        if (!product) {
-            return res.status(404).json({ error: "Product not found in system" });
-        }
+        if (!product) return res.status(404).json({ error: "Product not found" });
         res.json(product);
-    } catch (error) { 
-        res.status(500).json({ error: error.message }); 
-    }
-});
-// ==========================================
-// 5. INVENTORY & TRANSACTIONS
-// ==========================================
-app.get('/api/products', async (req, res) => {
-    try {
-        const products = await Product.find().sort({ lastUpdated: -1, _id: -1 });
-        res.json(products);
     } catch (error) { res.status(500).json({ error: error.message }); }
+});
+
+app.get('/api/products', async (req, res) => {
+    try { res.json(await Product.find().sort({ lastUpdated: -1, _id: -1 })); } 
+    catch (error) { res.status(500).json({ error: error.message }); }
 });
 
 app.post('/api/products', async (req, res) => {
     try {
-        const { productCode, sector, type, grade, af, length, weightPerPc, currentStock } = req.body;
-        const barcode = productCode.trim();
-        const existing = await Product.findOne({ barcode });
-        if (existing) return res.status(400).json({ success: false, message: "Product Code already exists!" });
+        const barcode = req.body.productCode.trim();
+        if (await Product.findOne({ barcode })) return res.status(400).json({ success: false, message: "Code exists!" });
 
-        const newProduct = new Product({
-            barcode, productCode: barcode, sector, type, grade, 
-            af: af || null, length: length || null, weightPerPc: weightPerPc || 0, 
-            currentStock: currentStock || 0, wipStock: 0, productionReadied: 0, fgCheck: 0
-        });
+        const newProduct = new Product({ ...req.body, barcode, productCode: barcode, wipStock: 0, productionReadied: 0, fgCheck: 0 });
         await newProduct.save();
 
-        if (currentStock > 0) {
-            await new Transaction({ barcode, type: 'INWARD', quantity: currentStock, resultingStock: currentStock, user: "Admin (New Item)" }).save();
+        if (req.body.currentStock > 0) {
+            await new Transaction({ barcode, type: 'INWARD', quantity: req.body.currentStock, resultingStock: req.body.currentStock, user: "Admin" }).save();
         }
-        res.json({ success: true, message: "Product Added Successfully!" });
+        res.json({ success: true, message: "Product Added!" });
     } catch (error) { res.status(500).json({ success: false, message: error.message }); }
 });
 
 app.put('/api/inventory/:id', async (req, res) => {
-    try {
-        const updatedItem = await Product.findByIdAndUpdate(req.params.id, { currentStock: req.body.stock }, { new: true });
-        res.status(200).json(updatedItem);
-    } catch (error) { res.status(500).json({ message: error.message }); }
+    try { res.status(200).json(await Product.findByIdAndUpdate(req.params.id, { currentStock: req.body.stock }, { new: true })); } 
+    catch (error) { res.status(500).json({ message: error.message }); }
 });
 
 app.delete('/api/inventory/:id', async (req, res) => {
-    try {
-        await Product.findByIdAndDelete(req.params.id);
-        res.status(200).json({ message: "Item deleted successfully" });
-    } catch (error) { res.status(500).json({ message: error.message }); }
+    try { await Product.findByIdAndDelete(req.params.id); res.status(200).json({ message: "Deleted" }); } 
+    catch (error) { res.status(500).json({ message: error.message }); }
 });
 
 app.get('/api/transactions', async (req, res) => {
-    try {
-        const transactions = await Transaction.find().sort({ date: -1, _id: -1 }).limit(100);
-        res.json(transactions);
-    } catch (error) { res.status(500).json({ error: error.message }); }
+    try { res.json(await Transaction.find().sort({ date: -1, _id: -1 }).limit(100)); } 
+    catch (error) { res.status(500).json({ error: error.message }); }
 });
 
 // ==========================================
-// 6. PURCHASE & RAW MATERIALS
+// MOBILE APP SCANNER ENDPOINT (FG-CHECK)
 // ==========================================
-app.get('/api/raw-materials', async (req, res) => {
+app.post('/api/stock', async (req, res) => {
     try {
-        let materials = await RawMaterial.find().sort({ lastUpdate: -1 });
-        res.json(materials);
+        const { barcode, type, quantity, username } = req.body;
+        if (!barcode || !quantity) return res.status(400).json({ error: "Missing data" });
+
+        let product = await Product.findOne({ barcode });
+        if (!product) return res.status(404).json({ error: "Product not found" });
+
+        const parsedQty = Number(quantity);
+
+        if (type === 'INWARD') {
+            product.fgCheck = (product.fgCheck || 0) + parsedQty;
+            product.currentStock = (product.currentStock || 0) + parsedQty;
+        } else if (type === 'DISPATCH') {
+            product.currentStock = Math.max((product.currentStock || 0) - parsedQty, 0);
+        }
+
+        product.lastUpdated = new Date();
+        await product.save();
+
+        await new Transaction({ barcode: product.barcode, type: type, quantity: parsedQty, resultingStock: product.currentStock, user: username || 'App Scanner' }).save();
+        res.json({ success: true, newStock: product.currentStock });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// ==========================================
+// PURCHASE & RAW MATERIALS
+// ==========================================
+app.get('/api/raw-materials', async (req, res) => {
+    try { res.json(await RawMaterial.find().sort({ lastUpdate: -1 })); } 
+    catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 app.post('/api/raw-materials/receive', async (req, res) => {
-    const { materialCode, materialName, grade, supplier, scope, addedKg, username } = req.body;
     try {
+        const { materialCode, materialName, grade, supplier, scope, addedKg, username } = req.body;
         let material = await RawMaterial.findOne({ materialCode });
+        
         if (!material) {
-            material = new RawMaterial({
-                materialCode, materialName: materialName || "Carbon Steel", grade, lastSupplier: supplier, scope, currentStockKg: addedKg, lastUpdatedBy: username || 'Purchase Dept', lastUpdate: new Date()
-            });
+            material = new RawMaterial({ materialCode, materialName: materialName || "Carbon Steel", grade, lastSupplier: supplier, scope, currentStockKg: addedKg, lastUpdatedBy: username || 'Purchase Dept', lastUpdate: new Date() });
         } else {
             material.currentStockKg += Number(addedKg);
             if (grade) material.grade = grade;               
@@ -372,44 +541,31 @@ app.post('/api/raw-materials/receive', async (req, res) => {
 });
 
 app.get('/api/purchase-orders', async (req, res) => {
-    try {
-        const pos = await PurchaseOrder.find().sort({ orderDate: -1, _id: -1 });
-        res.json(pos);
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    try { res.json(await PurchaseOrder.find().sort({ orderDate: -1, _id: -1 })); } 
+    catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 app.post('/api/purchase-orders', async (req, res) => {
-    const { supplierName, materialCode, grade, scope, expectedKg, costPerKg, username } = req.body;
     try {
-        const newPO = new PurchaseOrder({
-            poNumber: `PO-${Date.now()}`, supplierName, materialCode: materialCode.toUpperCase(), grade: grade || "Standard", scope: scope || "General Inventory", expectedKg: Number(expectedKg), costPerKg: Number(costPerKg), totalCost: Number(expectedKg) * Number(costPerKg), orderedBy: username || "Purchase Dept"
-        });
-        await newPO.save();
+        const { supplierName, materialCode, grade, scope, expectedKg, costPerKg, username } = req.body;
+        await new PurchaseOrder({ poNumber: `PO-${Date.now()}`, supplierName, materialCode: materialCode.toUpperCase(), grade: grade || "Standard", scope: scope || "General Inventory", expectedKg: Number(expectedKg), costPerKg: Number(costPerKg), totalCost: Number(expectedKg) * Number(costPerKg), orderedBy: username || "Purchase Dept" }).save();
         res.json({ success: true, message: "PO Created Successfully!" });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 app.put('/api/purchase-orders/:id/receive', async (req, res) => {
-    const { username } = req.body;
     try {
+        const { username } = req.body;
         const po = await PurchaseOrder.findById(req.params.id);
         if (!po || po.status === 'RECEIVED') return res.status(400).json({ message: "Invalid PO" });
 
-        po.status = 'RECEIVED';
-        po.receivedDate = new Date();
-        await po.save();
+        po.status = 'RECEIVED'; po.receivedDate = new Date(); await po.save();
 
         let material = await RawMaterial.findOne({ materialCode: po.materialCode });
         if (!material) {
-            material = new RawMaterial({
-                materialCode: po.materialCode, materialName: "Steel Stock", grade: po.grade, lastSupplier: po.supplierName, currentStockKg: po.expectedKg, lastUpdatedBy: username || "Purchase Dept", lastUpdate: new Date()
-            });
+            material = new RawMaterial({ materialCode: po.materialCode, materialName: "Steel Stock", grade: po.grade, lastSupplier: po.supplierName, currentStockKg: po.expectedKg, lastUpdatedBy: username || "Purchase Dept", lastUpdate: new Date() });
         } else {
-            material.currentStockKg += po.expectedKg;
-            material.grade = po.grade;                 
-            material.lastSupplier = po.supplierName;   
-            material.lastUpdatedBy = username || "Purchase Dept";
-            material.lastUpdate = new Date();
+            material.currentStockKg += po.expectedKg; material.grade = po.grade; material.lastSupplier = po.supplierName; material.lastUpdatedBy = username || "Purchase Dept"; material.lastUpdate = new Date();
         }
         await material.save();
 
@@ -418,189 +574,20 @@ app.put('/api/purchase-orders/:id/receive', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-
 // ==========================================
-// 7. WORK ORDERS (WO) MANAGEMENT
+// WORK ORDERS (WO) MANAGEMENT
 // ==========================================
 app.get('/api/work-orders/active', async (req, res) => {
-    try {
-        const wos = await WorkOrder.find({ status: 'ACTIVE' }).sort({ createdAt: -1 });
-        res.json(wos);
-    } catch (err) { 
-        res.status(500).json({ error: err.message }); 
-    }
+    try { res.json(await WorkOrder.find({ status: 'ACTIVE' }).sort({ createdAt: -1 })); } 
+    catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 app.post('/api/work-orders', async (req, res) => {
-    try {
-        const newWO = new WorkOrder(req.body);
-        await newWO.save();
-        res.json({ success: true, message: "Work Order Created!" });
-    } catch (err) { 
-        res.status(500).json({ error: err.message }); 
-    }
+    try { await new WorkOrder(req.body).save(); res.json({ success: true, message: "Work Order Created!" }); } 
+    catch (err) { res.status(500).json({ error: err.message }); }
 });
-
-
 
 // ==========================================
-// 8. SALES & CRM MANAGEMENT
+// SERVER LISTEN
 // ==========================================
-
-// --- CRM: Customers ---
-app.get('/api/customers', async (req, res) => {
-    try {
-        const customers = await Customer.find().sort({ createdAt: -1 });
-        res.json(customers);
-    } catch (err) { res.status(500).json({ error: err.message }); }
-});
-
-app.post('/api/customers', async (req, res) => {
-    try {
-        const newCustomer = new Customer(req.body);
-        await newCustomer.save();
-        res.json({ success: true, message: "Customer Added!" });
-    } catch (err) { res.status(500).json({ error: err.message }); }
-});
-
-// --- SALES: Orders & Quotations ---
-app.get('/api/sales-orders', async (req, res) => {
-    try {
-        const orders = await SalesOrder.find().sort({ orderDate: -1 });
-        res.json(orders);
-    } catch (err) { 
-        console.error("🔥 CRASH IN GET /api/sales-orders:", err.message);
-        res.status(500).json({ error: err.message }); 
-    }
-});
-
-app.post('/api/sales-orders', async (req, res) => {
-    try {
-        const { customerId, customerName, items, status, createdBy } = req.body;
-        
-        let subtotal = 0;
-        const enrichedItems = []; 
-
-        for (let item of items) {
-            subtotal += (item.quantity * item.unitPrice);
-            
-            let product = await Product.findOne({ barcode: item.productCode });
-            
-            if (product) {
-                if (status === 'CONFIRMED') {
-                    if (product.currentStock < item.quantity) {
-                        return res.status(400).json({ error: `Not enough stock for ${item.productCode}` });
-                    }
-                    product.reservedStock = (product.reservedStock || 0) + item.quantity;
-                    await product.save();
-                }
-                
-                enrichedItems.push({
-                    ...item,
-                    sector: product.sector || 'N/A',
-                    grade: product.grade || 'N/A',
-                    length: product.length || 0,
-                    af: product.af ? String(product.af) : 'N/A',
-                    weightPerPc: product.weightPerPc || 0
-                });
-            } else {
-                enrichedItems.push({
-                    ...item,
-                    sector: 'N/A', grade: 'N/A', length: 0, af: 'N/A', weightPerPc: 0
-                });
-            }
-        }
-
-        const gstAmount = subtotal * 0.18; 
-        const grandTotal = subtotal + gstAmount;
-
-        const newOrder = new SalesOrder({
-            orderNo: `SO-${Date.now()}`,
-            customerId, customerName, 
-            items: enrichedItems, 
-            subtotal, gstAmount, grandTotal, status, createdBy
-        });
-
-        await newOrder.save();
-        res.json({ success: true, message: `Order saved as ${status}` });
-    } catch (err) { 
-        console.error("🔥 CRASH IN POST /api/sales-orders:", err.message);
-        res.status(500).json({ error: err.message }); 
-    }
-});
-
-// Update Order Status (Dispatching & Billing)
-app.put('/api/sales-orders/:id/status', async (req, res) => {
-    try {
-        const { status, paymentStatus, username } = req.body;
-        const order = await SalesOrder.findById(req.params.id);
-        if (!order) return res.status(404).json({ error: "Order not found" });
-
-        // If moving from CONFIRMED to DISPATCHED, officially deduct the stock
-        if (order.status !== 'DISPATCHED' && status === 'DISPATCHED') {
-            for (let item of order.items) {
-                let product = await Product.findOne({ barcode: item.productCode });
-                if (product) {
-                    product.currentStock -= item.quantity;
-                    product.reservedStock = Math.max((product.reservedStock || 0) - item.quantity, 0);
-                    await product.save();
-                    
-                    await new Transaction({ barcode: product.barcode, type: 'DISPATCH', quantity: item.quantity, resultingStock: product.currentStock, user: username }).save();
-                }
-            }
-        }
-
-        if (status) order.status = status;
-        if (paymentStatus) order.paymentStatus = paymentStatus;
-        await order.save();
-
-        res.json({ success: true, message: "Order updated successfully" });
-    } catch (err) { res.status(500).json({ error: err.message }); }
-});
-
-
-// --- TEMPORARY FIX: Clear Old Database Rules ---
-SalesOrder.syncIndexes().then(() => {
-    console.log("✅ Ghost indexes cleared from Sales Orders!");
-}).catch(err => console.log(err));
-
-
-// ==========================================
-// MOBILE APP SCANNER ENDPOINT (FG-CHECK)
-// ==========================================
-app.post('/api/stock', async (req, res) => {
-    try {
-        const { barcode, type, quantity, username } = req.body;
-        if (!barcode || !quantity) return res.status(400).json({ error: "Missing data" });
-
-        let product = await Product.findOne({ barcode });
-        if (!product) return res.status(404).json({ error: "Product not found" });
-
-        const parsedQty = Number(quantity);
-
-        if (type === 'INWARD') {
-            // Add to FG-Check AND make it officially Current Stock
-            product.fgCheck = (product.fgCheck || 0) + parsedQty;
-            product.currentStock = (product.currentStock || 0) + parsedQty;
-        } else if (type === 'DISPATCH') {
-            product.currentStock = Math.max((product.currentStock || 0) - parsedQty, 0);
-        }
-
-        product.lastUpdated = new Date();
-        await product.save();
-
-        await new Transaction({
-            barcode: product.barcode, 
-            type: type, 
-            quantity: parsedQty, 
-            resultingStock: product.currentStock, 
-            user: username || 'App Scanner'
-        }).save();
-
-        res.json({ success: true, newStock: product.currentStock });
-    } catch (err) { 
-        res.status(500).json({ error: err.message }); 
-    }
-});
-
-app.listen(process.env.PORT || 5000, () => console.log(`ERP Server Running on port ${process.env.PORT || 5000}`));
+app.listen(process.env.PORT || 5000, () => console.log(`🚀 ERP Server Running on port ${process.env.PORT || 5000}`));

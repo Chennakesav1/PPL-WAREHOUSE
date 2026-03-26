@@ -13,8 +13,8 @@ const productSchema = new mongoose.Schema({
     currentStock: { type: Number, default: 0 },
     wipStock: { type: Number, default: 0 },
     reservedStock: { type: Number, default: 0 }, 
-    productionReadied: { type: Number, default: 0 }, // <-- MOVED HERE
-    fgCheck: { type: Number, default: 0 },           // <-- MOVED HERE
+    productionReadied: { type: Number, default: 0 },
+    fgCheck: { type: Number, default: 0 },          
     lastUpdated: { type: Date, default: Date.now }
 });
 
@@ -31,8 +31,8 @@ const rawMaterialSchema = new mongoose.Schema({
     materialCode: { type: String, required: true, unique: true },
     materialName: String,
     grade: String,  
-    scope: String,         // Links to PO Grade
-    lastSupplier: String,  // Links to PO Supplier
+    scope: String,        
+    lastSupplier: String,  
     currentStockKg: { type: Number, default: 0 },
     lastUpdatedBy: String,
     lastUpdate: { type: Date, default: Date.now }
@@ -53,7 +53,6 @@ const purchaseOrderSchema = new mongoose.Schema({
     receivedDate: Date
 });
 
-// THE MASSIVE 40-COLUMN MES PRODUCTION SCHEMA
 const productionBatchSchema = new mongoose.Schema({
     batchNumber: { type: String, unique: true, sparse: true },
     date: { type: Date, default: Date.now },
@@ -84,8 +83,6 @@ const productionBatchSchema = new mongoose.Schema({
     rejectionKg: { type: Number, default: 0 },
     rejectionReason: String,
     remarks: String,
-    
-    // Downtime Losses
     lossMajorJC: { type: Number, default: 0 },
     lossMinorJC: { type: Number, default: 0 },
     lossSetting: { type: Number, default: 0 },
@@ -105,29 +102,22 @@ const productionBatchSchema = new mongoose.Schema({
     lossNoPlan: { type: Number, default: 0 },
     lossNpdTeam: { type: Number, default: 0 },
     lossUnknown: { type: Number, default: 0 },
-    
     loggedBy: String,
-    
     qcStatus: { type: String, enum: ['PENDING', 'APPROVED', 'REJECTED'], default: 'PENDING' },
     qcBy: String,
     qcDate: Date,
     qcRemarks: String,
-
-    // --- PPC GATEKEEPER ---
     ppcStatus: { type: String, enum: ['PENDING', 'APPROVED', 'REJECTED'], default: 'PENDING' },
     ppcBy: String,
     ppcRemarks: String,
     ppcDate: Date,
     isReadyForNextStage: { type: Boolean, default: false },
     nextProcessRoute: { type: String },
-    
-    // Measurements (Filled by QC)
     measuredLength: Number,
     measuredAF: String,
     threadGauge: { type: String, enum: ['PASS', 'FAIL', 'N/A'], default: 'N/A' }
 });
 
-// Work Order Schema
 const workOrderSchema = new mongoose.Schema({
     woNumber: { type: String, required: true, unique: true },
     partNo: String,
@@ -139,19 +129,19 @@ const workOrderSchema = new mongoose.Schema({
     createdAt: { type: Date, default: Date.now }
 });
 
-// --- CUSTOMER (CRM) SCHEMA ---
 const CustomerSchema = new mongoose.Schema({
     name: { type: String, required: true },
-    sector: { type: String },         // e.g., AUTO SECTOR, OEM SECTOR
-    transportMode: { type: String },  // e.g., VRL(TOPAY)
+    sector: { type: String }, 
+    transportMode: { type: String },
     phone: { type: String },
     email: { type: String },
     address: { type: String },
-    area: { type: String },           // e.g., BANGALORE, DHANABAD
+    area: { type: String },
     pinCode: { type: String },
     state: { type: String },
-    zone: { type: String },           // e.g., SOUTH-1, WEST-II
+    zone: { type: String },
     type: { type: String, enum: ['DEALER', 'RETAILER', 'BULK_BUYER', 'OTHER'], default: 'RETAILER' },
+    isSubscribed: { type: Boolean, default: true }, // Added for Unsubscribe
     interactions: [{
         date: { type: Date, default: Date.now },
         type: { type: String }, 
@@ -160,21 +150,17 @@ const CustomerSchema = new mongoose.Schema({
     createdAt: { type: Date, default: Date.now }
 });
 
-// --- SALES ORDER & INVOICE SCHEMA ---
-// --- SALES ORDER & INVOICE SCHEMA ---
 const SalesOrderSchema = new mongoose.Schema({
     orderNo: { type: String, required: true, unique: true },
     customerId: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer' },
     customerName: { type: String }, 
     items: [{
         productCode: { type: String, required: true },
-        // NEW: Auto-fetched product dimensions
         sector: { type: String },     
         grade: { type: String },      
         length: { type: Number },     
         af: { type: String },         
         weightPerPc: { type: Number },
-        // Existing fields
         quantity: { type: Number, required: true },
         unitPrice: { type: Number, required: true },
         total: { type: Number, required: true }
@@ -182,15 +168,13 @@ const SalesOrderSchema = new mongoose.Schema({
     subtotal: { type: Number, default: 0 },
     gstAmount: { type: Number, default: 0 },
     grandTotal: { type: Number, default: 0 },
-    status: { type: String, enum: ['QUOTATION', 'CONFIRMED', 'IN_PRODUCTION', 'DISPATCHED'], default: 'QUOTATION' },
+    status: { type: String, enum: ['QUOTATION', 'CONFIRMED', 'IN_PRODUCTION', 'DISPATCHED', 'SHIPPED', 'DELIVERED'], default: 'QUOTATION' },
     paymentStatus: { type: String, enum: ['PENDING', 'PARTIAL', 'PAID', 'OVERDUE'], default: 'PENDING' },
+    trackingLink: { type: String }, // Added for shipping
     orderDate: { type: Date, default: Date.now },
     createdBy: { type: String }
 });
 
-// ==============================================================
-// COMPILE ALL MODELS ONCE
-// ==============================================================
 const Product = mongoose.model('Product', productSchema);
 const Transaction = mongoose.model('Transaction', transactionSchema);
 const RawMaterial = mongoose.model('RawMaterial', rawMaterialSchema);
@@ -200,16 +184,6 @@ const WorkOrder = mongoose.model('WorkOrder', workOrderSchema);
 const Customer = mongoose.model('Customer', CustomerSchema);
 const SalesOrder = mongoose.model('SalesOrder', SalesOrderSchema);
 
-// ==============================================================
-// EXPORT THEM CLEANLY IN ONE SINGLE STATEMENT
-// ==============================================================
 module.exports = { 
-    Product, 
-    Transaction, 
-    RawMaterial, 
-    PurchaseOrder, 
-    ProductionBatch, 
-    WorkOrder, 
-    Customer, 
-    SalesOrder 
+    Product, Transaction, RawMaterial, PurchaseOrder, ProductionBatch, WorkOrder, Customer, SalesOrder 
 };

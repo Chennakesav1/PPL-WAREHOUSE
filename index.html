@@ -397,7 +397,8 @@
                 style="display: none;">Raw Materials</button>
             <button class="tab-btn" id="nav-po" onclick="switchMainTab('poCard', 'nav-po')"
                 style="display: none;">Purchase Orders</button>
-            <button class="tab-btn" id="nav-sales" onclick="switchMainTab('salesCard', 'nav-sales')" style="display: none; background: #6f42c1; color: white;">📈 Sales & CRM</button>    
+            <button class="tab-btn" id="nav-sales" onclick="switchMainTab('salesCard', 'nav-sales')"
+                style="display: none; background: #6f42c1; color: white;">📈 Sales & CRM</button>
         </div>
         <div style="font-size: 14px; display: flex; align-items: center;">
             <span id="roleDisplay" class="role-badge"></span>
@@ -627,7 +628,9 @@
                     <button class="tab-btn" id="tab-ROLLING" onclick="filterLogs('ROLLING')">Rolling</button>
                     <button class="tab-btn" id="tab-HEAT_TREAT" onclick="filterLogs('HEAT_TREAT')">Heat Treat</button>
                     <button class="tab-btn" id="tab-POLISHING" onclick="filterLogs('POLISHING')">Polishing</button>
-                    <button class="tab-btn" id="tab-COMPLETED" onclick="filterLogs('COMPLETED')" style="margin-left: 20px; border-left: 2px solid #ccc; color: #28a745;">✅ Completed Logs</button>
+                    <button class="tab-btn" id="tab-COMPLETED" onclick="filterLogs('COMPLETED')"
+                        style="margin-left: 20px; border-left: 2px solid #ccc; color: #28a745;">✅ Completed
+                        Logs</button>
                 </div>
 
                 <div class="search-container"
@@ -876,29 +879,46 @@
 
 
             <div class="card" id="salesCard" style="display: none; margin-bottom: 20px;">
-                <h2 style="color: #6f42c1; border-bottom: 2px solid #6f42c1;">
-                    📈 Sales, CRM & Billing
+                <h2
+                    style="color: #6f42c1; border-bottom: 2px solid #6f42c1; display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+                    <span>📈 Sales, CRM & Billing</span>
                     <div class="tab-container" style="border: none; margin: 0; padding: 0;">
-                        <button class="tab-btn active" id="tab-crm" onclick="switchSalesTab('crm')" style="background: #6f42c1; color: white;">👥 CRM</button>
-                        <button class="tab-btn" id="tab-orders" onclick="switchSalesTab('orders')">🛒 Orders & Billing</button>
+                        <button class="tab-btn active" id="tab-crm" onclick="switchSalesTab('crm')"
+                            style="background: #6f42c1; color: white;">👥 CRM</button>
+                        <button class="tab-btn" id="tab-orders" onclick="switchSalesTab('orders')">🛒 Orders &
+                            Billing</button>
                     </div>
                 </h2>
 
                 <div id="crmSection">
-                    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #6f42c1;">
-                        <h4 style="margin-top:0; color:#6f42c1;">➕ Add New Customer / Lead</h4>
+                    <div
+                        style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #6f42c1;">
+                        <h4
+                            style="margin-top:0; color:#6f42c1; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                            <span>➕ Add New Customer / Lead</span>
+                            <button onclick="openMarketingModal()"
+                                style="background: #e83e8c; color: white; border: none; padding: 6px 15px; border-radius: 4px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                📢 Send Bulk Offers Email
+                            </button>
+                        </h4>
                         <div class="form-grid-multi">
-                            <input type="text" id="crmName" class="prod-input" placeholder="* Company / Client Name" style="border-color: #6f42c1; font-weight: bold;">
-                            <input type="text" id="crmSector" class="prod-input" placeholder="Sector (e.g., AUTO SECTOR)">
-                            <input type="text" id="crmTransport" class="prod-input" placeholder="Transport Mode (e.g., VRL)">
+                            <input type="text" id="crmName" class="prod-input" placeholder="* Company / Client Name"
+                                style="border-color: #6f42c1; font-weight: bold;">
+                            <input type="text" id="crmSector" class="prod-input"
+                                placeholder="Sector (e.g., AUTO SECTOR)">
+                            <input type="text" id="crmTransport" class="prod-input"
+                                placeholder="Transport Mode (e.g., VRL)">
                             <input type="text" id="crmPhone" class="prod-input" placeholder="Phone Number">
                             <input type="text" id="crmEmail" class="prod-input" placeholder="Email Address">
                             <input type="text" id="crmArea" class="prod-input" placeholder="Area / City">
                             <input type="text" id="crmState" class="prod-input" placeholder="State">
                             <input type="text" id="crmZone" class="prod-input" placeholder="Zone (e.g., SOUTH-1)">
                             <input type="text" id="crmPinCode" class="prod-input" placeholder="Pin Code">
-                            <input type="text" id="crmAddress" class="prod-input" placeholder="Full Street Address" style="grid-column: span 2;">
-                            <button onclick="submitCustomer()" class="add-btn" style="background: #6f42c1; grid-column: 1 / -1; font-size: 16px; padding: 10px;">💾 Save Customer Details</button>
+                            <input type="text" id="crmAddress" class="prod-input" placeholder="Full Street Address"
+                                style="grid-column: span 2;">
+                            <button onclick="submitCustomer()" class="add-btn"
+                                style="background: #6f42c1; grid-column: 1 / -1; font-size: 16px; padding: 10px;">💾
+                                Save Customer Details</button>
                         </div>
                     </div>
                     <div class="table-wrapper">
@@ -913,16 +933,23 @@
                                     <th>Action</th>
                                 </tr>
                             </thead>
-                            <tbody><tr><td colspan="6" style="text-align:center;">Loading Customers...</td></tr></tbody>
+                            <tbody>
+                                <tr>
+                                    <td colspan="6" style="text-align:center;">Loading Customers...</td>
+                                </tr>
+                            </tbody>
                         </table>
                     </div>
                 </div>
 
                 <div id="ordersSection" style="display: none;">
-                    <div style="background: #e8f5e9; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #28a745;">
+                    <div
+                        style="background: #e8f5e9; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #28a745;">
                         <h4 style="margin-top:0; color:#28a745;">📝 Create Quotation / Order</h4>
                         <div class="form-grid-multi">
-                            <select id="soCustomer" class="prod-input"><option value="">- Select Customer -</option></select>
+                            <select id="soCustomer" class="prod-input">
+                                <option value="">- Select Customer -</option>
+                            </select>
                             <input type="text" id="soProduct" class="prod-input" placeholder="* Product Code">
                             <input type="number" id="soQty" class="prod-input" placeholder="* Quantity">
                             <input type="number" id="soPrice" class="prod-input" placeholder="* Unit Price (₹)">
@@ -930,17 +957,61 @@
                                 <option value="QUOTATION">Draft Quotation</option>
                                 <option value="CONFIRMED">Confirmed Order (Reserves Stock)</option>
                             </select>
-                            <button onclick="submitSalesOrder()" class="add-btn" style="background: #28a745;">Generate</button>
+                            <button onclick="submitSalesOrder()" class="add-btn"
+                                style="background: #28a745;">Generate</button>
                         </div>
                     </div>
                     <div class="table-wrapper">
                         <table id="salesOrderTable">
                             <thead style="background-color: #28a745; color: white;">
-                                <tr><th>Order No</th><th>Date</th><th>Customer</th><th>Items</th><th>Total Amount</th><th>Order Status</th><th>Payment Status</th><th>Actions</th></tr>
+                                <tr>
+                                    <th>Order No</th>
+                                    <th>Date</th>
+                                    <th>Customer</th>
+                                    <th>Items</th>
+                                    <th>Total Amount</th>
+                                    <th>Status</th>
+                                    <th>Payment</th>
+                                    <th>Actions</th>
+                                </tr>
                             </thead>
-                            <tbody><tr><td colspan="8" style="text-align:center;">Loading Orders...</td></tr></tbody>
+                            <tbody>
+                                <tr>
+                                    <td colspan="8" style="text-align:center;">Loading Orders...</td>
+                                </tr>
+                            </tbody>
                         </table>
                     </div>
+                </div>
+            </div>
+
+            <div id="marketingModal" class="modal">
+                <div class="modal-content">
+                    <span class="close-btn" onclick="closeMarketingModal()">×</span>
+                    <h2 style="color: #e83e8c; margin-bottom: 5px;">📢 Send Promotional Offers</h2>
+                    <p style="font-size: 13px; color: #666; margin-top: 0; margin-bottom: 15px;">Target and blast emails
+                        to your subscribers.</p>
+
+                    <div class="form-grid" style="grid-template-columns: 1fr;">
+                        <label style="font-size:12px; font-weight:bold; color:#555;">Target Audience:</label>
+                        <select id="promoFilter" class="prod-input full-width"
+                            style="margin-top:-10px; margin-bottom:10px;">
+                            <option value="all">All Subscribed Customers</option>
+                            <option value="vip">VIP Customers (Spent > ₹1,00,000)</option>
+                            <option value="inactive">Inactive Customers (No purchases in 3 months)</option>
+                        </select>
+
+                        <input type="text" id="promoSubject" class="prod-input full-width"
+                            placeholder="* Email Subject (e.g., Exclusive 20% Discount!)" required>
+                        <textarea id="promoBody" class="prod-input full-width" rows="8"
+                            placeholder="* Type your message here... You can use standard text or HTML."
+                            style="resize: vertical; font-family: inherit;" required></textarea>
+                    </div>
+
+                    <button class="save-btn" style="background-color: #e83e8c; margin-top: 15px;" id="promoSubmitBtn"
+                        onclick="sendMarketingEmails()">
+                        🚀 Send Email Blast
+                    </button>
                 </div>
             </div>
 
@@ -1052,6 +1123,28 @@
         </div>
     </div>
 
+
+    <div id="marketingModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeMarketingModal()">×</span>
+            <h2 style="color: #e83e8c; margin-bottom: 5px;">📢 Send Promotional Offers</h2>
+            <p style="font-size: 13px; color: #666; margin-top: 0; margin-bottom: 20px;">
+                Blast an email to all registered customers with an email address.
+            </p>
+            <div class="form-grid" style="grid-template-columns: 1fr;">
+                <input type="text" id="promoSubject" class="prod-input full-width"
+                    placeholder="* Email Subject (e.g., Exclusive 20% Discount!)" required>
+                <textarea id="promoBody" class="prod-input full-width" rows="8"
+                    placeholder="* Type your message here... You can use standard text or HTML."
+                    style="resize: vertical; font-family: inherit;" required></textarea>
+            </div>
+            <button class="save-btn" style="background-color: #e83e8c; margin-top: 15px;" id="promoSubmitBtn"
+                onclick="sendMarketingEmails()">
+                🚀 Send Email Blast
+            </button>
+        </div>
+    </div>
+
     <script>
         const API_URL = 'https://ppl-warehouse-1qn1.onrender.com/api';
         let currentUser = null;
@@ -1125,7 +1218,7 @@
                 document.getElementById('nav-rm').style.display = 'block';
                 document.getElementById('nav-po').style.display = 'block';
                 document.getElementById('addBtnUI').style.display = 'inline-block';
-                
+
                 styleTag.innerHTML = '';
                 switchMainTab('productionCard', 'nav-prod');
             }
@@ -1281,7 +1374,7 @@
                 } else showToast("❌ Error: " + result.message, true);
             } catch (err) { showToast("❌ Server Error", true); }
         }
-async function loadProductionBatches() {
+        async function loadProductionBatches() {
             try {
                 const response = await fetch(`${API_URL}/production/batches`);
                 const batches = await response.json();
@@ -1303,7 +1396,7 @@ async function loadProductionBatches() {
                     } else {
                         if (b.stage !== currentLogFilter || isFinished) return; // Hide finished from stage tabs
                     }
-                    
+
                     count++;
 
                     // 3. PPC & Routing Badges
@@ -1322,10 +1415,10 @@ async function loadProductionBatches() {
                     if (b.nextProcessRoute === 'READY_STOCK') {
                         if (b.qcStatus === 'APPROVED') {
                             stageText = '📦 IN INVENTORY';
-                            stageColor = '#28a745'; 
+                            stageColor = '#28a745';
                         } else {
                             stageText = '⏳ AWAITING QC';
-                            stageColor = '#ffc107'; 
+                            stageColor = '#ffc107';
                             stageTextColor = '#000';
                         }
                     }
@@ -1337,7 +1430,7 @@ async function loadProductionBatches() {
                     const tr = document.createElement('tr');
                     tr.setAttribute('data-date', hiddenDateTag);
                     tr.setAttribute('data-stage', b.stage);
-                    
+
                     if (b.ppcStatus === 'APPROVED' && b.qcStatus === 'APPROVED') {
                         tr.style.borderLeft = "5px solid #28a745";
                     }
@@ -1367,7 +1460,7 @@ async function loadProductionBatches() {
                         <td>${b.lossNpdTeam || 0}</td><td>${b.lossUnknown || 0}</td><td>${b.remarks || '-'}</td>
                         <td><span style="color:#666; font-size:11px;">👤 ${b.loggedBy || '-'}</span></td>
                         ${(() => {
-                            let qcColor = '#ffc107'; 
+                            let qcColor = '#ffc107';
                             let textColor = '#000';
                             if (b.qcStatus === 'APPROVED') { qcColor = '#28a745'; textColor = '#fff'; }
                             if (b.qcStatus === 'REJECTED') { qcColor = '#dc3545'; textColor = '#fff'; }
@@ -1378,16 +1471,16 @@ async function loadProductionBatches() {
                             `;
                         })()}
                         <td style="display: flex; gap: 5px; flex-wrap: wrap; min-width: 140px;">
-                            ${(currentUser.role === 'PPC' || currentUser.role === 'ADMIN') ? 
-                                `<button onclick="openPPCModal('${b._id}')" style="background:#6f42c1; color:white; border:none; padding:5px; border-radius:4px; cursor:pointer; font-weight:bold; font-size: 11px; width: 100%;">Assign Route</button>` : ''}
+                            ${(currentUser.role === 'PPC' || currentUser.role === 'ADMIN') ?
+                            `<button onclick="openPPCModal('${b._id}')" style="background:#6f42c1; color:white; border:none; padding:5px; border-radius:4px; cursor:pointer; font-weight:bold; font-size: 11px; width: 100%;">Assign Route</button>` : ''}
                             
                             ${(() => {
-                                const isDisabled = b.qcStatus !== 'APPROVED' || isFinished;
-                                const btnText = isFinished ? '✅ Finished' : '⏭️ Next Stage';
-                                const btnColor = isFinished ? '#28a745' : '#007bff';
-                                
-                                return `<button onclick="autoFillNextStage('${b._id}')" style="background:${btnColor}; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-weight:bold; flex: 1; ${isDisabled ? 'opacity:0.5; cursor:not-allowed;' : ''}" ${isDisabled ? 'disabled' : ''}>${btnText}</button>`;
-                            })()}
+                            const isDisabled = b.qcStatus !== 'APPROVED' || isFinished;
+                            const btnText = isFinished ? '✅ Finished' : '⏭️ Next Stage';
+                            const btnColor = isFinished ? '#28a745' : '#007bff';
+
+                            return `<button onclick="autoFillNextStage('${b._id}')" style="background:${btnColor}; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-weight:bold; flex: 1; ${isDisabled ? 'opacity:0.5; cursor:not-allowed;' : ''}" ${isDisabled ? 'disabled' : ''}>${btnText}</button>`;
+                        })()}
                             
                             <button class="admin-actions" onclick="deleteProductionBatch('${b._id}')" style="background:#dc3545; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-weight:bold;">🗑️</button>
                         </td>
@@ -1691,9 +1784,9 @@ async function loadProductionBatches() {
                     const wipStock = Number(p.wipStock) || 0;
                     const prodReadied = Number(p.productionReadied) || 0;
                     const fgCheck = Number(p.fgCheck) || 0;
-                    const difference = prodReadied - fgCheck; 
+                    const difference = prodReadied - fgCheck;
                     const isLowStock = currentStock <= 10;
-                    
+
                     const tr = document.createElement('tr');
                     if (isLowStock) tr.className = "low-stock";
 
@@ -1968,13 +2061,13 @@ async function loadProductionBatches() {
             } catch (error) { console.error("Error calculating totals: ", error); }
         }
 
-       function filterLogs(stage) {
+        function filterLogs(stage) {
             currentLogFilter = stage;
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             document.getElementById('tab-' + stage).classList.add('active');
-            
+
             // Rebuilds the table to pull items in or out of the Completed archive
-            loadProductionBatches(); 
+            loadProductionBatches();
         }
 
         function clearProductionFilters() {
@@ -2153,10 +2246,10 @@ async function loadProductionBatches() {
         function switchSalesTab(tab) {
             document.getElementById('crmSection').style.display = tab === 'crm' ? 'block' : 'none';
             document.getElementById('ordersSection').style.display = tab === 'orders' ? 'block' : 'none';
-            
+
             document.getElementById('tab-crm').style.background = tab === 'crm' ? '#6f42c1' : '#eee';
             document.getElementById('tab-crm').style.color = tab === 'crm' ? 'white' : '#555';
-            
+
             document.getElementById('tab-orders').style.background = tab === 'orders' ? '#28a745' : '#eee';
             document.getElementById('tab-orders').style.color = tab === 'orders' ? 'white' : '#555';
         }
@@ -2165,7 +2258,7 @@ async function loadProductionBatches() {
             try {
                 const res = await fetch(`${API_URL}/customers`);
                 const customers = await res.json();
-                
+
                 const tbody = document.querySelector('#crmTable tbody');
                 const soSelect = document.getElementById('soCustomer');
                 tbody.innerHTML = '';
@@ -2181,7 +2274,7 @@ async function loadProductionBatches() {
                         <td><span style="background:#17a2b8; color:white; padding:3px 6px; border-radius:3px; font-size:11px; font-weight:bold;">${c.transportMode || 'N/A'}</span></td>
                         <td><button style="background:#007bff; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">Add Note</button></td>
                     </tr>`;
-                    
+
                     // Populate Dropdown for Sales Orders
                     soSelect.innerHTML += `<option value="${c._id}">${c.name}</option>`;
                 });
@@ -2216,7 +2309,7 @@ async function loadProductionBatches() {
             } catch (err) { showToast("❌ Error saving customer", true); }
         }
 
-        async function loadSalesOrders() {
+       async function loadSalesOrders() {
             try {
                 const res = await fetch(`${API_URL}/sales-orders`);
                 const orders = await res.json();
@@ -2224,21 +2317,7 @@ async function loadProductionBatches() {
                 tbody.innerHTML = '';
 
                 orders.forEach(o => {
-                    // Build a detailed list of items including their exact dimensions
-                    let itemsHtml = o.items.map(i => {
-                        let details = [];
-                        if (i.sector && i.sector !== 'N/A') details.push(i.sector);
-                        if (i.grade && i.grade !== 'N/A') details.push(`Gr: ${i.grade}`);
-                        if (i.length) details.push(`L: ${i.length}mm`);
-                        if (i.af && i.af !== 'N/A') details.push(`A/F: ${i.af}`);
-                        if (i.weightPerPc) details.push(`Wt: ${i.weightPerPc}g`);
-                        
-                        // Format it so the Product Code is bold, and dimensions are small text underneath
-                        let detailString = details.length > 0 ? `<br><span style="font-size:10px; color:#555;">(${details.join(' | ')})</span>` : '';
-                        
-                        return `<div style="margin-bottom: 8px;"><b>${i.quantity}x ${i.productCode}</b>${detailString}</div>`;
-                    }).join('');
-                    
+                    let itemsHtml = o.items.map(i => `<div style="margin-bottom: 4px;"><b>${i.quantity}x ${i.productCode}</b></div>`).join('');
                     let statusColor = o.status === 'QUOTATION' ? '#6c757d' : (o.status === 'CONFIRMED' ? '#007bff' : (o.status === 'DISPATCHED' ? '#28a745' : '#ff9800'));
                     let payColor = o.paymentStatus === 'PAID' ? '#28a745' : (o.paymentStatus === 'OVERDUE' ? '#dc3545' : '#ffc107');
 
@@ -2247,17 +2326,74 @@ async function loadProductionBatches() {
                         <td>${new Date(o.orderDate).toLocaleDateString()}</td>
                         <td><strong>${o.customerName || 'Walk-in'}</strong></td>
                         <td style="font-size:12px;">${itemsHtml}</td>
-                        <td><strong>₹${o.grandTotal.toLocaleString()}</strong> <br> <span style="font-size:10px; color:#666;">(Inc. 18% GST)</span></td>
+                        <td><strong>₹${o.grandTotal.toLocaleString()}</strong></td>
                         <td><span style="background:${statusColor}; color:white; padding:4px 8px; border-radius:4px; font-weight:bold; font-size:11px;">${o.status}</span></td>
                         <td><span style="color:${payColor}; font-weight:bold; font-size:12px;">${o.paymentStatus}</span></td>
                         <td>
-                            ${o.status === 'QUOTATION' ? `<button onclick="updateOrderStatus('${o._id}', 'CONFIRMED')" style="background:#007bff; color:white; border:none; padding:4px; border-radius:4px; cursor:pointer;">Confirm Order</button>` : ''}
-                            ${o.status === 'CONFIRMED' ? `<button onclick="updateOrderStatus('${o._id}', 'DISPATCHED')" style="background:#28a745; color:white; border:none; padding:4px; border-radius:4px; cursor:pointer;">🚚 Dispatch</button>` : ''}
-                            ${o.paymentStatus !== 'PAID' ? `<button onclick="updateOrderPayment('${o._id}', 'PAID')" style="background:#17a2b8; color:white; border:none; padding:4px; border-radius:4px; cursor:pointer;">Mark Paid</button>` : ''}
+                            ${o.status === 'QUOTATION' ? `<button onclick="updateOrderStatus('${o._id}', 'CONFIRMED')" style="background:#007bff; color:white; border:none; padding:4px; border-radius:4px; cursor:pointer; margin-bottom:2px; width:100%;">Confirm & Email Invoice</button>` : ''}
+                            ${o.status === 'CONFIRMED' ? `<button onclick="updateOrderStatus('${o._id}', 'DISPATCHED')" style="background:#ff9800; color:white; border:none; padding:4px; border-radius:4px; cursor:pointer; margin-bottom:2px; width:100%;">📦 Dispatch</button>` : ''}
+                            ${o.status === 'DISPATCHED' ? `<button onclick="updateOrderStatus('${o._id}', 'SHIPPED')" style="background:#17a2b8; color:white; border:none; padding:4px; border-radius:4px; cursor:pointer; margin-bottom:2px; width:100%;">🚚 Ship (Add Link)</button>` : ''}
+                            ${o.status === 'SHIPPED' ? `<button onclick="updateOrderStatus('${o._id}', 'DELIVERED')" style="background:#28a745; color:white; border:none; padding:4px; border-radius:4px; cursor:pointer; margin-bottom:2px; width:100%;">✅ Mark Delivered</button>` : ''}
+                            ${o.paymentStatus !== 'PAID' ? `<button onclick="updateOrderPayment('${o._id}', 'PAID')" style="background:#6c757d; color:white; border:none; padding:4px; border-radius:4px; cursor:pointer; width:100%;">💰 Mark Paid</button>` : ''}
                         </td>
                     </tr>`;
                 });
             } catch (err) { console.error("Error loading orders", err); }
+        }
+
+        // Updated Update Order Status with Tracking Link Prompt
+        async function updateOrderStatus(id, newStatus) {
+            let payload = { status: newStatus, username: currentUser.username };
+
+            if (newStatus === 'SHIPPED') {
+                const link = prompt("Enter the Consignment/Tracking URL for this shipment:");
+                if (!link) return showToast("⚠️ Shipping cancelled. Tracking link is required.", true);
+                payload.trackingLink = link;
+            } else {
+                if (!confirm(`Mark order as ${newStatus}? Customer will receive an email.`)) return;
+            }
+
+            try {
+                const res = await fetch(`${API_URL}/sales-orders/${id}/status`, {
+                    method: 'PUT', headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify(payload)
+                });
+                if (res.ok) { 
+                    showToast(`✅ Order ${newStatus} & Email Sent!`); 
+                    loadSalesOrders(); loadInventory(); loadTransactions(); 
+                }
+            } catch (err) { showToast("Error updating order", true) }
+        }
+
+        // Marketing Modal JS
+        function openMarketingModal() { document.getElementById('marketingModal').style.display = 'flex'; }
+        function closeMarketingModal() { 
+            document.getElementById('marketingModal').style.display = 'none'; 
+            document.getElementById('promoSubject').value = '';
+            document.getElementById('promoBody').value = '';
+        }
+
+        async function sendMarketingEmails() {
+            const subject = document.getElementById('promoSubject').value.trim();
+            const messageHtml = document.getElementById('promoBody').value.trim();
+            const filter = document.getElementById('promoFilter').value;
+
+            if (!subject || !messageHtml) return showToast("⚠️ Subject and Message are required!", true);
+            if (!confirm(`Send this email to ${filter.toUpperCase()} target group?`)) return;
+
+            const btn = document.getElementById('promoSubmitBtn');
+            btn.innerHTML = "⏳ Sending Emails..."; btn.disabled = true;
+
+            try {
+                const res = await fetch(`${API_URL}/marketing/send-offers`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ subject, messageHtml, filter })
+                });
+                const data = await res.json();
+                if (data.success) { showToast(`✅ ${data.message}`); closeMarketingModal(); } 
+                else { showToast("❌ Error: " + data.error, true); }
+            } catch (err) { showToast("❌ Failed to connect to server.", true); } 
+            finally { btn.innerHTML = "🚀 Send Email Blast"; btn.disabled = false; }
         }
 
         async function submitSalesOrder() {
@@ -2289,23 +2425,95 @@ async function loadProductionBatches() {
             } catch (err) { showToast("❌ Server Error", true); }
         }
 
+        // Replace your updateOrderStatus function with this:
         async function updateOrderStatus(id, newStatus) {
-            if (!confirm(`Mark order as ${newStatus}?`)) return;
+            let payload = { status: newStatus, username: currentUser.username };
+
+            // Ask for tracking link when shipping
+            if (newStatus === 'SHIPPED') {
+                const link = prompt("Enter the Consignment/Tracking URL for this shipment:");
+                if (!link) {
+                    showToast("⚠️ Shipping cancelled. Tracking link is required.", true);
+                    return;
+                }
+                payload.trackingLink = link;
+            } else {
+                if (!confirm(`Mark order as ${newStatus}? Customer will receive an email.`)) return;
+            }
+
             try {
                 const res = await fetch(`${API_URL}/sales-orders/${id}/status`, {
-                    method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: newStatus, username: currentUser.username })
+                    method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
                 });
-                if (res.ok) { showToast(`✅ Order ${newStatus}`); loadSalesOrders(); loadInventory(); loadTransactions(); }
-            } catch (err) {}
+                if (res.ok) {
+                    showToast(`✅ Order ${newStatus} & Email Sent!`);
+                    loadSalesOrders();
+                    loadInventory();
+                    loadTransactions();
+                }
+            } catch (err) { showToast("Error updating order", true) }
         }
-        
+
         async function updateOrderPayment(id, newPaymentStatus) {
             try {
                 const res = await fetch(`${API_URL}/sales-orders/${id}/status`, {
                     method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ paymentStatus: newPaymentStatus })
                 });
                 if (res.ok) { showToast("💰 Payment Recorded!"); loadSalesOrders(); }
-            } catch (err) {}
+            } catch (err) { }
+        }
+
+
+
+        // ==========================================
+        // MARKETING & OFFERS LOGIC
+        // ==========================================
+        function openMarketingModal() {
+            document.getElementById('marketingModal').style.display = 'flex';
+        }
+
+        function closeMarketingModal() {
+            document.getElementById('marketingModal').style.display = 'none';
+            document.getElementById('promoSubject').value = '';
+            document.getElementById('promoBody').value = '';
+        }
+
+        async function sendMarketingEmails() {
+            const subject = document.getElementById('promoSubject').value.trim();
+            const messageHtml = document.getElementById('promoBody').value.trim();
+
+            if (!subject || !messageHtml) {
+                return showToast("⚠️ Subject and Message are required!", true);
+            }
+
+            if (!confirm("Are you sure you want to send this email to ALL your customers?")) return;
+
+            const btn = document.getElementById('promoSubmitBtn');
+            btn.innerHTML = "⏳ Sending Emails...";
+            btn.disabled = true; // Prevent clicking twice
+
+            try {
+                const res = await fetch(`${API_URL}/marketing/send-offers`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ subject, messageHtml })
+                });
+
+                const data = await res.json();
+
+                if (data.success) {
+                    showToast(`✅ ${data.message}`);
+                    closeMarketingModal();
+                } else {
+                    showToast("❌ Error: " + data.error, true);
+                }
+            } catch (err) {
+                showToast("❌ Failed to connect to server.", true);
+            } finally {
+                btn.innerHTML = "🚀 Send Email Blast";
+                btn.disabled = false;
+            }
         }
     </script>
 </body>

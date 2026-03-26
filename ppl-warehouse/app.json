@@ -22,7 +22,8 @@
         "backgroundColor": "#ffffff"
       },
       "permissions": [
-        "android.permission.CAMERA"
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
       ]
     },
     "plugins": [
@@ -33,6 +34,12 @@
           "cameraPermission": "Allow PPL Warehouse to scan barcodes."
         }
       ]
-    ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "60599b8e-bcac-4f99-85f0-b301de749966"
+      }
+    }
   }
 }
