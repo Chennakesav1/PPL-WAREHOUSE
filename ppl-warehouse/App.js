@@ -3,7 +3,7 @@ import { Text, View, StyleSheet, TouchableOpacity, Alert, TextInput, ScrollView,
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import axios from 'axios';
 
-// ✅ POINTING TO YOUR LOCAL SERVER FOR TESTING
+// ✅ LOCAL SERVER IP 
 const API_URL = "https://ppl-warehouse-1qn1.onrender.com/api";
 
 export default function App() {
@@ -66,9 +66,18 @@ export default function App() {
         quantity: parseInt(quantity),
         username: user.username 
       });
-      Alert.alert("Success! ✅", `${type} recorded.\nNew Stock: ${res.data.newStock}`, [{ text: "Scan Next", onPress: resetApp }]);
+      
+      // Force the alert to show the actual server response
+      Alert.alert(
+        "Success! ✅", 
+        `${type} of ${quantity} recorded.\nNew Stock: ${res.data.newStock || 'Updated'}`, 
+        [{ text: "Scan Next", onPress: resetApp }]
+      );
+
     } catch (err) { 
-      Alert.alert("Failed", "Server Error. Could not update stock."); 
+      // If it fails, explicitly show WHY it failed
+      const errorMsg = err.response?.data?.message || err.message || "Server Error. Check terminal.";
+      Alert.alert("Update Failed ❌", errorMsg); 
     }
   };
 
@@ -149,22 +158,34 @@ export default function App() {
                   <Text style={styles.label}>A/F:</Text>
                   <Text style={styles.val}>{product.af || 'N/A'}</Text>
                 </View>
+
+                {/* Checks all possible database names for Weight */}
                 <View style={styles.infoRow}>
-                  <Text style={styles.label}>Weight:</Text>
-                  <Text style={styles.val}>{product.weight || 'N/A'}</Text>
+                  <Text style={styles.label}>Wt/Pc (kg):</Text>
+                  <Text style={styles.val}>{product.weight || product.wtPc || product.wt_pc || product.Wt/Pc || 'N/A'}</Text>
                 </View>
+
                 <View style={styles.infoRow}>
                   <Text style={styles.label}>Grade:</Text>
                   <Text style={styles.val}>{product.grade || 'N/A'}</Text>
                 </View>
+
                 <View style={styles.infoRow}>
                   <Text style={styles.label}>Length:</Text>
                   <Text style={styles.val}>{product.length || 'N/A'}</Text>
                 </View>
+
+                {/* NEW SECTOR FIELD */}
+                <View style={styles.infoRow}>
+                  <Text style={styles.label}>Sector:</Text>
+                  <Text style={styles.val}>{product.sector || product.sectr || 'N/A'}</Text>
+                </View>
+
                 <View style={styles.infoRow}>
                   <Text style={styles.label}>Prod. Readied (FG):</Text>
-                  <Text style={[styles.val, {color: '#28a745'}]}>{String(product.productionReadied || 0)}</Text>
+                  <Text style={[styles.val, {color: '#28a745'}]}>{String(product.productionReadied || product.fg || 0)}</Text>
                 </View>
+
                 <View style={[styles.infoRow, {borderBottomWidth: 0, marginTop: 5}]}>
                   <Text style={[styles.label, {fontSize: 16, color: '#333'}]}>Current Stock:</Text>
                   <Text style={[styles.val, {color: '#007bff', fontSize: 20}]}>{String(product.currentStock || 0)}</Text>
