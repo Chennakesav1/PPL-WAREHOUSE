@@ -942,47 +942,52 @@
                     </div>
                 </div>
 
-                <div id="ordersSection" style="display: none;">
-                    <div
-                        style="background: #e8f5e9; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #28a745;">
+               <div id="ordersSection" style="display: none;">
+                    <div style="background: #e8f5e9; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #28a745;">
                         <h4 style="margin-top:0; color:#28a745;">📝 Create Quotation / Order</h4>
-                        <div class="form-grid-multi">
-                            <select id="soCustomer" class="prod-input">
-                                <option value="">- Select Customer -</option>
-                            </select>
-                            <input type="text" id="soProduct" class="prod-input" placeholder="* Product Code">
-                            <input type="number" id="soQty" class="prod-input" placeholder="* Quantity">
-                            <input type="number" id="soPrice" class="prod-input" placeholder="* Unit Price (₹)">
+                        
+                        <div class="form-grid" style="margin-bottom: 15px;">
+                            <select id="soCustomer" class="prod-input"><option value="">- Select Customer -</option></select>
                             <select id="soType" class="prod-input">
                                 <option value="QUOTATION">Draft Quotation</option>
                                 <option value="CONFIRMED">Confirmed Order (Reserves Stock)</option>
                             </select>
-                            <button onclick="submitSalesOrder()" class="add-btn"
-                                style="background: #28a745;">Generate</button>
                         </div>
+
+                        <h5 style="margin-bottom: 5px; color: #555;">Cart Items:</h5>
+                        <div id="soItemsContainer">
+                            <div class="so-item-row" style="display: flex; gap: 10px; margin-bottom: 10px; align-items: center; flex-wrap: wrap;">
+                                <input type="text" class="so-product prod-input" placeholder="* Product Code" style="flex: 2; min-width: 150px;">
+                                <input type="number" class="so-qty prod-input" placeholder="* Qty" style="flex: 1; min-width: 80px;">
+                                <input type="number" class="so-price prod-input" placeholder="* Unit Price (₹)" style="flex: 1; min-width: 100px;">
+                                </div>
+                        </div>
+
+                        <button onclick="addSOItemRow()" style="background:#17a2b8; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; margin-bottom: 15px; font-weight: bold;">
+                            ➕ Add Another Item
+                        </button>
+
+                        <button onclick="submitSalesOrder()" class="save-btn" style="background: #28a745; margin-top: 0;">
+                            💾 Generate Order
+                        </button>
                     </div>
+                    
                     <div class="table-wrapper">
                         <table id="salesOrderTable">
                             <thead style="background-color: #28a745; color: white;">
                                 <tr>
-                                    <th>Order No/Date</th>
-                                    <th>Customer Name</th>
-                                    <th>Items</th>
+                                    <th>Order No</th>
+                                    <th>Customer</th>
+                                    <th>Items Details</th>
                                     <th>Total Amount</th>
                                     <th>Status</th>
-                                    <th>Payment</th>
-                                    <th>Actions</th>
+                                    <th>Actions & Invoices</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                <tr>
-                                    <td colspan="8" style="text-align:center;">Loading Orders...</td>
-                                </tr>
-                            </tbody>
+                            <tbody><tr><td colspan="6" style="text-align:center;">Loading Orders...</td></tr></tbody>
                         </table>
                     </div>
                 </div>
-            </div>
 
             <div id="marketingModal" class="modal">
                 <div class="modal-content">
@@ -2410,14 +2415,51 @@
         }
 
         
+        // NEW: Dynamically adds a new row for multiple products
+        function addSOItemRow() {
+            const container = document.getElementById('soItemsContainer');
+            const row = document.createElement('div');
+            row.className = 'so-item-row';
+            row.style.cssText = 'display: flex; gap: 10px; margin-bottom: 10px; align-items: center; flex-wrap: wrap;';
+            row.innerHTML = `
+                <input type="text" class="so-product prod-input" placeholder="* Product Code" style="flex: 2; min-width: 150px;">
+                <input type="number" class="so-qty prod-input" placeholder="* Qty" style="flex: 1; min-width: 80px;">
+                <input type="number" class="so-price prod-input" placeholder="* Unit Price (₹)" style="flex: 1; min-width: 100px;">
+                <button onclick="this.parentElement.remove()" style="background:#dc3545; color:white; border:none; padding:10px; border-radius:5px; cursor:pointer; font-weight:bold;">✖</button>
+            `;
+            container.appendChild(row);
+        }
+
+        // UPDATED: Submits MULTIPLE items array to the backend
         async function submitSalesOrder() {
             const customerSelect = document.getElementById('soCustomer');
-            const productCode = document.getElementById('soProduct').value;
-            const quantity = document.getElementById('soQty').value;
-            const unitPrice = document.getElementById('soPrice').value;
             const status = document.getElementById('soType').value;
 
-            if (!customerSelect.value || !productCode || !quantity || !unitPrice) return showToast("Fill all required fields!", true);
+            if (!customerSelect.value) return showToast("⚠️ Please select a Customer!", true);
+
+            const itemRows = document.querySelectorAll('.so-item-row');
+            let items = [];
+
+            // Loop through all product rows on the screen
+            itemRows.forEach(row => {
+                const productCode = row.querySelector('.so-product').value.trim();
+                const quantity = row.querySelector('.so-qty').value;
+                const unitPrice = row.querySelector('.so-price').value;
+
+                if (productCode && quantity && unitPrice) {
+                    items.push({
+                        productCode,
+                        quantity: Number(quantity),
+                        unitPrice: Number(unitPrice),
+                        total: Number(quantity) * Number(unitPrice)
+                    });
+                }
+            });
+
+            if (items.length === 0) return showToast("⚠️ Please fill out at least one product properly!", true);
+
+            const btn = document.querySelector('button[onclick="submitSalesOrder()"]');
+            btn.innerText = "⏳ Generating..."; btn.disabled = true;
 
             try {
                 const res = await fetch(`${API_URL}/sales-orders`, {
@@ -2425,48 +2467,65 @@
                     body: JSON.stringify({
                         customerId: customerSelect.value,
                         customerName: customerSelect.options[customerSelect.selectedIndex].text,
-                        items: [{ productCode, quantity: Number(quantity), unitPrice: Number(unitPrice), total: quantity * unitPrice }],
+                        items: items, // Sends the full array of multiple items
                         status: status,
                         createdBy: currentUser.username
                     })
                 });
-                const result = await res.json();
-                if (result.success) {
-                    showToast("📝 Order Generated!");
-                    loadSalesOrders();
-                    if (status === 'CONFIRMED') loadInventory(); // Refresh stock if reserved
-                } else showToast("❌ " + result.error, true);
-            } catch (err) { showToast("❌ Server Error", true); }
+                
+                const data = await res.json();
+                if (res.ok && data.success) { 
+                    showToast("📝 Order Generated!"); 
+                    loadSalesOrders(); 
+                    
+                    // Reset the form UI
+                    document.getElementById('soItemsContainer').innerHTML = `
+                        <div class="so-item-row" style="display: flex; gap: 10px; margin-bottom: 10px; align-items: center; flex-wrap: wrap;">
+                            <input type="text" class="so-product prod-input" placeholder="* Product Code" style="flex: 2; min-width: 150px;">
+                            <input type="number" class="so-qty prod-input" placeholder="* Qty" style="flex: 1; min-width: 80px;">
+                            <input type="number" class="so-price prod-input" placeholder="* Unit Price (₹)" style="flex: 1; min-width: 100px;">
+                        </div>`;
+                } else {
+                    showToast("❌ Error: " + (data.error || "Failed"), true);
+                }
+            } catch (err) { 
+                showToast("❌ Network Error", true); 
+            } finally {
+                btn.innerText = "💾 Generate Order"; btn.disabled = false;
+            }
         }
 
-        // Replace your updateOrderStatus function with this:
+        // UPDATED: Now exposes exact errors to stop silent failures
         async function updateOrderStatus(id, newStatus) {
             let payload = { status: newStatus, username: currentUser.username };
 
-            // Ask for tracking link when shipping
             if (newStatus === 'SHIPPED') {
                 const link = prompt("Enter the Consignment/Tracking URL for this shipment:");
-                if (!link) {
-                    showToast("⚠️ Shipping cancelled. Tracking link is required.", true);
-                    return;
-                }
+                if (!link) return showToast("⚠️ Shipping cancelled. Tracking link required.", true);
                 payload.trackingLink = link;
             } else {
-                if (!confirm(`Mark order as ${newStatus}? Customer will receive an email.`)) return;
+                if (!confirm(`Update status to ${newStatus}?`)) return;
             }
 
             try {
                 const res = await fetch(`${API_URL}/sales-orders/${id}/status`, {
-                    method: 'PUT', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
+                    method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
                 });
-                if (res.ok) {
-                    showToast(`✅ Order ${newStatus} & Email Sent!`);
-                    loadSalesOrders();
+                
+                const data = await res.json(); // Parses the backend response properly
+
+                if (res.ok && data.success) { 
+                    showToast(`✅ Order updated successfully!`); 
+                    loadSalesOrders(); 
                     loadInventory();
                     loadTransactions();
+                } else {
+                    // This is what prevents the silent failure. You will now see WHY it failed!
+                    showToast(`❌ Update Failed: ${data.error || 'Unknown Error'}`, true);
                 }
-            } catch (err) { showToast("Error updating order", true) }
+            } catch (err) { 
+                showToast("❌ Network Error updating order", true); 
+            }
         }
 
         async function updateOrderPayment(id, newPaymentStatus) {

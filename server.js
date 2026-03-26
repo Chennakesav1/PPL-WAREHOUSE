@@ -320,15 +320,19 @@ app.put('/api/sales-orders/:id/status', async (req, res) => {
 
         const customer = await Customer.findById(order.customerId);
 
-        // Inventory deduction logic
-        if (order.status !== 'DISPATCHED' && status === 'DISPATCHED') {
+        // SAFETY CHECK: Ensure order.items exists before trying to loop through it
+        if (order.status !== 'DISPATCHED' && status === 'DISPATCHED' && order.items && Array.isArray(order.items)) {
             for (let item of order.items) {
                 let product = await Product.findOne({ barcode: item.productCode });
                 if (product) {
                     product.currentStock -= item.quantity;
                     product.reservedStock = Math.max((product.reservedStock || 0) - item.quantity, 0);
                     await product.save();
-                    await new Transaction({ barcode: product.barcode, type: 'DISPATCH', quantity: item.quantity, resultingStock: product.currentStock, user: username }).save();
+                    await new Transaction({ 
+                        barcode: product.barcode, type: 'DISPATCH', 
+                        quantity: item.quantity, resultingStock: product.currentStock, 
+                        user: username || 'System' 
+                    }).save();
                 }
             }
         }
@@ -336,60 +340,49 @@ app.put('/api/sales-orders/:id/status', async (req, res) => {
         if (status) order.status = status;
         if (paymentStatus) order.paymentStatus = paymentStatus;
         if (trackingLink) order.trackingLink = trackingLink;
-        
         await order.save();
 
-        // Email Dispatch Logic
-        // Email Dispatch Logic
-        if (customer && customer.email) { // Removed isSubscribed check here so regular invoices still send!
-            let mailOptions = {
-                from: '"PPL Accounts" <chennakesavarao89@gmail.com>',
-                to: customer.email,
-                subject: '',
-                html: ''
-            };
-
-            if (status === 'CONFIRMED') {
-                mailOptions.subject = `Invoice & Order Confirmation - ${order.orderNo}`;
-                mailOptions.html = `<p>Dear ${customer.name},</p><p>Thank you for your order! Your invoice is attached.</p>` + generateInvoiceHTML(order, customer);
-                
+        // ----------------------------------------------------
+        // FIRE AND FORGET EMAILS (Prevents UI Freezing!)
+        // ----------------------------------------------------
+        if (customer && customer.email) {
+            let mailOptions = { from: '"PPL Accounts" <chennakesavarao89@gmail.com>', to: customer.email, subject: '', html: '' };
+            
+            // Build the email content asynchronously 
+            (async () => {
                 try {
-                    const pdfBuffer = await generateInvoiceBuffer(order, customer);
-                    mailOptions.attachments = [{
-                        filename: `Invoice_${order.orderNo}.pdf`,
-                        content: pdfBuffer,
-                        contentType: 'application/pdf'
-                    }];
-                } catch (pdfErr) {
-                    console.error("PDF Gen Error:", pdfErr);
-                }
-            } 
-            else if (status === 'DISPATCHED') {
-                mailOptions.subject = `Order Dispatched - ${order.orderNo}`;
-                mailOptions.html = `<p>Your order <strong>${order.orderNo}</strong> has been packed and dispatched.</p>`;
-            }
-            else if (status === 'SHIPPED') {
-                mailOptions.subject = `Order Shipped 🚚 - ${order.orderNo}`;
-                mailOptions.html = `<p>Your order is on the way!</p>
-                                    <p>Track your consignment here: <a href="${trackingLink}">Track Order</a></p>`;
-            }
-            else if (status === 'DELIVERED') {
-                mailOptions.subject = `Order Delivered ✅ - ${order.orderNo}`;
-                mailOptions.html = `<p>Your order has been delivered. Thank you!</p>`;
-            }
-
-            if (mailOptions.subject) {
-                try {
-                    await transporter.sendMail(mailOptions);
-                    console.log(`Email successfully sent to ${customer.email}`);
+                    if (status === 'CONFIRMED') {
+                        mailOptions.subject = `Invoice & Order Confirmation - ${order.orderNo}`;
+                        mailOptions.html = `<p>Dear ${customer.name},</p><p>Thank you for your order! Your invoice is attached.</p>` + generateInvoiceHTML(order, customer);
+                        mailOptions.attachments = [{ filename: `Invoice_${order.orderNo}.pdf`, content: await generateInvoiceBuffer(order, customer), contentType: 'application/pdf' }];
+                    } else if (status === 'DISPATCHED') {
+                        mailOptions.subject = `Order Dispatched - ${order.orderNo}`;
+                        mailOptions.html = `<p>Your order <strong>${order.orderNo}</strong> has been packed and dispatched.</p>`;
+                    } else if (status === 'SHIPPED') {
+                        mailOptions.subject = `Order Shipped 🚚 - ${order.orderNo}`;
+                        mailOptions.html = `<p>Your order is on the way!</p><p><a href="${trackingLink}">Track Order</a></p>`;
+                    } else if (status === 'DELIVERED') {
+                        mailOptions.subject = `Order Delivered ✅ - ${order.orderNo}`;
+                        mailOptions.html = `<p>Your order has been delivered. Thank you!</p>`;
+                    }
+                    
+                    if (mailOptions.subject) {
+                        await transporter.sendMail(mailOptions);
+                        console.log(`✅ Status Email sent to ${customer.email}`);
+                    }
                 } catch (emailErr) {
-                    console.error("SMTP Email Error:", emailErr);
+                    console.error("❌ Background Email Failed:", emailErr.message);
                 }
-            }
+            })(); // This () immediately executes the block in the background
         }
 
+        // Return success IMMEDIATELY to the frontend so the UI updates instantly
         res.json({ success: true, message: "Order updated successfully" });
-    } catch (err) { res.status(500).json({ error: err.message }); }
+        
+    } catch (err) { 
+        console.error("❌ CRITICAL ROUTE CRASH:", err);
+        res.status(500).json({ error: err.message }); 
+    }
 });
 
 // Temporary Index Fix
