@@ -992,29 +992,23 @@
             <div id="marketingModal" class="modal">
                 <div class="modal-content">
                     <span class="close-btn" onclick="closeMarketingModal()">×</span>
-                    <h2 style="color: #e83e8c; margin-bottom: 5px;">📢 Send Offers</h2>
-
+                    <h2 style="color: #25D366; margin-bottom: 5px;">💬 Send WhatsApp Blast</h2>
+                    
                     <div class="form-grid" style="grid-template-columns: 1fr;">
-                        <label style="font-size:12px; font-weight:bold; color:#555;">Send to Filtered Group:</label>
-                        <select id="promoFilter" class="prod-input full-width">
+                        <label style="font-size:12px; font-weight:bold; color:#555;">Target Audience:</label>
+                        <select id="promoFilter" class="full-width" style="margin-top:-10px; margin-bottom:10px;">
                             <option value="all">All Customers</option>
                             <option value="vip">VIP Customers</option>
                         </select>
 
-                        <label style="font-size:12px; font-weight:bold; color:#555; margin-top: 10px;">OR Send to Single
-                            Customer:</label>
-                        <input type="email" id="promoSpecificEmail" class="prod-input full-width"
-                            placeholder="Enter exact email (overrides filter)" style="border-color: #e83e8c;">
+                        <label style="font-size:12px; font-weight:bold; color:#555; margin-top: 10px;">OR Single Customer Number:</label>
+                        <input type="text" id="promoSpecificPhone" class="full-width" placeholder="Enter exact phone (e.g., 919876543210)" style="border-color: #25D366;">
 
-                        <input type="text" id="promoSubject" class="prod-input full-width" placeholder="* Email Subject"
-                            style="margin-top: 10px;" required>
-                        <textarea id="promoBody" class="prod-input full-width" rows="6"
-                            placeholder="* Type your message..." style="resize: vertical;" required></textarea>
+                        <textarea id="promoBody" class="full-width" rows="6" placeholder="* Type your WhatsApp message here... You can use *bold* or _italics_." style="resize: vertical; margin-top: 10px;" required></textarea>
                     </div>
-
-                    <button class="save-btn" style="background-color: #e83e8c; margin-top: 15px;" id="promoSubmitBtn"
-                        onclick="sendMarketingEmails()">
-                        🚀 Send Email
+                    
+                    <button class="save-btn" style="background-color: #25D366; margin-top: 15px;" id="promoSubmitBtn" onclick="sendMarketingWhatsApp()">
+                        🚀 Send WhatsApp Messages
                     </button>
                 </div>
             </div>
@@ -2354,14 +2348,18 @@
             window.open(`${API_URL}/sales-orders/${id}/invoice`, '_blank');
         }
 
-        // UPDATE: Send Marketing Emails
-        async function sendMarketingEmails() {
-            const subject = document.getElementById('promoSubject').value.trim();
-            const messageHtml = document.getElementById('promoBody').value.trim();
-            const filter = document.getElementById('promoFilter').value;
-            const specificEmail = document.getElementById('promoSpecificEmail').value.trim(); // Grab the single email
+        function closeMarketingModal() { 
+            document.getElementById('marketingModal').style.display = 'none'; 
+            document.getElementById('promoBody').value = '';
+            document.getElementById('promoSpecificPhone').value = '';
+        }
 
-            if (!subject || !messageHtml) return showToast("⚠️ Subject and Message are required!", true);
+        async function sendMarketingWhatsApp() {
+            const messageText = document.getElementById('promoBody').value.trim();
+            const filter = document.getElementById('promoFilter').value;
+            const specificPhone = document.getElementById('promoSpecificPhone').value.trim(); 
+
+            if (!messageText) return showToast("⚠️ Message body is required!", true);
 
             const btn = document.getElementById('promoSubmitBtn');
             btn.innerHTML = "⏳ Sending..."; btn.disabled = true;
@@ -2369,17 +2367,20 @@
             try {
                 const res = await fetch(`${API_URL}/marketing/send-offers`, {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ subject, messageHtml, filter, specificEmail })
+                    body: JSON.stringify({ messageText, filter, specificPhone })
                 });
                 const data = await res.json();
-                if (data.success) { 
+                if (res.ok && data.success) { 
                     showToast(`✅ ${data.message}`); 
                     closeMarketingModal(); 
                 } else { 
                     showToast("❌ Error: " + data.error, true); 
                 }
-            } catch (err) { showToast("❌ Failed to connect to server.", true); } 
-            finally { btn.innerHTML = "🚀 Send Email"; btn.disabled = false; }
+            } catch (err) { 
+                showToast("❌ Server Error", true); 
+            } finally { 
+                btn.innerHTML = "🚀 Send WhatsApp Messages"; btn.disabled = false; 
+            }
         }
 
         // Updated Update Order Status with Tracking Link Prompt

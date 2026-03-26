@@ -21,16 +21,46 @@ app.use(express.json());
 const { Product, Transaction, RawMaterial, PurchaseOrder, ProductionBatch, WorkOrder, Customer, SalesOrder } = require('./models');
 
 // ==========================================
-// EMAIL & PDF SETUP (server.js)
+// WHATSAPP API & PDF SETUP (server.js)
 // ==========================================
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: 'chennakesavarao89@gmail.com',
-        pass: process.env.EMAIL_APP_PASSWORD // MUST be your 16-digit Google App Password
-    }
-});
+// REMOVE: const nodemailer = require('nodemailer');
 
+// Helper: Send WhatsApp Message via Meta Cloud API
+async function sendWhatsAppMessage(phoneNumber, messageText) {
+    const token = process.env.WHATSAPP_TOKEN;
+    const phoneId = process.env.WHATSAPP_PHONE_ID;
+
+    if (!token || !phoneId) {
+        console.log("⚠️ WhatsApp credentials missing. Message not sent.");
+        return;
+    }
+
+    // Clean phone number (remove spaces, +, etc. e.g., '919999999999')
+    const cleanPhone = phoneNumber.replace(/\D/g, ''); 
+
+    try {
+        const response = await fetch(`https://graph.facebook.com/v17.0/${phoneId}/messages`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                messaging_product: "whatsapp",
+                to: cleanPhone,
+                type: "text",
+                text: { body: messageText }
+            })
+        });
+        const data = await response.json();
+        if (!response.ok) console.error("❌ WhatsApp API Error:", data);
+        else console.log(`✅ WhatsApp sent to ${cleanPhone}`);
+    } catch (err) {
+        console.error("❌ Failed to send WhatsApp:", err.message);
+    }
+}
+
+// ... (Keep your generateInvoiceBuffer and drawInvoiceDesign functions here) ...
 // Shared Function to draw the beautiful PDF Invoice
 function drawInvoiceDesign(doc, order, customer) {
     // 1. Company Logo & Details
@@ -165,46 +195,34 @@ function generateInvoiceHTML(order, customer) {
 }
 
 // ==========================================
-// TARGETED & SINGLE USER MARKETING
+// TARGETED WHATSAPP MARKETING
 // ==========================================
 app.post('/api/marketing/send-offers', async (req, res) => {
     try {
-        const { subject, messageHtml, filter, specificEmail } = req.body;
+        const { messageText, filter, specificPhone } = req.body;
         let targetCustomers = [];
 
-        // 1. Single Email Override
-        if (specificEmail && specificEmail.trim() !== "") {
-            const singleCustomer = await Customer.findOne({ email: specificEmail.trim() });
-            if (!singleCustomer) return res.status(404).json({ error: "Customer not found." });
+        if (specificPhone && specificPhone.trim() !== "") {
+            const singleCustomer = await Customer.findOne({ phone: new RegExp(specificPhone.trim(), 'i') });
+            if (!singleCustomer) return res.status(404).json({ error: "Customer with that phone number not found." });
             targetCustomers.push(singleCustomer);
-        } 
-        // 2. Bulk Filter Logic
-        else {
-            const allCustomers = await Customer.find({ email: { $exists: true, $ne: "" } });
+        } else {
+            const allCustomers = await Customer.find({ phone: { $exists: true, $ne: "" } });
             if (filter === 'all') targetCustomers = allCustomers;
-            // ... (add your VIP/Inactive logic here if needed)
+            // Add VIP/Inactive logic here if needed
         }
 
-        if (targetCustomers.length === 0) return res.status(400).json({ error: "No valid customers found." });
+        if (targetCustomers.length === 0) return res.status(400).json({ error: "No valid customers with phone numbers found." });
 
-        let emailsSent = 0;
+        let messagesSent = 0;
         for (let customer of targetCustomers) {
-            try {
-                await transporter.sendMail({
-                    from: '"PPL Offers" <chennakesavarao89@gmail.com>',
-                    to: customer.email,
-                    subject: subject,
-                    html: `<p>Hi ${customer.name},</p>${messageHtml}`
-                });
-                emailsSent++;
-            } catch (emailErr) {
-                console.error("FAILED TO SEND TO:", customer.email, emailErr);
-            }
+            const personalizedMessage = `*PPL ENTERPRISES* 📢\n\nHi ${customer.name},\n${messageText}`;
+            await sendWhatsAppMessage(customer.phone, personalizedMessage);
+            messagesSent++;
         }
-        res.json({ success: true, message: `Emails sent to ${emailsSent} customers.` });
+        res.json({ success: true, message: `WhatsApp messages sent to ${messagesSent} customers.` });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
-
 // Serve the Frontend Dashboard
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 
@@ -342,41 +360,43 @@ app.put('/api/sales-orders/:id/status', async (req, res) => {
         if (trackingLink) order.trackingLink = trackingLink;
         await order.save();
 
+        
+
+        if (status) order.status = status;
+        if (paymentStatus) order.paymentStatus = paymentStatus;
+        if (trackingLink) order.trackingLink = trackingLink;
+        await order.save();
+
         // ----------------------------------------------------
-        // FIRE AND FORGET EMAILS (Prevents UI Freezing!)
+        // FIRE AND FORGET WHATSAPP ALERTS
         // ----------------------------------------------------
-        if (customer && customer.email) {
-            let mailOptions = { from: '"PPL Accounts" <chennakesavarao89@gmail.com>', to: customer.email, subject: '', html: '' };
-            
-            // Build the email content asynchronously 
-            (async () => {
-                try {
-                    if (status === 'CONFIRMED') {
-                        mailOptions.subject = `Invoice & Order Confirmation - ${order.orderNo}`;
-                        mailOptions.html = `<p>Dear ${customer.name},</p><p>Thank you for your order! Your invoice is attached.</p>` + generateInvoiceHTML(order, customer);
-                        mailOptions.attachments = [{ filename: `Invoice_${order.orderNo}.pdf`, content: await generateInvoiceBuffer(order, customer), contentType: 'application/pdf' }];
-                    } else if (status === 'DISPATCHED') {
-                        mailOptions.subject = `Order Dispatched - ${order.orderNo}`;
-                        mailOptions.html = `<p>Your order <strong>${order.orderNo}</strong> has been packed and dispatched.</p>`;
-                    } else if (status === 'SHIPPED') {
-                        mailOptions.subject = `Order Shipped 🚚 - ${order.orderNo}`;
-                        mailOptions.html = `<p>Your order is on the way!</p><p><a href="${trackingLink}">Track Order</a></p>`;
-                    } else if (status === 'DELIVERED') {
-                        mailOptions.subject = `Order Delivered ✅ - ${order.orderNo}`;
-                        mailOptions.html = `<p>Your order has been delivered. Thank you!</p>`;
-                    }
-                    
-                    if (mailOptions.subject) {
-                        await transporter.sendMail(mailOptions);
-                        console.log(`✅ Status Email sent to ${customer.email}`);
-                    }
-                } catch (emailErr) {
-                    console.error("❌ Background Email Failed:", emailErr.message);
-                }
-            })(); // This () immediately executes the block in the background
+        if (customer && customer.phone) {
+            // Generate the link they can click to download their invoice
+            const host = req.get('host');
+            const invoiceLink = `${req.protocol}://${host}/api/sales-orders/${order._id}/invoice`;
+
+            let waMessage = "";
+
+            if (status === 'CONFIRMED') {
+                waMessage = `*PPL ENTERPRISES - Order Confirmation* 🏭\n\nHello ${customer.name},\nThank you for your order!\n\n*Order No:* ${order.orderNo}\n*Total:* ₹${order.grandTotal.toLocaleString()}\n\n📄 *Download your Tax Invoice here:*\n${invoiceLink}`;
+            } 
+            else if (status === 'DISPATCHED') {
+                waMessage = `*Order Dispatched* 📦\n\nHello ${customer.name},\nYour order *${order.orderNo}* has been packed and dispatched from our facility.`;
+            } 
+            else if (status === 'SHIPPED') {
+                waMessage = `*Order Shipped* 🚚\n\nHello ${customer.name},\nYour order *${order.orderNo}* is on the way!\n\n📍 *Track your consignment here:*\n${trackingLink}`;
+            } 
+            else if (status === 'DELIVERED') {
+                waMessage = `*Order Delivered* ✅\n\nHello ${customer.name},\nYour order *${order.orderNo}* has been delivered successfully. Thank you for choosing PPL!`;
+            }
+
+            if (waMessage !== "") {
+                // Send it in the background so the UI doesn't freeze
+                sendWhatsAppMessage(customer.phone, waMessage);
+            }
         }
 
-        // Return success IMMEDIATELY to the frontend so the UI updates instantly
+        // Return success IMMEDIATELY to frontend
         res.json({ success: true, message: "Order updated successfully" });
         
     } catch (err) { 
