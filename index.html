@@ -2291,6 +2291,7 @@
         }
 
         // UPDATE: Load Sales Orders to show Sector, Grade, Length, A/F
+        // --- FULLY FIXED ACTIONS & INVOICE TABLE ---
         async function loadSalesOrders() {
             try {
                 const res = await fetch(`${API_URL}/sales-orders`);
@@ -2299,33 +2300,54 @@
                 tbody.innerHTML = '';
 
                 orders.forEach(o => {
-                    // Map the exact details to the frontend view
+                    // Injecting all Product specifics (Sector, Grade, Length, AF, Wt)
                     let itemsHtml = o.items.map(i => `
                         <div style="margin-bottom: 8px; border-bottom: 1px solid #ddd; padding-bottom: 4px;">
                             <strong>${i.quantity}x ${i.productCode}</strong><br>
-                            <span style="font-size:10px; color:#555;">
+                            <span style="font-size:11px; color:#555;">
                                 Sec: ${i.sector || '-'} | Gr: ${i.grade || '-'} | L: ${i.length || '-'}mm | A/F: ${i.af || '-'}
                             </span>
                         </div>
                     `).join('');
 
-                    let statusColor = o.status === 'QUOTATION' ? '#6c757d' : (o.status === 'CONFIRMED' ? '#007bff' : (o.status === 'DISPATCHED' ? '#28a745' : '#ff9800'));
-                    let payColor = o.paymentStatus === 'PAID' ? '#28a745' : '#dc3545';
+                    let statusColor = o.status === 'QUOTATION' ? '#6c757d' : (o.status === 'CONFIRMED' ? '#007bff' : (o.status === 'DISPATCHED' ? '#ff9800' : '#28a745'));
+                    
+                    // Rebuilding Action Buttons Safely
+                    let actionButtons = '';
+                    
+                    if (o.status === 'QUOTATION') {
+                        actionButtons += `<button onclick="updateOrderStatus('${o._id}', 'CONFIRMED')" style="background:#007bff; color:white; border:none; padding:6px; border-radius:4px; cursor:pointer; width:100%; margin-bottom:5px;">✅ Confirm & Email Invoice</button>`;
+                    }
+                    if (o.status === 'CONFIRMED') {
+                        actionButtons += `<button onclick="updateOrderStatus('${o._id}', 'DISPATCHED')" style="background:#ff9800; color:white; border:none; padding:6px; border-radius:4px; cursor:pointer; width:100%; margin-bottom:5px;">📦 Dispatch</button>`;
+                    }
+                    if (o.status === 'DISPATCHED') {
+                        actionButtons += `<button onclick="updateOrderStatus('${o._id}', 'SHIPPED')" style="background:#17a2b8; color:white; border:none; padding:6px; border-radius:4px; cursor:pointer; width:100%; margin-bottom:5px;">🚚 Ship (Add Link)</button>`;
+                    }
+                    if (o.status === 'SHIPPED') {
+                        actionButtons += `<button onclick="updateOrderStatus('${o._id}', 'DELIVERED')" style="background:#28a745; color:white; border:none; padding:6px; border-radius:4px; cursor:pointer; width:100%; margin-bottom:5px;">🏁 Mark Delivered</button>`;
+                    }
+                    
+                    // Add Invoice Download Button to any order past Quotation Phase
+                    if (o.status !== 'QUOTATION' && o.status !== 'CANCELLED') {
+                        actionButtons += `<button onclick="downloadInvoice('${o._id}')" style="background:#dc3545; color:white; border:none; padding:6px; border-radius:4px; cursor:pointer; width:100%; font-weight:bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">📄 Download Invoice</button>`;
+                    }
 
                     tbody.innerHTML += `<tr>
-                        <td><strong>${o.orderNo}</strong></td>
-                        <td>${new Date(o.orderDate).toLocaleDateString()}</td>
+                        <td><strong>${o.orderNo}</strong><br><span style="font-size:10px; color:#888;">${new Date(o.orderDate).toLocaleDateString()}</span></td>
                         <td><strong>${o.customerName || 'Walk-in'}</strong></td>
-                        <td style="font-size:12px;">${itemsHtml}</td>
+                        <td>${itemsHtml}</td>
                         <td><strong>₹${o.grandTotal.toLocaleString()}</strong></td>
                         <td><span style="background:${statusColor}; color:white; padding:4px 8px; border-radius:4px; font-weight:bold; font-size:11px;">${o.status}</span></td>
-                        <td><span style="color:${payColor}; font-weight:bold; font-size:12px;">${o.paymentStatus}</span></td>
-                        <td>
-                            ${o.status === 'QUOTATION' ? `<button onclick="updateOrderStatus('${o._id}', 'CONFIRMED')" style="background:#007bff; color:white; border:none; padding:4px; border-radius:4px; cursor:pointer; width:100%;">Confirm & Email</button>` : ''}
-                        </td>
+                        <td style="min-width: 150px;">${actionButtons}</td>
                     </tr>`;
                 });
-            } catch (err) { console.error("Error loading orders", err); }
+            } catch (err) { console.error(err); }
+        }
+
+        // NEW: Download PDF
+        function downloadInvoice(id) {
+            window.open(`${API_URL}/sales-orders/${id}/invoice`, '_blank');
         }
 
         // UPDATE: Send Marketing Emails

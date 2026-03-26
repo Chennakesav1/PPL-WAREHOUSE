@@ -31,60 +31,115 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-// Helper: Generate PDF Invoice
-function generateInvoicePDF(order, customer) {
+// Shared Function to draw the beautiful PDF Invoice
+function drawInvoiceDesign(doc, order, customer) {
+    // 1. Company Logo & Details
+    doc.rect(50, 40, 50, 50).fillAndStroke('#f8f9fa', '#6f42c1'); // Logo Box
+    doc.fillColor('#6f42c1').fontSize(12).text('PPL', 62, 60); // Logo Text
+
+    doc.fontSize(24).fillColor('#6f42c1').text('PPL ENTERPRISES', 115, 45);
+    doc.fontSize(10).fillColor('#555555').text('123 Industrial Estate, Hyderabad, Telangana, India', 115, 75);
+    doc.text('GSTIN: 36AAAAA1234A1Z5 | Phone: +91 99999 99999 | Email: sales@ppl.com', 115, 90);
+    
+    doc.moveTo(50, 115).lineTo(550, 115).strokeColor('#dddddd').stroke();
+
+    // 2. Invoice Title & Order Details
+    doc.moveDown(2);
+    doc.fontSize(18).fillColor('#000000').text('TAX INVOICE', { align: 'center' });
+    doc.moveDown();
+
+    doc.fontSize(11).text(`Invoice / Order No: `, 50, 170).font('Helvetica-Bold').text(order.orderNo, 155, 170);
+    doc.font('Helvetica').text(`Date: `, 400, 170).font('Helvetica-Bold').text(new Date(order.orderDate).toLocaleDateString(), 435, 170);
+    
+    // 3. Customer Details
+    doc.font('Helvetica-Bold').text(`Billed To:`, 50, 200);
+    doc.font('Helvetica').text(customer.name, 50, 215);
+    doc.text(customer.address || 'Address not provided', 50, 230);
+    doc.text(`${customer.email || 'No email'} | ${customer.phone || 'No phone'}`, 50, 245);
+
+    // 4. Product Table Header
+    const startY = 290;
+    doc.rect(50, startY, 500, 25).fill('#6f42c1');
+    doc.fillColor('#ffffff').font('Helvetica-Bold').fontSize(10);
+    doc.text('Product Code', 60, startY + 8);
+    doc.text('Specs (Gr/L/AF)', 200, startY + 8);
+    doc.text('Qty', 370, startY + 8);
+    doc.text('Price', 430, startY + 8);
+    doc.text('Total', 490, startY + 8);
+
+    // 5. Product Rows
+    let currentY = startY + 35;
+    doc.fillColor('#000000').font('Helvetica');
+    order.items.forEach(item => {
+        doc.font('Helvetica-Bold').text(item.productCode, 60, currentY, { width: 130 });
+        doc.font('Helvetica').fontSize(9).fillColor('#555555');
+        doc.text(`Gr: ${item.grade||'-'} | L: ${item.length||'-'}mm | AF: ${item.af||'-'}`, 200, currentY);
+        doc.text(`Sec: ${item.sector||'-'} | Wt: ${item.weightPerPc||'-'}g`, 200, currentY + 12);
+        
+        doc.fontSize(10).fillColor('#000000');
+        doc.text(item.quantity.toString(), 370, currentY);
+        doc.text(`Rs ${item.unitPrice}`, 430, currentY);
+        doc.text(`Rs ${item.total}`, 490, currentY);
+        
+        currentY += 35;
+        doc.moveTo(50, currentY - 5).lineTo(550, currentY - 5).strokeColor('#eeeeee').stroke();
+    });
+
+    // 6. Totals
+    currentY += 10;
+    doc.fontSize(11).text(`Subtotal:`, 380, currentY).text(`Rs ${order.subtotal}`, 460, currentY, { align: 'right' });
+    doc.text(`GST (18%):`, 380, currentY + 15).text(`Rs ${order.gstAmount.toFixed(2)}`, 460, currentY + 15, { align: 'right' });
+    
+    doc.font('Helvetica-Bold').fontSize(14).fillColor('#28a745');
+    doc.text(`Grand Total:`, 350, currentY + 40).text(`Rs ${order.grandTotal.toLocaleString()}`, 430, currentY + 40, { align: 'right' });
+
+    // 7. Signatures
+    const sigY = currentY + 100;
+    doc.moveTo(50, sigY).lineTo(200, sigY).strokeColor('#000').stroke();
+    doc.fillColor('#000').fontSize(10).font('Helvetica').text('Authorized by Sales Department', 50, sigY + 5);
+
+    doc.moveTo(350, sigY).lineTo(500, sigY).strokeColor('#000').stroke();
+    doc.text('Approved by MD', 390, sigY + 5);
+}
+
+// Generate PDF Buffer for Email Attachment
+function generateInvoiceBuffer(order, customer) {
     return new Promise((resolve, reject) => {
         try {
-            const doc = new PDFDocument({ margin: 50 });
+            const doc = new PDFDocument({ size: 'A4', margin: 50 });
             let buffers = [];
             doc.on('data', buffers.push.bind(buffers));
-            doc.on('end', () => { resolve(Buffer.concat(buffers)); });
-
-            doc.fontSize(24).fillColor('#6f42c1').text('PPL ENTERPRISES', { align: 'center' });
-            doc.fontSize(10).fillColor('#555555').text('Hyderabad, Telangana, India', { align: 'center' });
-            doc.moveDown();
-            doc.fontSize(16).fillColor('#000000').text('TAX INVOICE', { align: 'center', underline: true });
-            doc.moveDown();
-
-            doc.fontSize(12).text(`Order No: ${order.orderNo}`);
-            doc.text(`Date: ${new Date(order.orderDate).toLocaleDateString()}`);
-            doc.moveDown();
-            doc.text(`Billed To:`, { underline: true });
-            doc.text(customer.name);
-            doc.text(customer.email || '');
-            doc.moveDown(2);
-
-            doc.fontSize(12).text('Item Description                                 Qty      Price       Total', { underline: true });
-            doc.moveDown(0.5);
-
-            doc.fontSize(10);
-            order.items.forEach(item => {
-                // Print Main Row
-                const row = `${item.productCode.padEnd(40)} ${String(item.quantity).padStart(5)}    ${String(item.unitPrice).padStart(8)}    ${String(item.total).padStart(8)}`;
-                doc.fillColor('#000000').text(row);
-                
-                // Print Details Row (Sector, Grade, Length, A/F, Wt)
-                const details = `   ↳ Sector: ${item.sector || '-'} | Grade: ${item.grade || '-'} | L: ${item.length || '-'}mm | A/F: ${item.af || '-'} | Wt: ${item.weightPerPc || '-'}g`;
-                doc.fillColor('#666666').text(details);
-                doc.moveDown(0.5);
-            });
-
-            doc.moveDown(2);
-            doc.fontSize(12).fillColor('#000000').text(`Subtotal: ₹${order.subtotal}`, { align: 'right' });
-            doc.text(`GST (18%): ₹${order.gstAmount.toFixed(2)}`, { align: 'right' });
-            doc.fontSize(14).fillColor('#28a745').text(`Grand Total: ₹${order.grandTotal.toLocaleString()}`, { align: 'right' });
+            doc.on('end', () => resolve(Buffer.concat(buffers)));
+            drawInvoiceDesign(doc, order, customer);
             doc.end();
         } catch (err) { reject(err); }
     });
 }
 
-// Helper: Generate HTML Invoice
+// NEW: Download PDF Invoice Endpoint
+app.get('/api/sales-orders/:id/invoice', async (req, res) => {
+    try {
+        const order = await SalesOrder.findById(req.params.id);
+        if (!order) return res.status(404).send("Order not found");
+        const customer = await Customer.findById(order.customerId);
+
+        const doc = new PDFDocument({ size: 'A4', margin: 50 });
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename=Invoice_${order.orderNo}.pdf`);
+        doc.pipe(res);
+        
+        drawInvoiceDesign(doc, order, customer);
+        doc.end();
+    } catch (err) { res.status(500).send("Error generating invoice."); }
+});
+
+// Helper: Generate HTML Invoice for Emails
 function generateInvoiceHTML(order, customer) {
     const itemsHtml = order.items.map(item => `
         <tr>
             <td style="padding: 8px; border-bottom: 1px solid #ddd;">
                 <strong>${item.productCode}</strong><br>
-                <span style="font-size: 11px; color: #666;">Sector: ${item.sector || '-'} | Grade: ${item.grade || '-'} | L: ${item.length || '-'}mm | A/F: ${item.af || '-'} | Wt: ${item.weightPerPc || '-'}g</span>
+                <span style="font-size: 11px; color: #666;">Sec: ${item.sector || '-'} | Gr: ${item.grade || '-'} | L: ${item.length || '-'}mm | A/F: ${item.af || '-'} | Wt: ${item.weightPerPc || '-'}g</span>
             </td>
             <td style="padding: 8px; border-bottom: 1px solid #ddd;">${item.quantity}</td>
             <td style="padding: 8px; border-bottom: 1px solid #ddd;">₹${item.unitPrice}</td>
@@ -95,7 +150,7 @@ function generateInvoiceHTML(order, customer) {
     return `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #ddd; padding: 20px;">
         <h2 style="color: #6f42c1; text-align: center;">PPL ENTERPRISES</h2>
-        <h3 style="color: #333;">Tax Invoice: ${order.orderNo}</h3>
+        <h3 style="color: #333;">Tax Invoice / Order: ${order.orderNo}</h3>
         <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; text-align: left;">
             <tr style="background-color: #f8f9fa;">
                 <th style="padding: 10px; border-bottom: 2px solid #ddd;">Item</th>
@@ -285,7 +340,8 @@ app.put('/api/sales-orders/:id/status', async (req, res) => {
         await order.save();
 
         // Email Dispatch Logic
-        if (customer && customer.email && customer.isSubscribed) {
+        // Email Dispatch Logic
+        if (customer && customer.email) { // Removed isSubscribed check here so regular invoices still send!
             let mailOptions = {
                 from: '"PPL Accounts" <chennakesavarao89@gmail.com>',
                 to: customer.email,
@@ -294,35 +350,41 @@ app.put('/api/sales-orders/:id/status', async (req, res) => {
             };
 
             if (status === 'CONFIRMED') {
-                mailOptions.subject = `Order Confirmation & Invoice - ${order.orderNo}`;
-                mailOptions.html = `<p>Dear ${customer.name},</p><p>Thank you for your order! Please find your official PDF Invoice attached to this email.</p>`;
+                mailOptions.subject = `Invoice & Order Confirmation - ${order.orderNo}`;
+                mailOptions.html = `<p>Dear ${customer.name},</p><p>Thank you for your order! Your invoice is attached.</p>` + generateInvoiceHTML(order, customer);
                 
-                // Generate and attach PDF
-                const pdfBuffer = await generateInvoicePDF(order, customer);
-                mailOptions.attachments = [{
-                    filename: `Invoice_${order.orderNo}.pdf`,
-                    content: pdfBuffer,
-                    contentType: 'application/pdf'
-                }];
+                try {
+                    const pdfBuffer = await generateInvoiceBuffer(order, customer);
+                    mailOptions.attachments = [{
+                        filename: `Invoice_${order.orderNo}.pdf`,
+                        content: pdfBuffer,
+                        contentType: 'application/pdf'
+                    }];
+                } catch (pdfErr) {
+                    console.error("PDF Gen Error:", pdfErr);
+                }
             } 
             else if (status === 'DISPATCHED') {
                 mailOptions.subject = `Order Dispatched - ${order.orderNo}`;
-                mailOptions.html = `<p>Dear ${customer.name},</p><p>Your order <strong>${order.orderNo}</strong> has been packed and dispatched from our facility.</p>`;
+                mailOptions.html = `<p>Your order <strong>${order.orderNo}</strong> has been packed and dispatched.</p>`;
             }
             else if (status === 'SHIPPED') {
                 mailOptions.subject = `Order Shipped 🚚 - ${order.orderNo}`;
-                mailOptions.html = `<p>Dear ${customer.name},</p><p>Your order <strong>${order.orderNo}</strong> is on the way!</p>
-                                    <p>Track your consignment using the link below:</p>
-                                    <br>
-                                    <a href="${trackingLink}" style="background:#007bff; color:white; padding:10px 20px; text-decoration:none; border-radius:5px; display:inline-block;">Track Order</a>`;
+                mailOptions.html = `<p>Your order is on the way!</p>
+                                    <p>Track your consignment here: <a href="${trackingLink}">Track Order</a></p>`;
             }
             else if (status === 'DELIVERED') {
                 mailOptions.subject = `Order Delivered ✅ - ${order.orderNo}`;
-                mailOptions.html = `<p>Dear ${customer.name},</p><p>Your order <strong>${order.orderNo}</strong> has been delivered. Thank you for doing business with PPL!</p>`;
+                mailOptions.html = `<p>Your order has been delivered. Thank you!</p>`;
             }
 
             if (mailOptions.subject) {
-                transporter.sendMail(mailOptions).catch(err => console.log("Email error:", err));
+                try {
+                    await transporter.sendMail(mailOptions);
+                    console.log(`Email successfully sent to ${customer.email}`);
+                } catch (emailErr) {
+                    console.error("SMTP Email Error:", emailErr);
+                }
             }
         }
 
