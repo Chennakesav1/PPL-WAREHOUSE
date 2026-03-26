@@ -6,7 +6,7 @@ import axios from 'axios';
 
 // ✅ SERVER SETTINGS
 const API_URL = "https://ppl-warehouse-1qn1.onrender.com/api";
-const LOW_STOCK_THRESHOLD = 50; // Change this number to whatever you consider "Low Stock"
+const LOW_STOCK_THRESHOLD = 50; 
 
 export default function App() {
   const [permission, requestPermission] = useCameraPermissions();
@@ -230,7 +230,11 @@ export default function App() {
                     <View style={styles.invRow}><Text style={styles.invLabel}>Grade:</Text><Text style={styles.invVal}>{item.grade || '-'}</Text></View>
                     <View style={styles.invRow}><Text style={styles.invLabel}>Wt/Pc:</Text><Text style={styles.invVal}>{item.weightPerPc  || item.wt_pc || '-'}</Text></View>
                     <View style={styles.invRow}><Text style={styles.invLabel}>Sector:</Text><Text style={styles.invVal}>{item.sector || item.sectr || '-'}</Text></View>
-                    <View style={styles.invRow}><Text style={styles.invLabel}>FG Readied:</Text><Text style={[styles.invVal, {color: '#28a745'}]}>{item.productionReadied || item.fg || 0}</Text></View>
+                    
+                    {/* NEW: Updated Production Rows */}
+                    <View style={styles.invRow}><Text style={styles.invLabel}>Total Production Readied:</Text><Text style={[styles.invVal, {color: '#28a745'}]}>{item.productionReadied || item.fg || 0}</Text></View>
+                    <View style={styles.invRow}><Text style={styles.invLabel}>Recent Readied Stock:</Text><Text style={[styles.invVal, {color: '#17a2b8'}]}>{item.recentReadied || item.recentFg || 0}</Text></View>
+                    
                     <View style={[styles.invRow, {borderBottomWidth: 0}]}>
                       <Text style={[styles.invLabel, {color: '#333'}]}>Current Stock:</Text>
                       <Text style={[styles.invVal, {color: isLowStock ? '#dc3545' : '#007bff', fontSize: 16}]}>
@@ -295,7 +299,6 @@ export default function App() {
                   <View style={styles.infoRow}><Text style={styles.label}>Sector:</Text><Text style={styles.val}>{product.sector || product.sectr || 'N/A'}</Text></View>
                   <View style={styles.infoRow}><Text style={styles.label}>Prod. Readied (FG):</Text><Text style={[styles.val, {color: '#28a745'}]}>{String(product.productionReadied || product.fg || 0)}</Text></View>
                   
-                  {/* NEW: Low Stock Warning in Scanner */}
                   <View style={[styles.infoRow, {borderBottomWidth: 0, marginTop: 5}]}>
                     <Text style={[styles.label, {fontSize: 16, color: '#333'}]}>Current Stock:</Text>
                     <Text style={[styles.val, {color: isLowStock ? '#dc3545' : '#007bff', fontSize: 20}]}>
