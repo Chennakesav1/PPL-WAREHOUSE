@@ -6,6 +6,8 @@ const nodemailer = require('nodemailer');
 const PDFDocument = require('pdfkit');
 require('dotenv').config();
 
+
+const axios = require('axios');
 const app = express();
 
 // ==========================================
@@ -25,13 +27,13 @@ const { Product, Transaction, RawMaterial, PurchaseOrder, ProductionBatch, WorkO
 // ==========================================
 // REMOVE: const nodemailer = require('nodemailer');
 
-// Helper: Send WhatsApp Message via Meta Cloud API
+// Helper: Send WhatsApp Message via Meta Cloud API using Axios
 async function sendWhatsAppMessage(phoneNumber, messageText) {
     const token = process.env.WHATSAPP_TOKEN;
     const phoneId = process.env.WHATSAPP_PHONE_ID;
 
     if (!token || !phoneId) {
-        console.log("⚠️ WhatsApp credentials missing. Message not sent.");
+        console.log("⚠️ WhatsApp credentials missing in .env file. Message not sent.");
         return;
     }
 
@@ -39,27 +41,27 @@ async function sendWhatsAppMessage(phoneNumber, messageText) {
     const cleanPhone = phoneNumber.replace(/\D/g, ''); 
 
     try {
-        const response = await fetch(`https://graph.facebook.com/v17.0/${phoneId}/messages`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
+        const response = await axios.post(
+            `https://graph.facebook.com/v17.0/${phoneId}/messages`,
+            {
                 messaging_product: "whatsapp",
                 to: cleanPhone,
                 type: "text",
                 text: { body: messageText }
-            })
-        });
-        const data = await response.json();
-        if (!response.ok) console.error("❌ WhatsApp API Error:", data);
-        else console.log(`✅ WhatsApp sent to ${cleanPhone}`);
+            },
+            {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            }
+        );
+        console.log(`✅ WhatsApp sent successfully to ${cleanPhone}`);
     } catch (err) {
-        console.error("❌ Failed to send WhatsApp:", err.message);
+        // This will print the EXACT reason Meta rejected the message if it fails
+        console.error("❌ Failed to send WhatsApp:", err.response ? JSON.stringify(err.response.data) : err.message);
     }
 }
-
 // ... (Keep your generateInvoiceBuffer and drawInvoiceDesign functions here) ...
 // Shared Function to draw the beautiful PDF Invoice
 function drawInvoiceDesign(doc, order, customer) {
