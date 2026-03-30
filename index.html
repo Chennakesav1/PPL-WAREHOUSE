@@ -2673,6 +2673,9 @@
         }
 
         // NEW: Fetches the real AI image from your Node.js backend
+        // ==========================================
+        // THE ULTIMATE FREE AI GENERATOR (No API Key Needed!)
+        // ==========================================
         async function fetchAIImage() {
             const text = document.getElementById('promoTextInput').value.trim();
             if (!text) return showToast("⚠️ Please type instructions for the AI!", true);
@@ -2681,30 +2684,39 @@
             const loading = document.getElementById('aiLoadingText');
             const img = document.getElementById('aiGeneratedImage');
 
-            btn.disabled = true; btn.innerText = "⏳ Dreaming...";
+            btn.disabled = true; btn.innerText = "⏳ Dreaming... (Takes ~10 sec)";
             img.style.display = "none"; loading.style.display = "block";
 
-            try {
-                const res = await fetch(`${API_URL}/marketing/generate-ai-banner`, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ userPrompt: text })
-                });
-                const data = await res.json();
+            // 1. Enhance the prompt so it always looks like a PPL product
+            const enhancedPrompt = `Professional promotional banner for industrial hardware, high-tensile bolts and nuts, ${text}, 4k resolution, high quality, festive atmosphere`;
+            const encodedPrompt = encodeURIComponent(enhancedPrompt);
+            
+            // 2. Create the direct AI URL (Random seed ensures a new image every time)
+            const randomSeed = Math.floor(Math.random() * 100000);
+            const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=800&height=600&seed=${randomSeed}&nologo=true`;
 
-                if (res.ok && data.success) {
-                    currentAiBase64 = data.base64Image;
+            try {
+                // 3. Fetch the image directly from the browser
+                const response = await fetch(imageUrl);
+                if (!response.ok) throw new Error("Failed to load image");
+                
+                const blob = await response.blob();
+                
+                // 4. Convert to Base64 so it can be downloaded and dragged into WhatsApp
+                const reader = new FileReader();
+                reader.onloadend = function() {
+                    currentAiBase64 = reader.result;
                     img.src = currentAiBase64;
                     img.style.display = "block";
                     loading.style.display = "none";
+                    btn.disabled = false; btn.innerText = "🎨 Generate Free AI Image";
                     showToast("✅ AI Image Generated Successfully!");
-                } else {
-                    showToast("❌ AI Error: " + data.error, true);
-                    loading.style.display = "none";
                 }
+                reader.readAsDataURL(blob);
+
             } catch (err) {
-                showToast("❌ Server Error. Is your backend running?", true);
+                showToast("❌ Image generation failed. Please try again.", true);
                 loading.style.display = "none";
-            } finally {
                 btn.disabled = false; btn.innerText = "🎨 Generate Free AI Image";
             }
         }
