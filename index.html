@@ -2354,33 +2354,27 @@
             document.getElementById('promoSpecificPhone').value = '';
         }
 
-        async function sendMarketingWhatsApp() {
+        // INSTANT WHATSAPP WEB METHOD (No API required!)
+        function sendMarketingWhatsApp() {
             const messageText = document.getElementById('promoBody').value.trim();
-            const filter = document.getElementById('promoFilter').value;
             const specificPhone = document.getElementById('promoSpecificPhone').value.trim(); 
 
-            if (!messageText) return showToast("⚠️ Message body is required!", true);
-
-            const btn = document.getElementById('promoSubmitBtn');
-            btn.innerHTML = "⏳ Sending..."; btn.disabled = true;
-
-            try {
-                const res = await fetch(`${API_URL}/marketing/send-offers`, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ messageText, filter, specificPhone })
-                });
-                const data = await res.json();
-                if (res.ok && data.success) { 
-                    showToast(`✅ ${data.message}`); 
-                    closeMarketingModal(); 
-                } else { 
-                    showToast("❌ Error: " + data.error, true); 
-                }
-            } catch (err) { 
-                showToast("❌ Server Error", true); 
-            } finally { 
-                btn.innerHTML = "🚀 Send WhatsApp Messages"; btn.disabled = false; 
+            if (!messageText || !specificPhone) {
+                return showToast("⚠️ For this method, you MUST enter a single Phone Number and Message!", true);
             }
+
+            // Clean the phone number (remove spaces, +, etc.)
+            const cleanPhone = specificPhone.replace(/\D/g, '');
+
+            // Encode the message so it formats correctly in WhatsApp
+            const encodedMessage = encodeURIComponent(messageText);
+
+            // Open WhatsApp Web/App directly
+            const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodedMessage}`;
+            window.open(whatsappUrl, '_blank');
+
+            showToast("✅ Opening WhatsApp...");
+            closeMarketingModal();
         }
 
         // Updated Update Order Status with Tracking Link Prompt
