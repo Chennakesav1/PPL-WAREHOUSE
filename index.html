@@ -2547,10 +2547,13 @@
             document.getElementById('marketingModal').style.display = 'flex';
         }
 
-        function closeMarketingModal() {
-            document.getElementById('marketingModal').style.display = 'none';
-            document.getElementById('promoSubject').value = '';
+        function closeMarketingModal() { 
+            document.getElementById('marketingModal').style.display = 'none'; 
             document.getElementById('promoBody').value = '';
+            // We clear the new phone input instead of the old email one!
+            if(document.getElementById('promoSpecificPhone')) {
+                document.getElementById('promoSpecificPhone').value = '';
+            }
         }
 
         
