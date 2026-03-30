@@ -2672,13 +2672,12 @@
             document.getElementById('individualPromoModal').style.display = 'none';
         }
 
-        // NEW: Fetches the real AI image from your Node.js backend
         // ==========================================
-        // THE ULTIMATE FREE AI GENERATOR (No API Key Needed!)
+        // UNBREAKABLE AI GENERATOR (WITH TEMPLATE FALLBACK)
         // ==========================================
         async function fetchAIImage() {
-            const text = document.getElementById('promoTextInput').value.trim();
-            if (!text) return showToast("⚠️ Please type instructions for the AI!", true);
+            const rawText = document.getElementById('promoTextInput').value.trim();
+            if (!rawText) return showToast("⚠️ Please type instructions!", true);
 
             const btn = document.getElementById('generateAiBtn');
             const loading = document.getElementById('aiLoadingText');
@@ -2687,22 +2686,19 @@
             btn.disabled = true; btn.innerText = "⏳ Dreaming... (Takes ~10 sec)";
             img.style.display = "none"; loading.style.display = "block";
 
-            // 1. Enhance the prompt so it always looks like a PPL product
-            const enhancedPrompt = `Professional promotional banner for industrial hardware, high-tensile bolts and nuts, ${text}, 4k resolution, high quality, festive atmosphere`;
-            const encodedPrompt = encodeURIComponent(enhancedPrompt);
+            // 1. Clean the text to prevent URL crashing on the free server
+            const cleanText = rawText.replace(/[^a-zA-Z0-9 %]/g, ''); 
+            const enhancedPrompt = `High quality product photography, industrial hardware bolts, ${cleanText}, 4k, vibrant festive atmosphere`;
             
-            // 2. Create the direct AI URL (Random seed ensures a new image every time)
             const randomSeed = Math.floor(Math.random() * 100000);
-            const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=800&height=600&seed=${randomSeed}&nologo=true`;
+            const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?width=800&height=600&seed=${randomSeed}&nologo=true`;
 
             try {
-                // 3. Fetch the image directly from the browser
+                // 2. Try the Free AI API
                 const response = await fetch(imageUrl);
-                if (!response.ok) throw new Error("Failed to load image");
+                if (!response.ok) throw new Error("AI Server is busy");
                 
                 const blob = await response.blob();
-                
-                // 4. Convert to Base64 so it can be downloaded and dragged into WhatsApp
                 const reader = new FileReader();
                 reader.onloadend = function() {
                     currentAiBase64 = reader.result;
@@ -2715,10 +2711,73 @@
                 reader.readAsDataURL(blob);
 
             } catch (err) {
-                showToast("❌ Image generation failed. Please try again.", true);
+                // 3. THE UNBREAKABLE FALLBACK: If the AI is down, draw a beautiful template instantly!
+                console.log("AI Server busy. Generating local high-quality template instead.");
+                showToast("⚠️ AI Server busy. Generating Branded Template instead!");
+                
+                currentAiBase64 = generateEmergencyTemplate(rawText);
+                
+                img.src = currentAiBase64;
+                img.style.display = "block";
                 loading.style.display = "none";
                 btn.disabled = false; btn.innerText = "🎨 Generate Free AI Image";
             }
+        }
+
+        // Draws a stunning corporate banner locally if the AI server fails
+        function generateEmergencyTemplate(offerText) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 800; canvas.height = 600;
+            const ctx = canvas.getContext('2d');
+
+            // Rich Festive Background
+            let bgGradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            bgGradient.addColorStop(0, '#800000'); // Deep Red
+            bgGradient.addColorStop(0.5, '#b30000'); // Bright Red
+            bgGradient.addColorStop(1, '#ffcc00'); // Gold
+            ctx.fillStyle = bgGradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Inner Border
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+            ctx.lineWidth = 8;
+            ctx.strokeRect(20, 20, canvas.width - 40, canvas.height - 40);
+
+            // Company Logo Area
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 48px Arial Black';
+            ctx.textAlign = 'left';
+            ctx.fillText('PPL', 40, 80);
+            ctx.fillStyle = '#ffcc00';
+            ctx.font = 'bold 18px Arial';
+            ctx.fillText('ENTERPRISES', 42, 105);
+
+            // Main Text Formatting
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+            ctx.shadowBlur = 15; ctx.shadowOffsetX = 5; ctx.shadowOffsetY = 5;
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 42px Impact, sans-serif';
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+
+            // Smart Text Wrapping
+            const words = offerText.split(' ');
+            let line = ''; let y = canvas.height / 2 - 40;
+            for(let n = 0; n < words.length; n++) {
+                let testLine = line + words[n] + ' ';
+                if (ctx.measureText(testLine).width > canvas.width - 100 && n > 0) {
+                    ctx.fillText(line, canvas.width / 2, y);
+                    line = words[n] + ' '; y += 55;
+                } else { line = testLine; }
+            }
+            ctx.fillText(line, canvas.width / 2, y);
+
+            // Footer
+            ctx.shadowColor = 'transparent';
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            ctx.font = 'bold 24px Arial';
+            ctx.fillText('✨ HIGH-TENSILE BOLTS & FASTENERS ✨', canvas.width / 2, canvas.height - 40);
+
+            return canvas.toDataURL('image/jpeg', 0.9);
         }
 
         // UPDATED: Uses the new AI image instead of the old Canvas
