@@ -18,8 +18,9 @@ app.use(cors({
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], 
     allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'Accept'] 
 }));
-app.use(express.json());
-
+// Allow large file uploads via Base64 (up to 50MB)
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 const { Product, Transaction, RawMaterial, PurchaseOrder, ProductionBatch, WorkOrder, Customer, SalesOrder } = require('./models');
 
 // ==========================================
@@ -225,6 +226,71 @@ app.post('/api/marketing/send-offers', async (req, res) => {
     } catch (err) { 
         console.error("Marketing Error:", err);
         res.status(500).json({ error: err.message }); 
+    }
+});
+
+
+// ==========================================
+// INDIVIDUAL PROMOTIONS (BANNER, OFFER, DISCOUNT)
+// ==========================================
+app.post('/api/marketing/send-single', async (req, res) => {
+    try {
+        const { customerId, promoType, messageText, mediaBase64, filename } = req.body;
+        
+        const customer = await Customer.findById(customerId);
+        if (!customer || !customer.email) {
+            return res.status(400).json({ error: "Customer not found or has no email address." });
+        }
+
+        let mailOptions = {
+            from: '"PPL Promotions" <chennakesavarao89@gmail.com>',
+            to: customer.email,
+            subject: '',
+            html: ''
+        };
+
+        // Determine what we are sending
+        if (promoType === 'banner' || promoType === 'offer') {
+            const title = promoType === 'banner' ? 'Exclusive Update' : 'Special Offer For You!';
+            mailOptions.subject = `${title} from PPL Enterprises`;
+            mailOptions.html = `
+                <p>Hello ${customer.name},</p>
+                <p>${messageText}</p>
+                <p>Please see the attached promotion.</p>
+            `;
+            
+            // Attach the Canvas Image
+            if (mediaBase64) {
+                const base64Data = mediaBase64.replace(/^data:image\/png;base64,/, "");
+                mailOptions.attachments = [{
+                    filename: `${promoType}_${Date.now()}.png`,
+                    content: base64Data,
+                    encoding: 'base64'
+                }];
+            }
+        } 
+        else if (promoType === 'discount') {
+            mailOptions.subject = `Your Custom Discount Document - PPL Enterprises`;
+            mailOptions.html = `<p>Hello ${customer.name},</p><p>Please find your requested discount/pricing document attached to this email.</p>`;
+            
+            // Attach the Uploaded PDF/Image
+            if (mediaBase64) {
+                const base64Data = mediaBase64.split(';base64,').pop(); // Strip the mime type header
+                mailOptions.attachments = [{
+                    filename: filename || `Discount_${Date.now()}.pdf`,
+                    content: base64Data,
+                    encoding: 'base64'
+                }];
+            }
+        }
+
+        // Send the email (ensure your transporter uses App Passwords as fixed earlier)
+        await transporter.sendMail(mailOptions);
+        res.json({ success: true, message: "Promotion sent successfully!" });
+
+    } catch (err) {
+        console.error("Single Promo Error:", err);
+        res.status(500).json({ error: err.message });
     }
 });
 // Serve the Frontend Dashboard

@@ -942,12 +942,15 @@
                     </div>
                 </div>
 
-               <div id="ordersSection" style="display: none;">
-                    <div style="background: #e8f5e9; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #28a745;">
+                <div id="ordersSection" style="display: none;">
+                    <div
+                        style="background: #e8f5e9; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #28a745;">
                         <h4 style="margin-top:0; color:#28a745;">📝 Create Quotation / Order</h4>
-                        
+
                         <div class="form-grid" style="margin-bottom: 15px;">
-                            <select id="soCustomer" class="prod-input"><option value="">- Select Customer -</option></select>
+                            <select id="soCustomer" class="prod-input">
+                                <option value="">- Select Customer -</option>
+                            </select>
                             <select id="soType" class="prod-input">
                                 <option value="QUOTATION">Draft Quotation</option>
                                 <option value="CONFIRMED">Confirmed Order (Reserves Stock)</option>
@@ -956,22 +959,28 @@
 
                         <h5 style="margin-bottom: 5px; color: #555;">Cart Items:</h5>
                         <div id="soItemsContainer">
-                            <div class="so-item-row" style="display: flex; gap: 10px; margin-bottom: 10px; align-items: center; flex-wrap: wrap;">
-                                <input type="text" class="so-product prod-input" placeholder="* Product Code" style="flex: 2; min-width: 150px;">
-                                <input type="number" class="so-qty prod-input" placeholder="* Qty" style="flex: 1; min-width: 80px;">
-                                <input type="number" class="so-price prod-input" placeholder="* Unit Price (₹)" style="flex: 1; min-width: 100px;">
-                                </div>
+                            <div class="so-item-row"
+                                style="display: flex; gap: 10px; margin-bottom: 10px; align-items: center; flex-wrap: wrap;">
+                                <input type="text" class="so-product prod-input" placeholder="* Product Code"
+                                    style="flex: 2; min-width: 150px;">
+                                <input type="number" class="so-qty prod-input" placeholder="* Qty"
+                                    style="flex: 1; min-width: 80px;">
+                                <input type="number" class="so-price prod-input" placeholder="* Unit Price (₹)"
+                                    style="flex: 1; min-width: 100px;">
+                            </div>
                         </div>
 
-                        <button onclick="addSOItemRow()" style="background:#17a2b8; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; margin-bottom: 15px; font-weight: bold;">
+                        <button onclick="addSOItemRow()"
+                            style="background:#17a2b8; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; margin-bottom: 15px; font-weight: bold;">
                             ➕ Add Another Item
                         </button>
 
-                        <button onclick="submitSalesOrder()" class="save-btn" style="background: #28a745; margin-top: 0;">
+                        <button onclick="submitSalesOrder()" class="save-btn"
+                            style="background: #28a745; margin-top: 0;">
                             💾 Generate Order
                         </button>
                     </div>
-                    
+
                     <div class="table-wrapper">
                         <table id="salesOrderTable">
                             <thead style="background-color: #28a745; color: white;">
@@ -984,438 +993,458 @@
                                     <th>Actions & Invoices</th>
                                 </tr>
                             </thead>
-                            <tbody><tr><td colspan="6" style="text-align:center;">Loading Orders...</td></tr></tbody>
+                            <tbody>
+                                <tr>
+                                    <td colspan="6" style="text-align:center;">Loading Orders...</td>
+                                </tr>
+                            </tbody>
                         </table>
                     </div>
                 </div>
 
-            <div id="marketingModal" class="modal">
-                <div class="modal-content">
-                    <span class="close-btn" onclick="closeMarketingModal()">×</span>
-                    <h2 style="color: #25D366; margin-bottom: 5px;">💬 Send WhatsApp Blast</h2>
-                    
-                    <div class="form-grid" style="grid-template-columns: 1fr;">
-                        <label style="font-size:12px; font-weight:bold; color:#555;">Target Audience:</label>
-                        <select id="promoFilter" class="full-width" style="margin-top:-10px; margin-bottom:10px;">
-                            <option value="all">All Customers</option>
-                            <option value="vip">VIP Customers</option>
-                        </select>
+                <div id="individualPromoModal" class="modal">
+                    <div class="modal-content" style="max-width: 500px;">
+                        <span class="close-btn" onclick="closeIndividualPromo()">×</span>
+                        <h2 id="promoModalTitle" style="color: #6f42c1; margin-bottom: 15px;">Send Promotion</h2>
 
-                        <label style="font-size:12px; font-weight:bold; color:#555; margin-top: 10px;">OR Single Customer Number:</label>
-                        <input type="text" id="promoSpecificPhone" class="full-width" placeholder="Enter exact phone (e.g., 919876543210)" style="border-color: #25D366;">
+                        <div id="promoTextSection" style="display: none;">
+                            <label style="font-size:12px; font-weight:bold; color:#555;">Type your Offer/Banner
+                                text:</label>
+                            <textarea id="promoTextInput" class="full-width prod-input" rows="3"
+                                placeholder="E.g., DIWALI MEGA SALE! Flat 20% Off on all Fasteners!"
+                                onkeyup="generateCanvasPreview()"></textarea>
 
-                        <textarea id="promoBody" class="full-width" rows="6" placeholder="* Type your WhatsApp message here... You can use *bold* or _italics_." style="resize: vertical; margin-top: 10px;" required></textarea>
+                            <p
+                                style="font-size:12px; font-weight:bold; color:#555; margin-top: 15px; margin-bottom: 5px;">
+                                Live Image Preview:</p>
+                            <div
+                                style="border: 2px dashed #ccc; padding: 10px; text-align: center; background: #f8f9fa; border-radius: 8px;">
+                                <canvas id="bannerCanvas" width="400" height="200"
+                                    style="max-width: 100%; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2);"></canvas>
+                            </div>
+                        </div>
+
+                        <div id="promoFileSection" style="display: none;">
+                            <label style="font-size:12px; font-weight:bold; color:#555;">Upload Discount File (PDF or
+                                Image):</label>
+                            <div
+                                style="border: 2px dashed #007bff; padding: 30px; text-align: center; background: #e3f2fd; border-radius: 8px; margin-top: 10px;">
+                                <input type="file" id="discountFileInput" accept=".pdf, .jpg, .jpeg, .png"
+                                    style="font-size: 16px; width: 100%;">
+                            </div>
+                        </div>
+
+                        <button class="save-btn" style="background-color: #6f42c1; margin-top: 20px;" id="sendPromoBtn"
+                            onclick="executeSendPromotion()">
+                            🚀 Send to Customer
+                        </button>
                     </div>
-                    
-                    <button class="save-btn" style="background-color: #25D366; margin-top: 15px;" id="promoSubmitBtn" onclick="sendMarketingWhatsApp()">
-                        🚀 Send WhatsApp Messages
-                    </button>
+                </div>
+
+                <div class="card" id="poCard" style="display: none;">
+                    <h2>Purchase Orders
+                        <div class="search-container">
+                            <input type="text" id="searchPOInput" class="search-box" style="width: 200px;"
+                                onkeyup="filterPOs()" placeholder="🔍 Search POs...">
+                            <button class="add-btn" onclick="openPOModal()" style="background-color: #ff9800;">📝 Create
+                                PO</button>
+                        </div>
+                    </h2>
+                    <div class="table-wrapper">
+                        <table id="poTable">
+                            <thead>
+                                <tr>
+                                    <th>PO Number</th>
+                                    <th>Supplier</th>
+                                    <th>Material</th>
+                                    <th>Grade</th>
+                                    <th>Scope</th>
+                                    <th>Qty (Kg)</th>
+                                    <th>Total Cost (₹)</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div id="qcModal"
+            style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; align-items: center; justify-content: center;">
+            <div
+                style="background: white; width: 95%; max-width: 1000px; height: 90vh; border-radius: 8px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+                <div
+                    style="background: #17a2b8; color: white; padding: 15px 20px; font-weight: bold; font-size: 18px; display: flex; justify-content: space-between; align-items: center;">
+                    <span>🔍 Comprehensive QC Inspection</span>
+                    <button style="background: none; border: none; color: white; font-size: 20px; cursor: pointer;"
+                        onclick="document.getElementById('qcModal').style.display='none'">✖</button>
+                </div>
+                <div id="qcModalContent"
+                    style="padding: 20px; overflow-y: auto; flex-grow: 1; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; font-size: 14px; background: #f4f6f9;">
+                </div>
+                <div
+                    style="background: #fff; padding: 15px 20px; border-top: 2px solid #dee2e6; display: flex; gap: 15px; align-items: center;">
+                    <input type="text" id="qcRemarksInput" class="prod-input"
+                        placeholder="Enter Official QC Remarks (Required for Rejection)"
+                        style="flex-grow: 1; margin: 0; font-size: 15px; padding: 10px;">
+                    <button id="btnQcReject"
+                        style="background: #dc3545; color: white; border: none; padding: 12px 25px; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 15px;">❌
+                        Reject Batch</button>
+                    <button id="btnQcApprove"
+                        style="background: #28a745; color: white; border: none; padding: 12px 35px; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 15px;">✅
+                        APPROVE & PROCEED</button>
                 </div>
             </div>
+        </div>
 
-            <div class="card" id="poCard" style="display: none;">
-                <h2>Purchase Orders
-                    <div class="search-container">
-                        <input type="text" id="searchPOInput" class="search-box" style="width: 200px;"
-                            onkeyup="filterPOs()" placeholder="🔍 Search POs...">
-                        <button class="add-btn" onclick="openPOModal()" style="background-color: #ff9800;">📝 Create
-                            PO</button>
-                    </div>
-                </h2>
-                <div class="table-wrapper">
-                    <table id="poTable">
-                        <thead>
-                            <tr>
-                                <th>PO Number</th>
-                                <th>Supplier</th>
-                                <th>Material</th>
-                                <th>Grade</th>
-                                <th>Scope</th>
-                                <th>Qty (Kg)</th>
-                                <th>Total Cost (₹)</th>
-                                <th>Status</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
+        <div id="addProductModal" class="modal">
+            <div class="modal-content"><span class="close-btn" onclick="closeModal()">×</span>
+                <h2 style="color: #007bff; margin-bottom: 0;">Add Product</h2>
+                <div class="form-grid">
+                    <input type="text" id="newProdCode" class="full-width" placeholder="* Product Code" required>
+                    <input type="text" id="newSector" placeholder="Sector"><input type="text" id="newType"
+                        placeholder="Type">
+                    <input type="text" id="newGrade" placeholder="Grade"><input type="number" id="newLength"
+                        placeholder="Length">
+                    <input type="number" id="newAF" placeholder="A/F"><input type="number" id="newWeight"
+                        placeholder="Wt/Piece">
+                    <input type="number" id="newStock" class="full-width" placeholder="Initial Stock">
                 </div>
-            </div>
-
-        </div>
-    </div>
-
-    <div id="qcModal"
-        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; align-items: center; justify-content: center;">
-        <div
-            style="background: white; width: 95%; max-width: 1000px; height: 90vh; border-radius: 8px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
-            <div
-                style="background: #17a2b8; color: white; padding: 15px 20px; font-weight: bold; font-size: 18px; display: flex; justify-content: space-between; align-items: center;">
-                <span>🔍 Comprehensive QC Inspection</span>
-                <button style="background: none; border: none; color: white; font-size: 20px; cursor: pointer;"
-                    onclick="document.getElementById('qcModal').style.display='none'">✖</button>
-            </div>
-            <div id="qcModalContent"
-                style="padding: 20px; overflow-y: auto; flex-grow: 1; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; font-size: 14px; background: #f4f6f9;">
-            </div>
-            <div
-                style="background: #fff; padding: 15px 20px; border-top: 2px solid #dee2e6; display: flex; gap: 15px; align-items: center;">
-                <input type="text" id="qcRemarksInput" class="prod-input"
-                    placeholder="Enter Official QC Remarks (Required for Rejection)"
-                    style="flex-grow: 1; margin: 0; font-size: 15px; padding: 10px;">
-                <button id="btnQcReject"
-                    style="background: #dc3545; color: white; border: none; padding: 12px 25px; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 15px;">❌
-                    Reject Batch</button>
-                <button id="btnQcApprove"
-                    style="background: #28a745; color: white; border: none; padding: 12px 35px; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 15px;">✅
-                    APPROVE & PROCEED</button>
+                <button class="save-btn" onclick="submitNewProduct()">Save</button>
             </div>
         </div>
-    </div>
 
-    <div id="addProductModal" class="modal">
-        <div class="modal-content"><span class="close-btn" onclick="closeModal()">×</span>
-            <h2 style="color: #007bff; margin-bottom: 0;">Add Product</h2>
-            <div class="form-grid">
-                <input type="text" id="newProdCode" class="full-width" placeholder="* Product Code" required>
-                <input type="text" id="newSector" placeholder="Sector"><input type="text" id="newType"
-                    placeholder="Type">
-                <input type="text" id="newGrade" placeholder="Grade"><input type="number" id="newLength"
-                    placeholder="Length">
-                <input type="number" id="newAF" placeholder="A/F"><input type="number" id="newWeight"
-                    placeholder="Wt/Piece">
-                <input type="number" id="newStock" class="full-width" placeholder="Initial Stock">
+        <div id="receiveStockModal" class="modal">
+            <div class="modal-content"><span class="close-btn" onclick="closeReceiveModal()">×</span>
+                <h2 style="color: #007bff; margin-bottom: 0;">📥 Receive Steel</h2>
+                <div class="form-grid">
+                    <input type="text" id="rawCodeInput" placeholder="* Steel Code" required>
+                    <input type="text" id="rawNameInput" placeholder="* Name" required>
+                    <input type="text" id="rawGradeInput" placeholder="Grade (e.g., 8.8)">
+                    <input type="text" id="rawSupplierInput" placeholder="Supplier Name">
+                    <input type="text" id="rawScopeInput" class="full-width" placeholder="Scope / Remarks">
+                    <input type="number" id="rawKgInput" class="full-width" placeholder="* Amount (Kg)" required>
+                </div>
+                <button class="save-btn" id="receiveSubmitBtn" onclick="submitRawMaterial()">Add to Stock</button>
             </div>
-            <button class="save-btn" onclick="submitNewProduct()">Save</button>
         </div>
-    </div>
 
-    <div id="receiveStockModal" class="modal">
-        <div class="modal-content"><span class="close-btn" onclick="closeReceiveModal()">×</span>
-            <h2 style="color: #007bff; margin-bottom: 0;">📥 Receive Steel</h2>
-            <div class="form-grid">
-                <input type="text" id="rawCodeInput" placeholder="* Steel Code" required>
-                <input type="text" id="rawNameInput" placeholder="* Name" required>
-                <input type="text" id="rawGradeInput" placeholder="Grade (e.g., 8.8)">
-                <input type="text" id="rawSupplierInput" placeholder="Supplier Name">
-                <input type="text" id="rawScopeInput" class="full-width" placeholder="Scope / Remarks">
-                <input type="number" id="rawKgInput" class="full-width" placeholder="* Amount (Kg)" required>
+        <div id="poModal" class="modal">
+            <div class="modal-content"><span class="close-btn" onclick="closePOModal()">×</span>
+                <h2 style="color: #ff9800; margin-bottom: 0;">📝 Create PO</h2>
+                <div class="form-grid">
+                    <input type="text" id="poSupplier" class="full-width" placeholder="* Supplier" required>
+                    <input type="text" id="poMaterialCode" placeholder="* Material Code" required>
+                    <input type="text" id="poGrade" placeholder="Grade">
+                    <input type="number" id="poExpectedKg" placeholder="* Expected Kg" required>
+                    <input type="number" id="poCostPerKg" placeholder="* Cost per Kg" required>
+                    <input type="text" id="poScope" class="full-width" placeholder="Scope / Remarks">
+                </div>
+                <button class="save-btn" style="background-color: #ff9800;" id="poSubmitBtn"
+                    onclick="submitPO()">Generate
+                    PO</button>
             </div>
-            <button class="save-btn" id="receiveSubmitBtn" onclick="submitRawMaterial()">Add to Stock</button>
         </div>
-    </div>
-
-    <div id="poModal" class="modal">
-        <div class="modal-content"><span class="close-btn" onclick="closePOModal()">×</span>
-            <h2 style="color: #ff9800; margin-bottom: 0;">📝 Create PO</h2>
-            <div class="form-grid">
-                <input type="text" id="poSupplier" class="full-width" placeholder="* Supplier" required>
-                <input type="text" id="poMaterialCode" placeholder="* Material Code" required>
-                <input type="text" id="poGrade" placeholder="Grade">
-                <input type="number" id="poExpectedKg" placeholder="* Expected Kg" required>
-                <input type="number" id="poCostPerKg" placeholder="* Cost per Kg" required>
-                <input type="text" id="poScope" class="full-width" placeholder="Scope / Remarks">
-            </div>
-            <button class="save-btn" style="background-color: #ff9800;" id="poSubmitBtn" onclick="submitPO()">Generate
-                PO</button>
-        </div>
-    </div>
 
 
-   
 
-    <script>
-        const API_URL = 'https://ppl-warehouse-1qn1.onrender.com/api';
-        let currentUser = null;
-        let currentLogFilter = 'ALL';
-        let refreshInterval;
-        let globalBatches = [];
-        let activeWorkOrders = [];
-        let pendingQCBatches = [];
-        let qcHistoryBatches = [];
-        let currentQCView = 'PENDING';
 
-        function showToast(message, isError = false) {
-            const toast = document.getElementById("toastNotification");
-            toast.innerText = message;
-            toast.className = isError ? "toast show error" : "toast show";
-            setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
-        }
+        <script>
+            const API_URL = 'https://ppl-warehouse-1qn1.onrender.com/api';
+            let currentUser = null;
+            let currentLogFilter = 'ALL';
+            let refreshInterval;
+            let globalBatches = [];
+            let activeWorkOrders = [];
+            let pendingQCBatches = [];
+            let qcHistoryBatches = [];
+            let currentQCView = 'PENDING';
 
-        setTimeout(() => {
-            document.getElementById('splashScreen').style.display = 'none';
-            const savedAuth = localStorage.getItem("warehouseAuth");
-            if (savedAuth) unlockDashboard(JSON.parse(savedAuth));
-            else document.getElementById('loginOverlay').style.display = 'flex';
-        }, 1000);
-
-        async function attemptLogin() {
-            const username = document.getElementById('usernameInput').value.trim().toLowerCase();
-            const password = document.getElementById('passwordInput').value;
-            try {
-                const response = await fetch(`${API_URL}/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password }) });
-                const data = await response.json();
-                if (data.success) { localStorage.setItem("warehouseAuth", JSON.stringify(data)); unlockDashboard(data); }
-                else document.getElementById('loginError').style.display = 'block';
-            } catch (error) { alert("Cannot connect to server."); }
-        }
-
-        function unlockDashboard(userData) {
-            currentUser = userData;
-            document.getElementById('loginOverlay').style.display = 'none';
-            document.getElementById('mainDashboard').style.display = 'block';
-
-            document.getElementById('topNav').style.display = 'flex';
-            document.getElementById('roleDisplay').innerText = `👤 ${currentUser.username.toUpperCase()} (${currentUser.role})`;
-
-            document.getElementById('productionCard').style.display = 'none';
-            document.getElementById('invCard').style.display = 'none';
-            document.getElementById('txCard').style.display = 'none';
-            document.getElementById('rawMaterialCard').style.display = 'none';
-            document.getElementById('poCard').style.display = 'none';
-            document.getElementById('qcCard').style.display = 'none';
-            document.getElementById('addBtnUI').style.display = 'none';
-
-            document.getElementById('nav-prod').style.display = 'none';
-            document.getElementById('nav-qc').style.display = 'none';
-            document.getElementById('nav-inv').style.display = 'none';
-            document.getElementById('nav-tx').style.display = 'none';
-            document.getElementById('nav-rm').style.display = 'none';
-            document.getElementById('nav-po').style.display = 'none';
-
-            let styleTag = document.getElementById('adminStyleOverride');
-            if (currentUser.role === 'ADMIN' || currentUser.role === 'SALES') {
-                document.getElementById('nav-sales').style.display = 'block';
-            }
-            if (!styleTag) { styleTag = document.createElement('style'); styleTag.id = 'adminStyleOverride'; document.head.appendChild(styleTag); }
-
-            if (currentUser.role === 'ADMIN') {
-                document.getElementById('nav-prod').style.display = 'block';
-                document.getElementById('nav-qc').style.display = 'block';
-                document.getElementById('nav-inv').style.display = 'block';
-                document.getElementById('nav-tx').style.display = 'block';
-                document.getElementById('nav-rm').style.display = 'block';
-                document.getElementById('nav-po').style.display = 'block';
-                document.getElementById('addBtnUI').style.display = 'inline-block';
-
-                styleTag.innerHTML = '';
-                switchMainTab('productionCard', 'nav-prod');
-            }
-            else if (currentUser.role === 'PPC') {
-                document.getElementById('nav-prod').style.display = 'block';
-                styleTag.innerHTML = '.admin-actions { display: none !important; }';
-                switchMainTab('productionCard', 'nav-prod');
-            }
-            else if (currentUser.role === 'PRODUCTION') {
-                document.getElementById('nav-prod').style.display = 'block';
-                styleTag.innerHTML = '.admin-actions { display: none !important; }';
-                switchMainTab('productionCard', 'nav-prod');
-            }
-            else if (currentUser.role === 'QC') {
-                document.getElementById('nav-qc').style.display = 'block';
-                document.getElementById('nav-inv').style.display = 'block';
-                styleTag.innerHTML = '.admin-actions { display: none !important; }';
-                switchMainTab('qcCard', 'nav-qc');
-            }
-            else if (currentUser.role === 'PURCHASE') {
-                document.getElementById('nav-inv').style.display = 'block';
-                document.getElementById('nav-tx').style.display = 'block';
-                document.getElementById('nav-rm').style.display = 'block';
-                document.getElementById('nav-po').style.display = 'block';
-                styleTag.innerHTML = '.admin-actions { display: none !important; }';
-                switchMainTab('poCard', 'nav-po');
-            }
-            else if (currentUser.role === 'SALES') {
-                document.getElementById('nav-inv').style.display = 'block';
-                document.getElementById('nav-tx').style.display = 'block';
-                styleTag.innerHTML = '.admin-actions { display: none !important; }';
-                switchMainTab('invCard', 'nav-inv');
+            function showToast(message, isError = false) {
+                const toast = document.getElementById("toastNotification");
+                toast.innerText = message;
+                toast.className = isError ? "toast show error" : "toast show";
+                setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
             }
 
-            document.getElementById('prodDate').valueAsDate = new Date();
-            toggleStageFields();
-            refreshDashboard();
+            setTimeout(() => {
+                document.getElementById('splashScreen').style.display = 'none';
+                const savedAuth = localStorage.getItem("warehouseAuth");
+                if (savedAuth) unlockDashboard(JSON.parse(savedAuth));
+                else document.getElementById('loginOverlay').style.display = 'flex';
+            }, 1000);
 
-            if (refreshInterval) clearInterval(refreshInterval);
-            refreshInterval = setInterval(refreshDashboard, 5000);
-        }
-
-        function logout() { localStorage.removeItem("warehouseAuth"); window.location.reload(); }
-
-        function switchMainTab(cardId, btnId) {
-            document.getElementById('salesCard').style.display = 'none';
-            document.getElementById('productionCard').style.display = 'none';
-            document.getElementById('qcCard').style.display = 'none';
-            document.getElementById('invCard').style.display = 'none';
-            document.getElementById('txCard').style.display = 'none';
-            document.getElementById('rawMaterialCard').style.display = 'none';
-            document.getElementById('poCard').style.display = 'none';
-
-            document.querySelectorAll('#navButtons .tab-btn').forEach(btn => btn.classList.remove('active'));
-            if (cardId === 'salesCard') { loadCustomers(); loadSalesOrders(); }
-
-            if (document.getElementById(cardId)) document.getElementById(cardId).style.display = 'block';
-            if (document.getElementById(btnId)) document.getElementById(btnId).classList.add('active');
-
-            if (cardId === 'qcCard') loadPendingQC();
-        }
-
-        function refreshDashboard() {
-            loadInventory();
-            loadTransactions();
-
-            // ADD IT HERE:
-            if (currentUser && (currentUser.role === 'PRODUCTION' || currentUser.role === 'PPC' || currentUser.role === 'ADMIN')) {
-                loadProductionBatches();
-                loadActiveWorkOrders(); // <--- Add this line!
+            async function attemptLogin() {
+                const username = document.getElementById('usernameInput').value.trim().toLowerCase();
+                const password = document.getElementById('passwordInput').value;
+                try {
+                    const response = await fetch(`${API_URL}/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password }) });
+                    const data = await response.json();
+                    if (data.success) { localStorage.setItem("warehouseAuth", JSON.stringify(data)); unlockDashboard(data); }
+                    else document.getElementById('loginError').style.display = 'block';
+                } catch (error) { alert("Cannot connect to server."); }
             }
 
-            if (currentUser && (currentUser.role === 'QC' || currentUser.role === 'ADMIN')) {
-                if (currentQCView === 'PENDING') loadPendingQC();
-                else loadQCHistory();
+            function unlockDashboard(userData) {
+                currentUser = userData;
+                document.getElementById('loginOverlay').style.display = 'none';
+                document.getElementById('mainDashboard').style.display = 'block';
+
+                document.getElementById('topNav').style.display = 'flex';
+                document.getElementById('roleDisplay').innerText = `👤 ${currentUser.username.toUpperCase()} (${currentUser.role})`;
+
+                document.getElementById('productionCard').style.display = 'none';
+                document.getElementById('invCard').style.display = 'none';
+                document.getElementById('txCard').style.display = 'none';
+                document.getElementById('rawMaterialCard').style.display = 'none';
+                document.getElementById('poCard').style.display = 'none';
+                document.getElementById('qcCard').style.display = 'none';
+                document.getElementById('addBtnUI').style.display = 'none';
+
+                document.getElementById('nav-prod').style.display = 'none';
+                document.getElementById('nav-qc').style.display = 'none';
+                document.getElementById('nav-inv').style.display = 'none';
+                document.getElementById('nav-tx').style.display = 'none';
+                document.getElementById('nav-rm').style.display = 'none';
+                document.getElementById('nav-po').style.display = 'none';
+
+                let styleTag = document.getElementById('adminStyleOverride');
+                if (currentUser.role === 'ADMIN' || currentUser.role === 'SALES') {
+                    document.getElementById('nav-sales').style.display = 'block';
+                }
+                if (!styleTag) { styleTag = document.createElement('style'); styleTag.id = 'adminStyleOverride'; document.head.appendChild(styleTag); }
+
+                if (currentUser.role === 'ADMIN') {
+                    document.getElementById('nav-prod').style.display = 'block';
+                    document.getElementById('nav-qc').style.display = 'block';
+                    document.getElementById('nav-inv').style.display = 'block';
+                    document.getElementById('nav-tx').style.display = 'block';
+                    document.getElementById('nav-rm').style.display = 'block';
+                    document.getElementById('nav-po').style.display = 'block';
+                    document.getElementById('addBtnUI').style.display = 'inline-block';
+
+                    styleTag.innerHTML = '';
+                    switchMainTab('productionCard', 'nav-prod');
+                }
+                else if (currentUser.role === 'PPC') {
+                    document.getElementById('nav-prod').style.display = 'block';
+                    styleTag.innerHTML = '.admin-actions { display: none !important; }';
+                    switchMainTab('productionCard', 'nav-prod');
+                }
+                else if (currentUser.role === 'PRODUCTION') {
+                    document.getElementById('nav-prod').style.display = 'block';
+                    styleTag.innerHTML = '.admin-actions { display: none !important; }';
+                    switchMainTab('productionCard', 'nav-prod');
+                }
+                else if (currentUser.role === 'QC') {
+                    document.getElementById('nav-qc').style.display = 'block';
+                    document.getElementById('nav-inv').style.display = 'block';
+                    styleTag.innerHTML = '.admin-actions { display: none !important; }';
+                    switchMainTab('qcCard', 'nav-qc');
+                }
+                else if (currentUser.role === 'PURCHASE') {
+                    document.getElementById('nav-inv').style.display = 'block';
+                    document.getElementById('nav-tx').style.display = 'block';
+                    document.getElementById('nav-rm').style.display = 'block';
+                    document.getElementById('nav-po').style.display = 'block';
+                    styleTag.innerHTML = '.admin-actions { display: none !important; }';
+                    switchMainTab('poCard', 'nav-po');
+                }
+                else if (currentUser.role === 'SALES') {
+                    document.getElementById('nav-inv').style.display = 'block';
+                    document.getElementById('nav-tx').style.display = 'block';
+                    styleTag.innerHTML = '.admin-actions { display: none !important; }';
+                    switchMainTab('invCard', 'nav-inv');
+                }
+
+                document.getElementById('prodDate').valueAsDate = new Date();
+                toggleStageFields();
+                refreshDashboard();
+
+                if (refreshInterval) clearInterval(refreshInterval);
+                refreshInterval = setInterval(refreshDashboard, 5000);
             }
 
-            if (currentUser && (currentUser.role === 'ADMIN' || currentUser.role === 'PURCHASE')) {
-                loadRawMaterials();
-                loadPOs();
+            function logout() { localStorage.removeItem("warehouseAuth"); window.location.reload(); }
+
+            function switchMainTab(cardId, btnId) {
+                document.getElementById('salesCard').style.display = 'none';
+                document.getElementById('productionCard').style.display = 'none';
+                document.getElementById('qcCard').style.display = 'none';
+                document.getElementById('invCard').style.display = 'none';
+                document.getElementById('txCard').style.display = 'none';
+                document.getElementById('rawMaterialCard').style.display = 'none';
+                document.getElementById('poCard').style.display = 'none';
+
+                document.querySelectorAll('#navButtons .tab-btn').forEach(btn => btn.classList.remove('active'));
+                if (cardId === 'salesCard') { loadCustomers(); loadSalesOrders(); }
+
+                if (document.getElementById(cardId)) document.getElementById(cardId).style.display = 'block';
+                if (document.getElementById(btnId)) document.getElementById(btnId).classList.add('active');
+
+                if (cardId === 'qcCard') loadPendingQC();
             }
-        }
 
-        function toggleOtherInput(selectId, inputId) {
-            const selectElement = document.getElementById(selectId);
-            const inputElement = document.getElementById(inputId);
-            if (selectElement.value === 'OTHER') {
-                inputElement.style.display = 'block'; inputElement.focus();
-            } else {
-                inputElement.style.display = 'none'; inputElement.value = '';
-            }
-        }
+            function refreshDashboard() {
+                loadInventory();
+                loadTransactions();
 
-        function toggleStageFields() {
-            const stage = document.getElementById('prodStage').value;
-            const dynFR = document.querySelectorAll('.dyn-fr');
-            const dynF = document.querySelectorAll('.dyn-f');
-            const dynS = document.querySelectorAll('.dyn-s');
-
-            // Show Forging/Rolling fields appropriately
-            dynFR.forEach(el => el.style.display = (stage === 'FORGING' || stage === 'ROLLING' || stage === 'HEAT_TREAT' || stage === 'POLISHING') ? '' : 'none');
-            dynF.forEach(el => el.style.display = (stage === 'FORGING') ? '' : 'none');
-            dynS.forEach(el => el.style.display = (stage === 'SEC_OP' || stage === 'HEAT_TREAT' || stage === 'POLISHING') ? '' : 'none');
-            document.querySelector('.downtime-grid').style.display = (stage !== 'SEC_OP') ? 'grid' : 'none';
-        }
-
-        async function submitProductionForm() {
-            let finalMachine = document.getElementById('prodMachine').value;
-            if (finalMachine === 'OTHER') finalMachine = document.getElementById('prodMachineOther').value;
-            let finalPartName = document.getElementById('prodPartName').value;
-            if (finalPartName === 'OTHER') finalPartName = document.getElementById('prodPartNameOther').value;
-            let finalWO = document.getElementById('prodWO').value;
-            if (finalWO === 'OTHER') finalWO = document.getElementById('prodWOOther').value;
-
-            const data = {
-                stage: document.getElementById('prodStage').value, date: document.getElementById('prodDate').value,
-                shift: document.getElementById('prodShift').value, machineName: finalMachine, partName: finalPartName,
-                operator: document.getElementById('prodOperator').value, operation: document.getElementById('prodOperation').value,
-                workOrderNo: finalWO, partNo: document.getElementById('prodPartNo').value,
-                partSize: document.getElementById('prodSize').value, pitch: document.getElementById('prodPitch').value,
-                length: document.getElementById('prodLength').value, af: document.getElementById('prodAF').value,
-                productGrade: document.getElementById('prodGrade').value, rawMaterialCode: document.getElementById('prodRMCode').value,
-                heatNo: document.getElementById('prodHeatNo').value, rawMaterialConsumedKg: document.getElementById('prodRMKg').value,
-                pieceWeightKg: document.getElementById('prodPieceWt').value, scheduleHours: document.getElementById('prodSchHrs').value,
-                jobChangeHours: document.getElementById('prodJcHrs').value, prodPlannedHours: document.getElementById('prodPlannedHrs').value,
-                speedRpm: document.getElementById('prodSpeed').value, shiftTargetQty: document.getElementById('prodTarget').value,
-                acceptedQty: document.getElementById('prodAccepted').value, rejectedQty: document.getElementById('prodRejected').value,
-                rejectionKg: document.getElementById('prodRejKg').value, rejectionReason: document.getElementById('prodRejReason').value,
-                remarks: document.getElementById('prodRemarks').value, lossMajorJC: document.getElementById('l_MajorJC').value,
-                lossMinorJC: document.getElementById('l_MinorJC').value, lossSetting: document.getElementById('l_Setting').value,
-                lossMcClean: document.getElementById('l_McClean').value, lossToolRework: document.getElementById('l_ToolRework').value,
-                lossNoTool: document.getElementById('l_NoTool').value, lossNoLoad: document.getElementById('l_NoLoad').value,
-                lossNoOperator: document.getElementById('l_NoOperator').value, lossMMnt: document.getElementById('l_MMnt').value,
-                lossEMnt: document.getElementById('l_EMnt').value, lossNoPower: document.getElementById('l_NoPower').value,
-                lossNoAirOil: document.getElementById('l_NoAirOil').value, lossNoRm: document.getElementById('l_NoRm').value,
-                lossRmLoading: document.getElementById('l_RmLoading').value, lossQaApproval: document.getElementById('l_QaApproval').value,
-                lossCoilChange: document.getElementById('l_CoilChange').value, lossNoPlan: document.getElementById('l_NoPlan').value,
-                lossNpdTeam: document.getElementById('l_NpdTeam').value, lossUnknown: document.getElementById('l_Unknown').value,
-                loggedBy: currentUser.username
-            };
-
-            if (!data.machineName || !data.partNo) return showToast("Machine and Part No are required!", true);
-
-            try {
-                const response = await fetch(`${API_URL}/production/batch`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
-                const result = await response.json();
-                if (result.success) {
-                    showToast("✅ Full Log Saved for PPC/QC!");
-                    document.getElementById('prodMachineOther').style.display = 'none';
-                    document.getElementById('prodPartNameOther').style.display = 'none';
-                    ['prodAccepted', 'prodRejected', 'prodRejKg', 'prodRMKg', 'l_MajorJC', 'l_MinorJC', 'l_Setting', 'l_McClean', 'l_ToolRework', 'l_NoTool', 'l_NoLoad', 'l_NoOperator', 'l_MMnt', 'l_EMnt', 'l_NoPower', 'l_NoAirOil', 'l_NoRm', 'l_RmLoading', 'l_QaApproval', 'l_CoilChange', 'l_NoPlan', 'l_NpdTeam', 'l_Unknown'].forEach(id => { if (document.getElementById(id)) document.getElementById(id).value = ''; });
+                // ADD IT HERE:
+                if (currentUser && (currentUser.role === 'PRODUCTION' || currentUser.role === 'PPC' || currentUser.role === 'ADMIN')) {
                     loadProductionBatches();
-                } else showToast("❌ Error: " + result.message, true);
-            } catch (err) { showToast("❌ Server Error", true); }
-        }
-        async function loadProductionBatches() {
-            try {
-                const response = await fetch(`${API_URL}/production/batches`);
-                const batches = await response.json();
-                globalBatches = batches;
+                    loadActiveWorkOrders(); // <--- Add this line!
+                }
 
-                const tbody = document.querySelector('#productionTable tbody');
-                tbody.innerHTML = '';
-                let count = 0;
+                if (currentUser && (currentUser.role === 'QC' || currentUser.role === 'ADMIN')) {
+                    if (currentQCView === 'PENDING') loadPendingQC();
+                    else loadQCHistory();
+                }
 
-                batches.forEach(b => {
-                    // 1. Determine if the batch is 100% finished
-                    const isFinished = b.nextProcessRoute === 'READY_STOCK' && b.qcStatus === 'APPROVED';
+                if (currentUser && (currentUser.role === 'ADMIN' || currentUser.role === 'PURCHASE')) {
+                    loadRawMaterials();
+                    loadPOs();
+                }
+            }
 
-                    // 2. New Routing Logic for the Tabs
-                    if (currentLogFilter === 'COMPLETED') {
-                        if (!isFinished) return; // ONLY show finished items here
-                    } else if (currentLogFilter === 'ALL') {
-                        if (isFinished) return;  // HIDE finished items from Active Floor
-                    } else {
-                        if (b.stage !== currentLogFilter || isFinished) return; // Hide finished from stage tabs
-                    }
+            function toggleOtherInput(selectId, inputId) {
+                const selectElement = document.getElementById(selectId);
+                const inputElement = document.getElementById(inputId);
+                if (selectElement.value === 'OTHER') {
+                    inputElement.style.display = 'block'; inputElement.focus();
+                } else {
+                    inputElement.style.display = 'none'; inputElement.value = '';
+                }
+            }
 
-                    count++;
+            function toggleStageFields() {
+                const stage = document.getElementById('prodStage').value;
+                const dynFR = document.querySelectorAll('.dyn-fr');
+                const dynF = document.querySelectorAll('.dyn-f');
+                const dynS = document.querySelectorAll('.dyn-s');
 
-                    // 3. PPC & Routing Badges
-                    let ppcBadge = `<span style="background:#6c757d; color:white; padding:3px 6px; border-radius:3px; font-size:11px;">PENDING</span>`;
-                    if (b.ppcStatus === 'APPROVED') ppcBadge = `<span style="background:#28a745; color:white; padding:3px 6px; border-radius:3px; font-size:11px;">✅ READY</span>`;
-                    if (b.ppcStatus === 'REJECTED') ppcBadge = `<span style="background:#dc3545; color:white; padding:3px 6px; border-radius:3px; font-size:11px;">❌ HOLD</span>`;
+                // Show Forging/Rolling fields appropriately
+                dynFR.forEach(el => el.style.display = (stage === 'FORGING' || stage === 'ROLLING' || stage === 'HEAT_TREAT' || stage === 'POLISHING') ? '' : 'none');
+                dynF.forEach(el => el.style.display = (stage === 'FORGING') ? '' : 'none');
+                dynS.forEach(el => el.style.display = (stage === 'SEC_OP' || stage === 'HEAT_TREAT' || stage === 'POLISHING') ? '' : 'none');
+                document.querySelector('.downtime-grid').style.display = (stage !== 'SEC_OP') ? 'grid' : 'none';
+            }
 
-                    let routeDisplay = b.nextProcessRoute || 'TBD';
-                    let routeColor = (b.ppcStatus === 'APPROVED') ? '#6f42c1' : '#dee2e6';
+            async function submitProductionForm() {
+                let finalMachine = document.getElementById('prodMachine').value;
+                if (finalMachine === 'OTHER') finalMachine = document.getElementById('prodMachineOther').value;
+                let finalPartName = document.getElementById('prodPartName').value;
+                if (finalPartName === 'OTHER') finalPartName = document.getElementById('prodPartNameOther').value;
+                let finalWO = document.getElementById('prodWO').value;
+                if (finalWO === 'OTHER') finalWO = document.getElementById('prodWOOther').value;
 
-                    // 4. Dynamic Stage Badge (Awaiting QC vs In Inventory)
-                    let stageText = b.stage;
-                    let stageColor = b.stage === 'FORGING' ? '#ff9800' : (b.stage === 'ROLLING' ? '#17a2b8' : '#28a745');
-                    let stageTextColor = 'white';
+                const data = {
+                    stage: document.getElementById('prodStage').value, date: document.getElementById('prodDate').value,
+                    shift: document.getElementById('prodShift').value, machineName: finalMachine, partName: finalPartName,
+                    operator: document.getElementById('prodOperator').value, operation: document.getElementById('prodOperation').value,
+                    workOrderNo: finalWO, partNo: document.getElementById('prodPartNo').value,
+                    partSize: document.getElementById('prodSize').value, pitch: document.getElementById('prodPitch').value,
+                    length: document.getElementById('prodLength').value, af: document.getElementById('prodAF').value,
+                    productGrade: document.getElementById('prodGrade').value, rawMaterialCode: document.getElementById('prodRMCode').value,
+                    heatNo: document.getElementById('prodHeatNo').value, rawMaterialConsumedKg: document.getElementById('prodRMKg').value,
+                    pieceWeightKg: document.getElementById('prodPieceWt').value, scheduleHours: document.getElementById('prodSchHrs').value,
+                    jobChangeHours: document.getElementById('prodJcHrs').value, prodPlannedHours: document.getElementById('prodPlannedHrs').value,
+                    speedRpm: document.getElementById('prodSpeed').value, shiftTargetQty: document.getElementById('prodTarget').value,
+                    acceptedQty: document.getElementById('prodAccepted').value, rejectedQty: document.getElementById('prodRejected').value,
+                    rejectionKg: document.getElementById('prodRejKg').value, rejectionReason: document.getElementById('prodRejReason').value,
+                    remarks: document.getElementById('prodRemarks').value, lossMajorJC: document.getElementById('l_MajorJC').value,
+                    lossMinorJC: document.getElementById('l_MinorJC').value, lossSetting: document.getElementById('l_Setting').value,
+                    lossMcClean: document.getElementById('l_McClean').value, lossToolRework: document.getElementById('l_ToolRework').value,
+                    lossNoTool: document.getElementById('l_NoTool').value, lossNoLoad: document.getElementById('l_NoLoad').value,
+                    lossNoOperator: document.getElementById('l_NoOperator').value, lossMMnt: document.getElementById('l_MMnt').value,
+                    lossEMnt: document.getElementById('l_EMnt').value, lossNoPower: document.getElementById('l_NoPower').value,
+                    lossNoAirOil: document.getElementById('l_NoAirOil').value, lossNoRm: document.getElementById('l_NoRm').value,
+                    lossRmLoading: document.getElementById('l_RmLoading').value, lossQaApproval: document.getElementById('l_QaApproval').value,
+                    lossCoilChange: document.getElementById('l_CoilChange').value, lossNoPlan: document.getElementById('l_NoPlan').value,
+                    lossNpdTeam: document.getElementById('l_NpdTeam').value, lossUnknown: document.getElementById('l_Unknown').value,
+                    loggedBy: currentUser.username
+                };
 
-                    if (b.nextProcessRoute === 'READY_STOCK') {
-                        if (b.qcStatus === 'APPROVED') {
-                            stageText = '📦 IN INVENTORY';
-                            stageColor = '#28a745';
+                if (!data.machineName || !data.partNo) return showToast("Machine and Part No are required!", true);
+
+                try {
+                    const response = await fetch(`${API_URL}/production/batch`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+                    const result = await response.json();
+                    if (result.success) {
+                        showToast("✅ Full Log Saved for PPC/QC!");
+                        document.getElementById('prodMachineOther').style.display = 'none';
+                        document.getElementById('prodPartNameOther').style.display = 'none';
+                        ['prodAccepted', 'prodRejected', 'prodRejKg', 'prodRMKg', 'l_MajorJC', 'l_MinorJC', 'l_Setting', 'l_McClean', 'l_ToolRework', 'l_NoTool', 'l_NoLoad', 'l_NoOperator', 'l_MMnt', 'l_EMnt', 'l_NoPower', 'l_NoAirOil', 'l_NoRm', 'l_RmLoading', 'l_QaApproval', 'l_CoilChange', 'l_NoPlan', 'l_NpdTeam', 'l_Unknown'].forEach(id => { if (document.getElementById(id)) document.getElementById(id).value = ''; });
+                        loadProductionBatches();
+                    } else showToast("❌ Error: " + result.message, true);
+                } catch (err) { showToast("❌ Server Error", true); }
+            }
+            async function loadProductionBatches() {
+                try {
+                    const response = await fetch(`${API_URL}/production/batches`);
+                    const batches = await response.json();
+                    globalBatches = batches;
+
+                    const tbody = document.querySelector('#productionTable tbody');
+                    tbody.innerHTML = '';
+                    let count = 0;
+
+                    batches.forEach(b => {
+                        // 1. Determine if the batch is 100% finished
+                        const isFinished = b.nextProcessRoute === 'READY_STOCK' && b.qcStatus === 'APPROVED';
+
+                        // 2. New Routing Logic for the Tabs
+                        if (currentLogFilter === 'COMPLETED') {
+                            if (!isFinished) return; // ONLY show finished items here
+                        } else if (currentLogFilter === 'ALL') {
+                            if (isFinished) return;  // HIDE finished items from Active Floor
                         } else {
-                            stageText = '⏳ AWAITING QC';
-                            stageColor = '#ffc107';
-                            stageTextColor = '#000';
+                            if (b.stage !== currentLogFilter || isFinished) return; // Hide finished from stage tabs
                         }
-                    }
 
-                    const rawDate = new Date(b.date);
-                    const hiddenDateTag = rawDate.toISOString().split('T')[0];
-                    const displayDate = rawDate.toLocaleDateString();
+                        count++;
 
-                    const tr = document.createElement('tr');
-                    tr.setAttribute('data-date', hiddenDateTag);
-                    tr.setAttribute('data-stage', b.stage);
+                        // 3. PPC & Routing Badges
+                        let ppcBadge = `<span style="background:#6c757d; color:white; padding:3px 6px; border-radius:3px; font-size:11px;">PENDING</span>`;
+                        if (b.ppcStatus === 'APPROVED') ppcBadge = `<span style="background:#28a745; color:white; padding:3px 6px; border-radius:3px; font-size:11px;">✅ READY</span>`;
+                        if (b.ppcStatus === 'REJECTED') ppcBadge = `<span style="background:#dc3545; color:white; padding:3px 6px; border-radius:3px; font-size:11px;">❌ HOLD</span>`;
 
-                    if (b.ppcStatus === 'APPROVED' && b.qcStatus === 'APPROVED') {
-                        tr.style.borderLeft = "5px solid #28a745";
-                    }
+                        let routeDisplay = b.nextProcessRoute || 'TBD';
+                        let routeColor = (b.ppcStatus === 'APPROVED') ? '#6f42c1' : '#dee2e6';
 
-                    // 5. Build the massive row
-                    tr.innerHTML = `
+                        // 4. Dynamic Stage Badge (Awaiting QC vs In Inventory)
+                        let stageText = b.stage;
+                        let stageColor = b.stage === 'FORGING' ? '#ff9800' : (b.stage === 'ROLLING' ? '#17a2b8' : '#28a745');
+                        let stageTextColor = 'white';
+
+                        if (b.nextProcessRoute === 'READY_STOCK') {
+                            if (b.qcStatus === 'APPROVED') {
+                                stageText = '📦 IN INVENTORY';
+                                stageColor = '#28a745';
+                            } else {
+                                stageText = '⏳ AWAITING QC';
+                                stageColor = '#ffc107';
+                                stageTextColor = '#000';
+                            }
+                        }
+
+                        const rawDate = new Date(b.date);
+                        const hiddenDateTag = rawDate.toISOString().split('T')[0];
+                        const displayDate = rawDate.toLocaleDateString();
+
+                        const tr = document.createElement('tr');
+                        tr.setAttribute('data-date', hiddenDateTag);
+                        tr.setAttribute('data-stage', b.stage);
+
+                        if (b.ppcStatus === 'APPROVED' && b.qcStatus === 'APPROVED') {
+                            tr.style.borderLeft = "5px solid #28a745";
+                        }
+
+                        // 5. Build the massive row
+                        tr.innerHTML = `
                         <td><strong>${displayDate}</strong></td><td>${b.shift || '-'}</td>
                         <td><span style="background:${stageColor}; color:${stageTextColor}; padding:3px 6px; border-radius:3px; font-weight:bold; font-size:11px;">${stageText}</span></td>
                         <td><strong>${b.machineName || '-'}</strong></td><td>${b.operator || '-'}</td><td>${b.operation || '-'}</td>
@@ -1439,151 +1468,151 @@
                         <td>${b.lossNpdTeam || 0}</td><td>${b.lossUnknown || 0}</td><td>${b.remarks || '-'}</td>
                         <td><span style="color:#666; font-size:11px;">👤 ${b.loggedBy || '-'}</span></td>
                         ${(() => {
-                            let qcColor = '#ffc107';
-                            let textColor = '#000';
-                            if (b.qcStatus === 'APPROVED') { qcColor = '#28a745'; textColor = '#fff'; }
-                            if (b.qcStatus === 'REJECTED') { qcColor = '#dc3545'; textColor = '#fff'; }
+                                let qcColor = '#ffc107';
+                                let textColor = '#000';
+                                if (b.qcStatus === 'APPROVED') { qcColor = '#28a745'; textColor = '#fff'; }
+                                if (b.qcStatus === 'REJECTED') { qcColor = '#dc3545'; textColor = '#fff'; }
 
-                            return `
+                                return `
                                 <td><span style="background:${qcColor}; color:${textColor}; padding:4px 8px; border-radius:4px; font-weight:bold; font-size:11px;">${b.qcStatus || 'PENDING'}</span></td>
                                 <td style="color:#dc3545; font-weight:500; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${b.qcRemarks || ''}">${b.qcRemarks || '-'}</td>
                             `;
-                        })()}
+                            })()}
                         <td style="display: flex; gap: 5px; flex-wrap: wrap; min-width: 140px;">
                             ${(currentUser.role === 'PPC' || currentUser.role === 'ADMIN') ?
-                            `<button onclick="openPPCModal('${b._id}')" style="background:#6f42c1; color:white; border:none; padding:5px; border-radius:4px; cursor:pointer; font-weight:bold; font-size: 11px; width: 100%;">Assign Route</button>` : ''}
+                                `<button onclick="openPPCModal('${b._id}')" style="background:#6f42c1; color:white; border:none; padding:5px; border-radius:4px; cursor:pointer; font-weight:bold; font-size: 11px; width: 100%;">Assign Route</button>` : ''}
                             
                             ${(() => {
-                            const isDisabled = b.qcStatus !== 'APPROVED' || isFinished;
-                            const btnText = isFinished ? '✅ Finished' : '⏭️ Next Stage';
-                            const btnColor = isFinished ? '#28a745' : '#007bff';
+                                const isDisabled = b.qcStatus !== 'APPROVED' || isFinished;
+                                const btnText = isFinished ? '✅ Finished' : '⏭️ Next Stage';
+                                const btnColor = isFinished ? '#28a745' : '#007bff';
 
-                            return `<button onclick="autoFillNextStage('${b._id}')" style="background:${btnColor}; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-weight:bold; flex: 1; ${isDisabled ? 'opacity:0.5; cursor:not-allowed;' : ''}" ${isDisabled ? 'disabled' : ''}>${btnText}</button>`;
-                        })()}
+                                return `<button onclick="autoFillNextStage('${b._id}')" style="background:${btnColor}; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-weight:bold; flex: 1; ${isDisabled ? 'opacity:0.5; cursor:not-allowed;' : ''}" ${isDisabled ? 'disabled' : ''}>${btnText}</button>`;
+                            })()}
                             
                             <button class="admin-actions" onclick="deleteProductionBatch('${b._id}')" style="background:#dc3545; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-weight:bold;">🗑️</button>
                         </td>
                     `;
-                    tbody.appendChild(tr);
-                });
+                        tbody.appendChild(tr);
+                    });
 
-                if (count === 0) tbody.innerHTML = '<tr><td colspan="53" style="text-align: center; padding: 20px;">No logs found for this filter.</td></tr>';
-                applyProductionFilters();
-                calculateLiveOEE();
-                renderVisualCharts();
-            } catch (error) { console.error("Failed to load batches:", error); }
-        }
-
-        function autoFillNextStage(batchId) {
-            const batch = globalBatches.find(b => b._id === batchId);
-            if (!batch) return;
-            if (batch.nextProcessRoute === 'READY_STOCK') {
-                showToast("✅ Production complete! Awaiting QC to move to inventory.");
-                return;
+                    if (count === 0) tbody.innerHTML = '<tr><td colspan="53" style="text-align: center; padding: 20px;">No logs found for this filter.</td></tr>';
+                    applyProductionFilters();
+                    calculateLiveOEE();
+                    renderVisualCharts();
+                } catch (error) { console.error("Failed to load batches:", error); }
             }
 
-            const workflow = ['FORGING', 'ROLLING', 'HEAT_TREAT', 'POLISHING', 'SEC_OP'];
-            let nextStage = batch.nextProcessRoute || 'POLISHING';
-
-            document.getElementById('prodStage').value = nextStage;
-            toggleStageFields();
-
-            document.getElementById('prodDate').valueAsDate = new Date();
-            document.getElementById('prodShift').value = batch.shift || '';
-            document.getElementById('prodOperator').value = batch.operator || '';
-            document.getElementById('prodWO').value = batch.workOrderNo || '';
-            document.getElementById('prodPartNo').value = batch.partNo || '';
-            document.getElementById('prodSize').value = batch.partSize || '';
-            document.getElementById('prodPitch').value = batch.pitch || '';
-            document.getElementById('prodLength').value = batch.length || '';
-            document.getElementById('prodAF').value = batch.af || '';
-            document.getElementById('prodGrade').value = batch.productGrade || '';
-            document.getElementById('prodHeatNo').value = batch.heatNo || '';
-            document.getElementById('prodPieceWt').value = batch.pieceWeightKg || '';
-            document.getElementById('prodTarget').value = batch.acceptedQty || '';
-
-            setSmartDropdown('prodMachine', 'prodMachineOther', '');
-            setSmartDropdown('prodPartName', 'prodPartNameOther', batch.partName);
-
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            showToast(`✅ Form pre-filled for ${nextStage}!`);
-        }
-
-        function setSmartDropdown(dropdownId, otherId, value) {
-            const dropdown = document.getElementById(dropdownId);
-            const otherBox = document.getElementById(otherId);
-            if (!value) { dropdown.value = ''; otherBox.style.display = 'none'; return; }
-            let found = false;
-            for (let i = 0; i < dropdown.options.length; i++) {
-                if (dropdown.options[i].value === value) { dropdown.selectedIndex = i; found = true; break; }
-            }
-            if (!found) { dropdown.value = 'OTHER'; otherBox.style.display = 'block'; otherBox.value = value; }
-            else { otherBox.style.display = 'none'; }
-        }
-
-        async function deleteProductionBatch(batchId) {
-            if (!confirm('🚨 WARNING: Are you sure you want to permanently delete this production log?')) return;
-            try {
-                const response = await fetch(`${API_URL}/production/batch/${batchId}`, { method: 'DELETE' });
-                const result = await response.json();
-                if (result.success) { showToast("🗑️ Production log deleted!"); loadProductionBatches(); }
-                else showToast("❌ Error: " + result.message, true);
-            } catch (error) { showToast("❌ Server Error while deleting", true); }
-        }
-
-        // --- PPC ROUTING LOGIC ---
-        function openPPCModal(batchId) {
-            const batch = globalBatches.find(b => b._id === batchId);
-            if (!batch) return;
-
-            const nextRoute = prompt(
-                `Reviewing Batch for ${batch.partNo}. \n` +
-                `Current Stage: ${batch.stage} \n` +
-                `Enter Next Route: (ROLLING / HEAT_TREAT / POLISHING / READY_STOCK)`,
-                "ROLLING"
-            );
-
-            if (nextRoute) {
-                submitPPCDecision(batchId, 'APPROVED', nextRoute.toUpperCase());
-            }
-        }
-
-        async function submitPPCDecision(batchId, status, nextRoute) {
-            try {
-                const response = await fetch(`${API_URL}/ppc/verify/${batchId}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        status: status,
-                        nextRoute: nextRoute,
-                        remarks: "Approved for next process",
-                        username: currentUser.username
-                    })
-                });
-                const result = await response.json();
-                if (result.success) {
-                    showToast(`✅ Batch routed to ${nextRoute}`);
-                    refreshDashboard();
-                }
-            } catch (err) {
-                showToast("❌ Routing Failed", true);
-            }
-        }
-
-        // --- QC LOGIC ---
-        async function loadPendingQC() {
-            try {
-                const res = await fetch(`${API_URL}/qc/pending`);
-                pendingQCBatches = await res.json();
-                const tbody = document.querySelector('#qcTable tbody');
-                tbody.innerHTML = '';
-                if (pendingQCBatches.length === 0) {
-                    return tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px; color: #28a745; font-weight: bold;">All clear! No batches pending approval.</td></tr>';
+            function autoFillNextStage(batchId) {
+                const batch = globalBatches.find(b => b._id === batchId);
+                if (!batch) return;
+                if (batch.nextProcessRoute === 'READY_STOCK') {
+                    showToast("✅ Production complete! Awaiting QC to move to inventory.");
+                    return;
                 }
 
-                pendingQCBatches.forEach(b => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
+                const workflow = ['FORGING', 'ROLLING', 'HEAT_TREAT', 'POLISHING', 'SEC_OP'];
+                let nextStage = batch.nextProcessRoute || 'POLISHING';
+
+                document.getElementById('prodStage').value = nextStage;
+                toggleStageFields();
+
+                document.getElementById('prodDate').valueAsDate = new Date();
+                document.getElementById('prodShift').value = batch.shift || '';
+                document.getElementById('prodOperator').value = batch.operator || '';
+                document.getElementById('prodWO').value = batch.workOrderNo || '';
+                document.getElementById('prodPartNo').value = batch.partNo || '';
+                document.getElementById('prodSize').value = batch.partSize || '';
+                document.getElementById('prodPitch').value = batch.pitch || '';
+                document.getElementById('prodLength').value = batch.length || '';
+                document.getElementById('prodAF').value = batch.af || '';
+                document.getElementById('prodGrade').value = batch.productGrade || '';
+                document.getElementById('prodHeatNo').value = batch.heatNo || '';
+                document.getElementById('prodPieceWt').value = batch.pieceWeightKg || '';
+                document.getElementById('prodTarget').value = batch.acceptedQty || '';
+
+                setSmartDropdown('prodMachine', 'prodMachineOther', '');
+                setSmartDropdown('prodPartName', 'prodPartNameOther', batch.partName);
+
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                showToast(`✅ Form pre-filled for ${nextStage}!`);
+            }
+
+            function setSmartDropdown(dropdownId, otherId, value) {
+                const dropdown = document.getElementById(dropdownId);
+                const otherBox = document.getElementById(otherId);
+                if (!value) { dropdown.value = ''; otherBox.style.display = 'none'; return; }
+                let found = false;
+                for (let i = 0; i < dropdown.options.length; i++) {
+                    if (dropdown.options[i].value === value) { dropdown.selectedIndex = i; found = true; break; }
+                }
+                if (!found) { dropdown.value = 'OTHER'; otherBox.style.display = 'block'; otherBox.value = value; }
+                else { otherBox.style.display = 'none'; }
+            }
+
+            async function deleteProductionBatch(batchId) {
+                if (!confirm('🚨 WARNING: Are you sure you want to permanently delete this production log?')) return;
+                try {
+                    const response = await fetch(`${API_URL}/production/batch/${batchId}`, { method: 'DELETE' });
+                    const result = await response.json();
+                    if (result.success) { showToast("🗑️ Production log deleted!"); loadProductionBatches(); }
+                    else showToast("❌ Error: " + result.message, true);
+                } catch (error) { showToast("❌ Server Error while deleting", true); }
+            }
+
+            // --- PPC ROUTING LOGIC ---
+            function openPPCModal(batchId) {
+                const batch = globalBatches.find(b => b._id === batchId);
+                if (!batch) return;
+
+                const nextRoute = prompt(
+                    `Reviewing Batch for ${batch.partNo}. \n` +
+                    `Current Stage: ${batch.stage} \n` +
+                    `Enter Next Route: (ROLLING / HEAT_TREAT / POLISHING / READY_STOCK)`,
+                    "ROLLING"
+                );
+
+                if (nextRoute) {
+                    submitPPCDecision(batchId, 'APPROVED', nextRoute.toUpperCase());
+                }
+            }
+
+            async function submitPPCDecision(batchId, status, nextRoute) {
+                try {
+                    const response = await fetch(`${API_URL}/ppc/verify/${batchId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            status: status,
+                            nextRoute: nextRoute,
+                            remarks: "Approved for next process",
+                            username: currentUser.username
+                        })
+                    });
+                    const result = await response.json();
+                    if (result.success) {
+                        showToast(`✅ Batch routed to ${nextRoute}`);
+                        refreshDashboard();
+                    }
+                } catch (err) {
+                    showToast("❌ Routing Failed", true);
+                }
+            }
+
+            // --- QC LOGIC ---
+            async function loadPendingQC() {
+                try {
+                    const res = await fetch(`${API_URL}/qc/pending`);
+                    pendingQCBatches = await res.json();
+                    const tbody = document.querySelector('#qcTable tbody');
+                    tbody.innerHTML = '';
+                    if (pendingQCBatches.length === 0) {
+                        return tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px; color: #28a745; font-weight: bold;">All clear! No batches pending approval.</td></tr>';
+                    }
+
+                    pendingQCBatches.forEach(b => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
                         <td>${new Date(b.date).toLocaleDateString()}</td>
                         <td><span style="background:#17a2b8; color:white; padding:3px 6px; border-radius:3px; font-size:11px;">${b.stage}</span></td>
                         <td><strong>${b.machineName || '-'}</strong></td>
@@ -1595,18 +1624,18 @@
                             <button onclick="openQCInspection('${b._id}')" style="background:#007bff; color:white; border:none; padding:6px 15px; border-radius:4px; font-weight:bold; cursor:pointer;">🔍 Full Inspect</button>
                         </td>
                     `;
-                    tbody.appendChild(tr);
-                });
-            } catch (err) { console.error("Error loading QC data:", err); }
-        }
+                        tbody.appendChild(tr);
+                    });
+                } catch (err) { console.error("Error loading QC data:", err); }
+            }
 
-        function openQCInspection(batchId, isHistoryMode = false) {
-            let b = pendingQCBatches.find(x => x._id === batchId);
-            if (!b && isHistoryMode) b = qcHistoryBatches.find(x => x._id === batchId);
+            function openQCInspection(batchId, isHistoryMode = false) {
+                let b = pendingQCBatches.find(x => x._id === batchId);
+                if (!b && isHistoryMode) b = qcHistoryBatches.find(x => x._id === batchId);
 
-            if (!b) return showToast("Error: Data not found", true);
+                if (!b) return showToast("Error: Data not found", true);
 
-            document.getElementById('qcModalContent').innerHTML = `
+                document.getElementById('qcModalContent').innerHTML = `
                 <div style="background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
                     <h4 style="margin-top:0; color:#ff9800; border-bottom: 1px solid #eee; padding-bottom: 5px;">1. Shift & Machine</h4>
                     <table style="width:100%; text-align:left;">
@@ -1644,74 +1673,74 @@
                 </div>
             `;
 
-            const footer = document.querySelector('#qcModal div[style*="border-top"]');
-            if (isHistoryMode) {
-                footer.style.display = 'none';
-            } else {
-                footer.style.display = 'flex';
-                document.getElementById('btnQcApprove').onclick = () => submitQC(batchId, 'APPROVED');
-                document.getElementById('btnQcReject').onclick = () => submitQC(batchId, 'REJECTED');
+                const footer = document.querySelector('#qcModal div[style*="border-top"]');
+                if (isHistoryMode) {
+                    footer.style.display = 'none';
+                } else {
+                    footer.style.display = 'flex';
+                    document.getElementById('btnQcApprove').onclick = () => submitQC(batchId, 'APPROVED');
+                    document.getElementById('btnQcReject').onclick = () => submitQC(batchId, 'REJECTED');
+                }
+
+                document.getElementById('qcModal').style.display = 'flex';
             }
 
-            document.getElementById('qcModal').style.display = 'flex';
-        }
+            async function submitQC(batchId, status) {
+                const remarks = document.getElementById('qcRemarksInput').value.trim();
+                const overrideAcc = document.getElementById('qcOverrideAcc').value;
+                const overrideRej = document.getElementById('qcOverrideRej').value;
+                const overrideRejKg = document.getElementById('qcOverrideRejKg').value;
 
-        async function submitQC(batchId, status) {
-            const remarks = document.getElementById('qcRemarksInput').value.trim();
-            const overrideAcc = document.getElementById('qcOverrideAcc').value;
-            const overrideRej = document.getElementById('qcOverrideRej').value;
-            const overrideRejKg = document.getElementById('qcOverrideRejKg').value;
+                if (status === 'REJECTED' && !remarks) {
+                    return alert("QC Remarks are mandatory when rejecting a batch!");
+                }
 
-            if (status === 'REJECTED' && !remarks) {
-                return alert("QC Remarks are mandatory when rejecting a batch!");
+                if (!confirm(`Are you sure you want to officially mark this batch as ${status}?`)) return;
+
+                try {
+                    const qcUsername = (typeof currentUser !== 'undefined' && currentUser.username) ? currentUser.username : 'QC Inspector';
+                    const payload = {
+                        qcBy: qcUsername, qcRemarks: remarks, status: status,
+                        accQty: Number(overrideAcc), rejQty: Number(overrideRej), rejKg: Number(overrideRejKg)
+                    };
+
+                    const res = await fetch(`${API_URL}/qc/approve/${batchId}`, {
+                        method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+                    });
+
+                    const data = await res.json();
+                    if (data.success) {
+                        showToast(`✅ Batch ${status} successfully!`);
+                        document.getElementById('qcModal').style.display = 'none';
+                        document.getElementById('qcRemarksInput').value = '';
+                        loadPendingQC();
+                        if (typeof loadInventory === 'function') loadInventory();
+                        if (typeof loadProductionBatches === 'function') loadProductionBatches();
+                    } else { alert("Error: " + data.error); }
+                } catch (err) { alert("Failed to connect to server."); }
             }
 
-            if (!confirm(`Are you sure you want to officially mark this batch as ${status}?`)) return;
+            async function toggleQCView(view) {
+                currentQCView = view;
+                if (view === 'PENDING') loadPendingQC();
+                else loadQCHistory();
+                document.getElementById('qcHistorySearchSection').style.display = (currentQCView === 'HISTORY') ? 'flex' : 'none';
+            }
 
-            try {
-                const qcUsername = (typeof currentUser !== 'undefined' && currentUser.username) ? currentUser.username : 'QC Inspector';
-                const payload = {
-                    qcBy: qcUsername, qcRemarks: remarks, status: status,
-                    accQty: Number(overrideAcc), rejQty: Number(overrideRej), rejKg: Number(overrideRejKg)
-                };
+            async function loadQCHistory() {
+                try {
+                    const res = await fetch(`${API_URL}/qc/history`);
+                    const history = await res.json();
+                    qcHistoryBatches = history;
 
-                const res = await fetch(`${API_URL}/qc/approve/${batchId}`, {
-                    method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
-                });
+                    const tbody = document.querySelector('#qcTable tbody');
+                    tbody.innerHTML = '';
+                    if (history.length === 0) return tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px;">No history records found.</td></tr>';
 
-                const data = await res.json();
-                if (data.success) {
-                    showToast(`✅ Batch ${status} successfully!`);
-                    document.getElementById('qcModal').style.display = 'none';
-                    document.getElementById('qcRemarksInput').value = '';
-                    loadPendingQC();
-                    if (typeof loadInventory === 'function') loadInventory();
-                    if (typeof loadProductionBatches === 'function') loadProductionBatches();
-                } else { alert("Error: " + data.error); }
-            } catch (err) { alert("Failed to connect to server."); }
-        }
-
-        async function toggleQCView(view) {
-            currentQCView = view;
-            if (view === 'PENDING') loadPendingQC();
-            else loadQCHistory();
-            document.getElementById('qcHistorySearchSection').style.display = (currentQCView === 'HISTORY') ? 'flex' : 'none';
-        }
-
-        async function loadQCHistory() {
-            try {
-                const res = await fetch(`${API_URL}/qc/history`);
-                const history = await res.json();
-                qcHistoryBatches = history;
-
-                const tbody = document.querySelector('#qcTable tbody');
-                tbody.innerHTML = '';
-                if (history.length === 0) return tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px;">No history records found.</td></tr>';
-
-                history.forEach(b => {
-                    const statusColor = b.qcStatus === 'APPROVED' ? '#28a745' : '#dc3545';
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
+                    history.forEach(b => {
+                        const statusColor = b.qcStatus === 'APPROVED' ? '#28a745' : '#dc3545';
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
                         <td>${new Date(b.qcDate || b.date).toLocaleDateString()}</td>
                         <td><span style="background:#17a2b8; color:white; padding:3px 6px; border-radius:3px; font-size:11px;">${b.stage}</span></td>
                         <td><strong>${b.machineName || '-'}</strong></td>
@@ -1721,64 +1750,64 @@
                         <td>👤 ${b.qcBy || '-'}</td>
                         <td><button onclick="openQCInspection('${b._id}', true)" style="background:#6c757d; color:white; border:none; padding:6px 15px; border-radius:4px; font-weight:bold; cursor:pointer;">👁️ View Data</button></td>
                     `;
-                    tbody.appendChild(tr);
-                });
-            } catch (err) { console.error("Error loading QC History:", err); }
-        }
-
-        function applyQCHistoryFilters() {
-            const filterDate = document.getElementById('filterQCHistoryDate').value;
-            const filterText = document.getElementById('filterQCHistoryGlobal').value.toUpperCase();
-            const rows = document.getElementById("qcTable").getElementsByTagName("tbody")[0].getElementsByTagName("tr");
-
-            for (let i = 0; i < rows.length; i++) {
-                if (rows[i].cells.length < 5) continue;
-                const rowISODate = new Date(rows[i].cells[0].textContent).toISOString().split('T')[0];
-                const rowFullText = rows[i].textContent.toUpperCase();
-                let matchDate = (filterDate === '' || rowISODate === filterDate);
-                let matchGlobal = (filterText === '' || rowFullText.includes(filterText));
-                rows[i].style.display = (matchDate && matchGlobal) ? "" : "none";
+                        tbody.appendChild(tr);
+                    });
+                } catch (err) { console.error("Error loading QC History:", err); }
             }
-        }
 
-        function clearQCHistoryFilters() {
-            document.getElementById('filterQCHistoryDate').value = '';
-            document.getElementById('filterQCHistoryGlobal').value = '';
-            applyQCHistoryFilters();
-        }
+            function applyQCHistoryFilters() {
+                const filterDate = document.getElementById('filterQCHistoryDate').value;
+                const filterText = document.getElementById('filterQCHistoryGlobal').value.toUpperCase();
+                const rows = document.getElementById("qcTable").getElementsByTagName("tbody")[0].getElementsByTagName("tr");
 
-        // --- INVENTORY LOGIC ---
-        async function loadInventory() {
-            const activeElem = document.activeElement;
-            if (activeElem && activeElem.tagName === 'INPUT' && activeElem.id.startsWith('stock-')) return;
-            try {
-                const response = await fetch(`${API_URL}/products`);
-                const products = await response.json();
-                const tbody = document.querySelector('#productsTable tbody');
-                tbody.innerHTML = '';
-                if (!Array.isArray(products) || products.length === 0) return tbody.innerHTML = '<tr><td colspan="10" style="text-align: center;">No goods found.</td></tr>';
+                for (let i = 0; i < rows.length; i++) {
+                    if (rows[i].cells.length < 5) continue;
+                    const rowISODate = new Date(rows[i].cells[0].textContent).toISOString().split('T')[0];
+                    const rowFullText = rows[i].textContent.toUpperCase();
+                    let matchDate = (filterDate === '' || rowISODate === filterDate);
+                    let matchGlobal = (filterText === '' || rowFullText.includes(filterText));
+                    rows[i].style.display = (matchDate && matchGlobal) ? "" : "none";
+                }
+            }
 
-                products.forEach(p => {
-                    const currentStock = Number(p.currentStock) || 0;
-                    const wipStock = Number(p.wipStock) || 0;
-                    const prodReadied = Number(p.productionReadied) || 0;
-                    const fgCheck = Number(p.fgCheck) || 0;
-                    const difference = prodReadied - fgCheck;
-                    const isLowStock = currentStock <= 10;
+            function clearQCHistoryFilters() {
+                document.getElementById('filterQCHistoryDate').value = '';
+                document.getElementById('filterQCHistoryGlobal').value = '';
+                applyQCHistoryFilters();
+            }
 
-                    const tr = document.createElement('tr');
-                    if (isLowStock) tr.className = "low-stock";
+            // --- INVENTORY LOGIC ---
+            async function loadInventory() {
+                const activeElem = document.activeElement;
+                if (activeElem && activeElem.tagName === 'INPUT' && activeElem.id.startsWith('stock-')) return;
+                try {
+                    const response = await fetch(`${API_URL}/products`);
+                    const products = await response.json();
+                    const tbody = document.querySelector('#productsTable tbody');
+                    tbody.innerHTML = '';
+                    if (!Array.isArray(products) || products.length === 0) return tbody.innerHTML = '<tr><td colspan="10" style="text-align: center;">No goods found.</td></tr>';
 
-                    let actionHTML = '<td class="admin-actions"></td>';
-                    if (currentUser && currentUser.role === 'ADMIN') {
-                        actionHTML = `<td class="admin-actions" style="display:flex; flex-direction:column; gap:5px;">
+                    products.forEach(p => {
+                        const currentStock = Number(p.currentStock) || 0;
+                        const wipStock = Number(p.wipStock) || 0;
+                        const prodReadied = Number(p.productionReadied) || 0;
+                        const fgCheck = Number(p.fgCheck) || 0;
+                        const difference = prodReadied - fgCheck;
+                        const isLowStock = currentStock <= 10;
+
+                        const tr = document.createElement('tr');
+                        if (isLowStock) tr.className = "low-stock";
+
+                        let actionHTML = '<td class="admin-actions"></td>';
+                        if (currentUser && currentUser.role === 'ADMIN') {
+                            actionHTML = `<td class="admin-actions" style="display:flex; flex-direction:column; gap:5px;">
                             <input type="number" id="stock-${p._id}" value="${currentStock}" style="width: 70px; text-align: center; border: 1px solid #ccc; border-radius: 4px; padding: 4px; margin-bottom: 5px;">
                             <button onclick="updateStock('${p._id}')" style="background: #28a745; color: white; border: none; padding: 5px; border-radius: 4px; cursor: pointer;">Save</button>
                             <button onclick="deleteProduct('${p._id}')" style="background: #dc3545; color: white; border: none; padding: 5px; border-radius: 4px; cursor: pointer;">Delete</button>
                         </td>`;
-                    }
+                        }
 
-                    tr.innerHTML = `
+                        tr.innerHTML = `
                         <td><strong>${p.productCode || 'N/A'}</strong></td>
                         <td>${p.sector || '-'}</td>
                         <td>${p.type || '-'}</td>
@@ -1793,513 +1822,525 @@
                         <td class="stock-val ${isLowStock ? 'low-stock-text' : ''}" style="color: #28a745; font-weight: bold; font-size: 1.1em;">${currentStock}</td>
                         ${actionHTML}
                     `;
-                    tbody.appendChild(tr);
-                });
-                filterInventory();
-            } catch (error) { console.error("Failed to load inventory:", error); }
-        }
+                        tbody.appendChild(tr);
+                    });
+                    filterInventory();
+                } catch (error) { console.error("Failed to load inventory:", error); }
+            }
 
-        async function updateStock(productId) {
-            const newStock = document.getElementById(`stock-${productId}`).value;
-            try {
-                const response = await fetch(`${API_URL}/inventory/${productId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ stock: Number(newStock) }) });
-                if (response.ok) { showToast('✅ Stock updated!'); loadInventory(); }
-            } catch (error) { }
-        }
+            async function updateStock(productId) {
+                const newStock = document.getElementById(`stock-${productId}`).value;
+                try {
+                    const response = await fetch(`${API_URL}/inventory/${productId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ stock: Number(newStock) }) });
+                    if (response.ok) { showToast('✅ Stock updated!'); loadInventory(); }
+                } catch (error) { }
+            }
 
-        async function deleteProduct(productId) {
-            if (!confirm('Completely remove this product?')) return;
-            try { const response = await fetch(`${API_URL}/inventory/${productId}`, { method: 'DELETE' }); if (response.ok) loadInventory(); } catch (error) { }
-        }
+            async function deleteProduct(productId) {
+                if (!confirm('Completely remove this product?')) return;
+                try { const response = await fetch(`${API_URL}/inventory/${productId}`, { method: 'DELETE' }); if (response.ok) loadInventory(); } catch (error) { }
+            }
 
-        function openModal() { document.getElementById('addProductModal').style.display = 'flex'; }
-        function closeModal() { document.getElementById('addProductModal').style.display = 'none'; }
+            function openModal() { document.getElementById('addProductModal').style.display = 'flex'; }
+            function closeModal() { document.getElementById('addProductModal').style.display = 'none'; }
 
-        async function submitNewProduct() {
-            const productCode = document.getElementById('newProdCode').value;
-            if (!productCode) return alert("Product Code required!");
-            const newProd = { productCode: productCode, sector: document.getElementById('newSector').value, type: document.getElementById('newType').value, grade: document.getElementById('newGrade').value, length: parseFloat(document.getElementById('newLength').value) || null, af: parseFloat(document.getElementById('newAF').value) || null, weightPerPc: parseFloat(document.getElementById('newWeight').value) || 0, currentStock: parseInt(document.getElementById('newStock').value) || 0 };
-            try {
-                const response = await fetch(`${API_URL}/products`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newProd) });
-                const data = await response.json();
-                if (data.success) { showToast("✅ Added!"); closeModal(); refreshDashboard(); } else showToast("❌ Error: " + data.message, true);
-            } catch (error) { }
-        }
+            async function submitNewProduct() {
+                const productCode = document.getElementById('newProdCode').value;
+                if (!productCode) return alert("Product Code required!");
+                const newProd = { productCode: productCode, sector: document.getElementById('newSector').value, type: document.getElementById('newType').value, grade: document.getElementById('newGrade').value, length: parseFloat(document.getElementById('newLength').value) || null, af: parseFloat(document.getElementById('newAF').value) || null, weightPerPc: parseFloat(document.getElementById('newWeight').value) || 0, currentStock: parseInt(document.getElementById('newStock').value) || 0 };
+                try {
+                    const response = await fetch(`${API_URL}/products`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newProd) });
+                    const data = await response.json();
+                    if (data.success) { showToast("✅ Added!"); closeModal(); refreshDashboard(); } else showToast("❌ Error: " + data.message, true);
+                } catch (error) { }
+            }
 
-        async function loadTransactions() {
-            try {
-                const response = await fetch(`${API_URL}/transactions`);
-                const transactions = await response.json();
-                const tbody = document.querySelector('#transactionsTable tbody');
-                tbody.innerHTML = '';
-                transactions.forEach(tx => {
-                    const txDate = new Date(tx.date);
-                    const isoDate = txDate.toISOString().split('T')[0];
-                    let typeColor = '#333'; let sign = '';
-                    if (tx.type === 'INWARD' || tx.type === 'QC_APPROVAL') { typeColor = '#28a745'; sign = '+'; }
-                    if (tx.type === 'DISPATCH') { typeColor = '#dc3545'; sign = '-'; }
+            async function loadTransactions() {
+                try {
+                    const response = await fetch(`${API_URL}/transactions`);
+                    const transactions = await response.json();
+                    const tbody = document.querySelector('#transactionsTable tbody');
+                    tbody.innerHTML = '';
+                    transactions.forEach(tx => {
+                        const txDate = new Date(tx.date);
+                        const isoDate = txDate.toISOString().split('T')[0];
+                        let typeColor = '#333'; let sign = '';
+                        if (tx.type === 'INWARD' || tx.type === 'QC_APPROVAL') { typeColor = '#28a745'; sign = '+'; }
+                        if (tx.type === 'DISPATCH') { typeColor = '#dc3545'; sign = '-'; }
 
-                    const tr = document.createElement('tr');
-                    tr.setAttribute('data-date', isoDate);
-                    tr.innerHTML = `<td><span class="date-text">${txDate.toLocaleDateString()}</span> <span class="time-text">${txDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span></td>
+                        const tr = document.createElement('tr');
+                        tr.setAttribute('data-date', isoDate);
+                        tr.innerHTML = `<td><span class="date-text">${txDate.toLocaleDateString()}</span> <span class="time-text">${txDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span></td>
                         <td><strong>${tx.barcode}</strong></td><td style="color: ${typeColor}; font-weight: bold;">${tx.type} <span style="font-size:11px; color:#555;">(👤 ${tx.user || 'Unknown'})</span></td>
                         <td><strong>${sign}${tx.quantity}</strong></td><td style="color: #007bff; font-weight: bold;">${tx.resultingStock !== undefined ? tx.resultingStock : '-'}</td>`;
-                    tbody.appendChild(tr);
-                });
-                applyTxFilters();
-            } catch (error) { }
-        }
+                        tbody.appendChild(tr);
+                    });
+                    applyTxFilters();
+                } catch (error) { }
+            }
 
-        // --- RAW MATERIALS & PO LOGIC ---
-        async function loadRawMaterials() {
-            try {
-                const response = await fetch(`${API_URL}/raw-materials`);
-                const materials = await response.json();
-                const tbody = document.querySelector('#rawMaterialsTable tbody');
-                tbody.innerHTML = '';
-                materials.forEach(m => {
-                    const tr = document.createElement('tr');
-                    const isLow = m.currentStockKg < 100;
-                    if (isLow) tr.className = "low-stock";
-                    let dateStr = "N/A", timeStr = "";
-                    if (m.lastUpdate) { const dt = new Date(m.lastUpdate); dateStr = dt.toLocaleDateString(); timeStr = dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); }
+            // --- RAW MATERIALS & PO LOGIC ---
+            async function loadRawMaterials() {
+                try {
+                    const response = await fetch(`${API_URL}/raw-materials`);
+                    const materials = await response.json();
+                    const tbody = document.querySelector('#rawMaterialsTable tbody');
+                    tbody.innerHTML = '';
+                    materials.forEach(m => {
+                        const tr = document.createElement('tr');
+                        const isLow = m.currentStockKg < 100;
+                        if (isLow) tr.className = "low-stock";
+                        let dateStr = "N/A", timeStr = "";
+                        if (m.lastUpdate) { const dt = new Date(m.lastUpdate); dateStr = dt.toLocaleDateString(); timeStr = dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); }
 
-                    tr.innerHTML = `
+                        tr.innerHTML = `
                         <td><strong>${m.materialCode}</strong></td><td>${m.materialName || 'Steel Stock'}</td>
                         <td><strong>${m.grade || '-'}</strong></td> <td class="${isLow ? 'low-stock-text' : ''}" style="font-weight: bold; font-size: 1.1em; color: #007bff;">${m.currentStockKg} Kg</td>
                         <td>${m.lastSupplier || '-'}</td> <td><span style="font-size: 12px; color:#555;">👤 ${m.lastUpdatedBy || '-'}</span></td>
                         <td><span class="date-text">${dateStr}</span> <span class="time-text">${timeStr}</span></td>
                     `;
-                    tbody.appendChild(tr);
-                });
-            } catch (error) { }
-        }
+                        tbody.appendChild(tr);
+                    });
+                } catch (error) { }
+            }
 
-        function openReceiveModal() { document.getElementById('receiveStockModal').style.display = 'flex'; }
-        function closeReceiveModal() {
-            document.getElementById('receiveStockModal').style.display = 'none';
-            ['rawCodeInput', 'rawNameInput', 'rawGradeInput', 'rawSupplierInput', 'rawScopeInput', 'rawKgInput'].forEach(id => document.getElementById(id).value = '');
-        }
+            function openReceiveModal() { document.getElementById('receiveStockModal').style.display = 'flex'; }
+            function closeReceiveModal() {
+                document.getElementById('receiveStockModal').style.display = 'none';
+                ['rawCodeInput', 'rawNameInput', 'rawGradeInput', 'rawSupplierInput', 'rawScopeInput', 'rawKgInput'].forEach(id => document.getElementById(id).value = '');
+            }
 
-        async function submitRawMaterial() {
-            const code = document.getElementById('rawCodeInput').value.trim().toUpperCase();
-            const kg = document.getElementById('rawKgInput').value;
-            if (!code || !kg || isNaN(kg) || Number(kg) <= 0) return showToast("Enter valid code and amount.", true);
+            async function submitRawMaterial() {
+                const code = document.getElementById('rawCodeInput').value.trim().toUpperCase();
+                const kg = document.getElementById('rawKgInput').value;
+                if (!code || !kg || isNaN(kg) || Number(kg) <= 0) return showToast("Enter valid code and amount.", true);
 
-            try {
-                const response = await fetch(`${API_URL}/raw-materials/receive`, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ materialCode: code, materialName: document.getElementById('rawNameInput').value.trim(), grade: document.getElementById('rawGradeInput').value.trim(), supplier: document.getElementById('rawSupplierInput').value.trim(), scope: document.getElementById('rawScopeInput').value.trim(), addedKg: Number(kg), username: currentUser.username })
-                });
-                const data = await response.json();
-                if (data.success) { showToast(`✅ Received ${kg}kg`); closeReceiveModal(); loadRawMaterials(); loadTransactions(); }
-                else showToast("❌ Error: " + data.message, true);
-            } catch (err) { }
-        }
+                try {
+                    const response = await fetch(`${API_URL}/raw-materials/receive`, {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ materialCode: code, materialName: document.getElementById('rawNameInput').value.trim(), grade: document.getElementById('rawGradeInput').value.trim(), supplier: document.getElementById('rawSupplierInput').value.trim(), scope: document.getElementById('rawScopeInput').value.trim(), addedKg: Number(kg), username: currentUser.username })
+                    });
+                    const data = await response.json();
+                    if (data.success) { showToast(`✅ Received ${kg}kg`); closeReceiveModal(); loadRawMaterials(); loadTransactions(); }
+                    else showToast("❌ Error: " + data.message, true);
+                } catch (err) { }
+            }
 
-        async function loadPOs() {
-            try {
-                const response = await fetch(`${API_URL}/purchase-orders`);
-                const pos = await response.json();
-                const tbody = document.querySelector('#poTable tbody');
-                tbody.innerHTML = '';
-                pos.forEach(po => {
-                    const isPending = po.status === 'PENDING';
-                    const actionBtn = isPending ? `<button onclick="receivePO('${po._id}')" style="background:#28a745; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-weight:bold;">📥 Mark Received</button>` : `<span style="color:#666; font-size:12px;">Received on<br>${new Date(po.receivedDate).toLocaleDateString()}</span>`;
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `<td><strong>${po.poNumber}</strong><br><span style="font-size:11px; color:#666;">👤 ${po.orderedBy}</span></td><td>${po.supplierName}</td><td><strong>${po.materialCode}</strong></td><td>${po.grade || '-'}</td>
+            async function loadPOs() {
+                try {
+                    const response = await fetch(`${API_URL}/purchase-orders`);
+                    const pos = await response.json();
+                    const tbody = document.querySelector('#poTable tbody');
+                    tbody.innerHTML = '';
+                    pos.forEach(po => {
+                        const isPending = po.status === 'PENDING';
+                        const actionBtn = isPending ? `<button onclick="receivePO('${po._id}')" style="background:#28a745; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-weight:bold;">📥 Mark Received</button>` : `<span style="color:#666; font-size:12px;">Received on<br>${new Date(po.receivedDate).toLocaleDateString()}</span>`;
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `<td><strong>${po.poNumber}</strong><br><span style="font-size:11px; color:#666;">👤 ${po.orderedBy}</span></td><td>${po.supplierName}</td><td><strong>${po.materialCode}</strong></td><td>${po.grade || '-'}</td>
                         <td><span style="font-size:12px; color:#555;">${po.scope || '-'}</span></td><td><strong>${po.expectedKg} Kg</strong></td><td>₹${po.totalCost.toLocaleString()}</td>
                         <td style="color:${isPending ? '#ff9800' : '#28a745'}; font-weight:bold;">${po.status}</td><td>${actionBtn}</td>`;
-                    tbody.appendChild(tr);
-                });
-                filterPOs();
-            } catch (error) { }
-        }
-
-        function openPOModal() { document.getElementById('poModal').style.display = 'flex'; }
-        function closePOModal() { document.getElementById('poModal').style.display = 'none';['poSupplier', 'poMaterialCode', 'poExpectedKg', 'poCostPerKg'].forEach(id => document.getElementById(id).value = ''); }
-
-        async function submitPO() {
-            const supplierName = document.getElementById('poSupplier').value.trim(); const materialCode = document.getElementById('poMaterialCode').value.trim(); const expectedKg = document.getElementById('poExpectedKg').value; const costPerKg = document.getElementById('poCostPerKg').value;
-            if (!supplierName || !materialCode || !expectedKg || !costPerKg) return showToast("Fill all required fields", true);
-            try {
-                const res = await fetch(`${API_URL}/purchase-orders`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ supplierName, materialCode, grade: document.getElementById('poGrade').value.trim(), scope: document.getElementById('poScope').value.trim(), expectedKg, costPerKg, username: currentUser.username }) });
-                if (res.ok) { showToast("✅ PO Generated!"); closePOModal(); refreshDashboard(); } else showToast("❌ Error", true);
-            } catch (e) { }
-        }
-
-        async function receivePO(poId) {
-            if (!confirm("Are you sure the truck arrived?")) return;
-            try {
-                const res = await fetch(`${API_URL}/purchase-orders/${poId}/receive`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: currentUser.username }) });
-                if (res.ok) { showToast("📦 Stock added to Raw Materials!"); refreshDashboard(); }
-            } catch (e) { }
-        }
-
-        // --- FILTER & UTILS ---
-        function filterInventory() {
-            const filter = document.getElementById('searchInput').value.toUpperCase();
-            const tr = document.getElementById('productsTable').getElementsByTagName("tr");
-            for (let i = 1; i < tr.length; i++) {
-                if (tr[i].cells.length === 1) continue;
-                tr[i].style.display = (tr[i].textContent || tr[i].innerText).toUpperCase().indexOf(filter) > -1 ? "" : "none";
+                        tbody.appendChild(tr);
+                    });
+                    filterPOs();
+                } catch (error) { }
             }
-        }
 
-        function applyTxFilters() {
-            const text = document.getElementById("searchTxInput").value.toUpperCase();
-            const date = document.getElementById("dateSearchInput").value;
-            const tr = document.getElementById("transactionsTable").getElementsByTagName("tr");
-            for (let i = 1; i < tr.length; i++) {
-                if (tr[i].cells.length === 1) continue;
-                let itemCode = tr[i].getElementsByTagName("td")[1].textContent.toUpperCase();
-                let rowDate = tr[i].getAttribute("data-date");
-                let matchesText = itemCode.includes(text);
-                let matchesDate = !date || rowDate === date;
-                tr[i].style.display = (matchesText && matchesDate) ? "" : "none";
+            function openPOModal() { document.getElementById('poModal').style.display = 'flex'; }
+            function closePOModal() { document.getElementById('poModal').style.display = 'none';['poSupplier', 'poMaterialCode', 'poExpectedKg', 'poCostPerKg'].forEach(id => document.getElementById(id).value = ''); }
+
+            async function submitPO() {
+                const supplierName = document.getElementById('poSupplier').value.trim(); const materialCode = document.getElementById('poMaterialCode').value.trim(); const expectedKg = document.getElementById('poExpectedKg').value; const costPerKg = document.getElementById('poCostPerKg').value;
+                if (!supplierName || !materialCode || !expectedKg || !costPerKg) return showToast("Fill all required fields", true);
+                try {
+                    const res = await fetch(`${API_URL}/purchase-orders`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ supplierName, materialCode, grade: document.getElementById('poGrade').value.trim(), scope: document.getElementById('poScope').value.trim(), expectedKg, costPerKg, username: currentUser.username }) });
+                    if (res.ok) { showToast("✅ PO Generated!"); closePOModal(); refreshDashboard(); } else showToast("❌ Error", true);
+                } catch (e) { }
             }
-        }
 
-        function filterPOs() {
-            const searchText = document.getElementById('searchPOInput').value.toUpperCase();
-            const tr = document.getElementById('poTable').getElementsByTagName("tr");
-            for (let i = 1; i < tr.length; i++) {
-                if (tr[i].cells.length === 1) continue;
-                tr[i].style.display = tr[i].textContent.toUpperCase().includes(searchText) ? "" : "none";
+            async function receivePO(poId) {
+                if (!confirm("Are you sure the truck arrived?")) return;
+                try {
+                    const res = await fetch(`${API_URL}/purchase-orders/${poId}/receive`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: currentUser.username }) });
+                    if (res.ok) { showToast("📦 Stock added to Raw Materials!"); refreshDashboard(); }
+                } catch (e) { }
             }
-        }
 
-        function exportTableToCSV(tableId, filename) {
-            let csv = []; let rows = document.querySelectorAll(`#${tableId} tr`);
-            for (let i = 0; i < rows.length; i++) {
-                if (rows[i].style.display === "none") continue;
-                let row = [], cols = rows[i].querySelectorAll("td:not(.admin-actions), th:not(.admin-actions)");
-                for (let j = 0; j < cols.length; j++) row.push('"' + cols[j].innerText.replace(/(\r\n|\n|\r)/gm, " ").trim() + '"');
-                csv.push(row.join(","));
-            }
-            let downloadLink = document.createElement("a"); downloadLink.download = filename;
-            downloadLink.href = window.URL.createObjectURL(new Blob([csv.join("\n")], { type: "text/csv" }));
-            downloadLink.style.display = "none"; document.body.appendChild(downloadLink); downloadLink.click();
-        }
-
-        function applyProductionFilters() {
-            const filterDate = document.getElementById('filterProdDate').value;
-            const filterShift = document.getElementById('filterProdShift').value.toUpperCase();
-            const filterGlobal = document.getElementById('filterProdGlobal').value.toUpperCase();
-            const activeStageTab = currentLogFilter;
-
-            const table = document.getElementById("productionTable");
-            const rows = table.getElementsByTagName("tr");
-
-            for (let i = 1; i < rows.length; i++) {
-                if (rows[i].cells.length < 5) continue;
-                const rowDate = rows[i].getAttribute('data-date');
-                const rowStage = rows[i].getAttribute('data-stage');
-                const rowShift = rows[i].cells[1].textContent.toUpperCase();
-                const rowFullText = rows[i].textContent.toUpperCase();
-
-                let matchStage = (activeStageTab === 'ALL' || activeStageTab === 'COMPLETED' || rowStage === activeStageTab);
-                let matchDate = (filterDate === '' || rowDate === filterDate);
-                let matchShift = (filterShift === '' || rowShift === filterShift);
-                let matchGlobal = (filterGlobal === '' || rowFullText.includes(filterGlobal));
-
-                rows[i].style.display = (matchStage && matchDate && matchShift && matchGlobal) ? "" : "none";
-            }
-            calculateVisibleTotals();
-        }
-
-        function calculateVisibleTotals() {
-            try {
-                const table = document.getElementById("productionTable");
-                const headerCells = table.rows[0].cells;
-                let accIdx = 25, rejIdx = 26, rejKgIdx = 27;
-
-                for (let i = 0; i < headerCells.length; i++) {
-                    const headerText = headerCells[i].textContent.trim().toUpperCase();
-                    if (headerText.includes("ACC QTY")) accIdx = i;
-                    if (headerText.includes("REJ QTY")) rejIdx = i;
-                    if (headerText.includes("REJ KG")) rejKgIdx = i;
+            // --- FILTER & UTILS ---
+            function filterInventory() {
+                const filter = document.getElementById('searchInput').value.toUpperCase();
+                const tr = document.getElementById('productsTable').getElementsByTagName("tr");
+                for (let i = 1; i < tr.length; i++) {
+                    if (tr[i].cells.length === 1) continue;
+                    tr[i].style.display = (tr[i].textContent || tr[i].innerText).toUpperCase().indexOf(filter) > -1 ? "" : "none";
                 }
+            }
 
-                const rows = table.getElementsByTagName("tbody")[0].getElementsByTagName("tr");
-                let totalAcc = 0; let totalRej = 0; let totalRejKg = 0;
+            function applyTxFilters() {
+                const text = document.getElementById("searchTxInput").value.toUpperCase();
+                const date = document.getElementById("dateSearchInput").value;
+                const tr = document.getElementById("transactionsTable").getElementsByTagName("tr");
+                for (let i = 1; i < tr.length; i++) {
+                    if (tr[i].cells.length === 1) continue;
+                    let itemCode = tr[i].getElementsByTagName("td")[1].textContent.toUpperCase();
+                    let rowDate = tr[i].getAttribute("data-date");
+                    let matchesText = itemCode.includes(text);
+                    let matchesDate = !date || rowDate === date;
+                    tr[i].style.display = (matchesText && matchesDate) ? "" : "none";
+                }
+            }
 
+            function filterPOs() {
+                const searchText = document.getElementById('searchPOInput').value.toUpperCase();
+                const tr = document.getElementById('poTable').getElementsByTagName("tr");
+                for (let i = 1; i < tr.length; i++) {
+                    if (tr[i].cells.length === 1) continue;
+                    tr[i].style.display = tr[i].textContent.toUpperCase().includes(searchText) ? "" : "none";
+                }
+            }
+
+            function exportTableToCSV(tableId, filename) {
+                let csv = []; let rows = document.querySelectorAll(`#${tableId} tr`);
                 for (let i = 0; i < rows.length; i++) {
-                    if (rows[i].style.display !== "none" && rows[i].cells.length > Math.max(accIdx, rejIdx, rejKgIdx)) {
-                        totalAcc += parseInt(rows[i].cells[accIdx].textContent) || 0;
-                        totalRej += parseInt(rows[i].cells[rejIdx].textContent) || 0;
-                        totalRejKg += parseFloat(rows[i].cells[rejKgIdx].textContent) || 0;
+                    if (rows[i].style.display === "none") continue;
+                    let row = [], cols = rows[i].querySelectorAll("td:not(.admin-actions), th:not(.admin-actions)");
+                    for (let j = 0; j < cols.length; j++) row.push('"' + cols[j].innerText.replace(/(\r\n|\n|\r)/gm, " ").trim() + '"');
+                    csv.push(row.join(","));
+                }
+                let downloadLink = document.createElement("a"); downloadLink.download = filename;
+                downloadLink.href = window.URL.createObjectURL(new Blob([csv.join("\n")], { type: "text/csv" }));
+                downloadLink.style.display = "none"; document.body.appendChild(downloadLink); downloadLink.click();
+            }
+
+            function applyProductionFilters() {
+                const filterDate = document.getElementById('filterProdDate').value;
+                const filterShift = document.getElementById('filterProdShift').value.toUpperCase();
+                const filterGlobal = document.getElementById('filterProdGlobal').value.toUpperCase();
+                const activeStageTab = currentLogFilter;
+
+                const table = document.getElementById("productionTable");
+                const rows = table.getElementsByTagName("tr");
+
+                for (let i = 1; i < rows.length; i++) {
+                    if (rows[i].cells.length < 5) continue;
+                    const rowDate = rows[i].getAttribute('data-date');
+                    const rowStage = rows[i].getAttribute('data-stage');
+                    const rowShift = rows[i].cells[1].textContent.toUpperCase();
+                    const rowFullText = rows[i].textContent.toUpperCase();
+
+                    let matchStage = (activeStageTab === 'ALL' || activeStageTab === 'COMPLETED' || rowStage === activeStageTab);
+                    let matchDate = (filterDate === '' || rowDate === filterDate);
+                    let matchShift = (filterShift === '' || rowShift === filterShift);
+                    let matchGlobal = (filterGlobal === '' || rowFullText.includes(filterGlobal));
+
+                    rows[i].style.display = (matchStage && matchDate && matchShift && matchGlobal) ? "" : "none";
+                }
+                calculateVisibleTotals();
+            }
+
+            function calculateVisibleTotals() {
+                try {
+                    const table = document.getElementById("productionTable");
+                    const headerCells = table.rows[0].cells;
+                    let accIdx = 25, rejIdx = 26, rejKgIdx = 27;
+
+                    for (let i = 0; i < headerCells.length; i++) {
+                        const headerText = headerCells[i].textContent.trim().toUpperCase();
+                        if (headerText.includes("ACC QTY")) accIdx = i;
+                        if (headerText.includes("REJ QTY")) rejIdx = i;
+                        if (headerText.includes("REJ KG")) rejKgIdx = i;
+                    }
+
+                    const rows = table.getElementsByTagName("tbody")[0].getElementsByTagName("tr");
+                    let totalAcc = 0; let totalRej = 0; let totalRejKg = 0;
+
+                    for (let i = 0; i < rows.length; i++) {
+                        if (rows[i].style.display !== "none" && rows[i].cells.length > Math.max(accIdx, rejIdx, rejKgIdx)) {
+                            totalAcc += parseInt(rows[i].cells[accIdx].textContent) || 0;
+                            totalRej += parseInt(rows[i].cells[rejIdx].textContent) || 0;
+                            totalRejKg += parseFloat(rows[i].cells[rejKgIdx].textContent) || 0;
+                        }
+                    }
+
+                    if (document.getElementById("totalAccQty")) {
+                        document.getElementById("totalAccQty").textContent = totalAcc;
+                        document.getElementById("totalRejQty").textContent = totalRej;
+                        document.getElementById("totalRejKg").textContent = totalRejKg.toFixed(2);
+                    }
+                } catch (error) { console.error("Error calculating totals: ", error); }
+            }
+
+            function filterLogs(stage) {
+                currentLogFilter = stage;
+                document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+                document.getElementById('tab-' + stage).classList.add('active');
+
+                // Rebuilds the table to pull items in or out of the Completed archive
+                loadProductionBatches();
+            }
+
+            function clearProductionFilters() {
+                document.getElementById('filterProdDate').value = '';
+                document.getElementById('filterProdShift').value = '';
+                document.getElementById('filterProdGlobal').value = '';
+                applyProductionFilters();
+            }
+
+            function calculateLiveOEE() {
+                try {
+                    const todayStr = new Date().toISOString().split('T')[0];
+                    const todayBatches = globalBatches.filter(b => b.date && b.date.startsWith(todayStr));
+
+                    if (todayBatches.length === 0) {
+                        ['oeeTotal', 'oeeAvail', 'oeePerf', 'oeeQual'].forEach(id => document.getElementById(id).textContent = "0%");
+                        return;
+                    }
+
+                    let totalPlannedHours = 0; let totalDowntimeMins = 0; let totalTargetQty = 0;
+                    let totalAcceptedQty = 0; let totalRejectedQty = 0;
+
+                    todayBatches.forEach(b => {
+                        totalPlannedHours += (Number(b.prodPlannedHours) || 0);
+                        totalTargetQty += (Number(b.shiftTargetQty) || 0);
+                        totalAcceptedQty += (Number(b.acceptedQty) || 0);
+                        totalRejectedQty += (Number(b.rejectedQty) || 0);
+                        totalDowntimeMins += (Number(b.lossMajorJC) || 0) + (Number(b.lossMinorJC) || 0) +
+                            (Number(b.lossSetting) || 0) + (Number(b.lossMcClean) || 0) + (Number(b.lossToolRework) || 0) +
+                            (Number(b.lossNoTool) || 0) + (Number(b.lossNoLoad) || 0) + (Number(b.lossNoOperator) || 0) +
+                            (Number(b.lossMMnt) || 0) + (Number(b.lossEMnt) || 0) + (Number(b.lossNoPower) || 0) +
+                            (Number(b.lossNoAirOil) || 0) + (Number(b.lossNoRm) || 0) + (Number(b.lossRmLoading) || 0) +
+                            (Number(b.lossQaApproval) || 0) + (Number(b.lossCoilChange) || 0) + (Number(b.lossNoPlan) || 0) +
+                            (Number(b.lossNpdTeam) || 0) + (Number(b.lossUnknown) || 0);
+                    });
+
+                    let availability = 0; let downtimeHours = totalDowntimeMins / 60;
+                    if (totalPlannedHours > 0) availability = Math.max(totalPlannedHours - downtimeHours, 0) / totalPlannedHours;
+
+                    let performance = 0; let totalProduced = totalAcceptedQty + totalRejectedQty;
+                    if (totalTargetQty > 0) performance = Math.min(totalProduced / totalTargetQty, 1);
+
+                    let quality = 0;
+                    if (totalProduced > 0) quality = totalAcceptedQty / totalProduced;
+
+                    let oee = availability * performance * quality;
+
+                    document.getElementById('oeeTotal').textContent = (oee * 100).toFixed(1) + "%";
+                    document.getElementById('oeeAvail').textContent = (availability * 100).toFixed(1) + "%";
+                    document.getElementById('oeeDowntimeText').textContent = downtimeHours.toFixed(1) + " hrs down";
+                    document.getElementById('oeePerf').textContent = (performance * 100).toFixed(1) + "%";
+                    document.getElementById('oeeSpeedText').textContent = totalProduced + " / " + totalTargetQty;
+                    document.getElementById('oeeQual').textContent = (quality * 100).toFixed(1) + "%";
+                    document.getElementById('oeeRejText').textContent = totalRejectedQty + " rejected";
+                } catch (error) { console.error("OEE Math Error:", error); }
+            }
+
+            let machineChartInstance = null; let qualityChartInstance = null;
+
+            function renderVisualCharts() {
+                try {
+                    const todayStr = new Date().toISOString().split('T')[0];
+                    const todayBatches = globalBatches.filter(b => b.date && b.date.startsWith(todayStr));
+                    const machineData = {}; let totalAcc = 0; let totalRej = 0;
+
+                    todayBatches.forEach(b => {
+                        const macName = b.machineName || 'Unknown Machine';
+                        machineData[macName] = (machineData[macName] || 0) + (Number(b.acceptedQty) || 0);
+                        totalAcc += (Number(b.acceptedQty) || 0);
+                        totalRej += (Number(b.rejectedQty) || 0);
+                    });
+
+                    const ctxMachine = document.getElementById('machineChart').getContext('2d');
+                    if (machineChartInstance) machineChartInstance.destroy();
+                    machineChartInstance = new Chart(ctxMachine, {
+                        type: 'bar',
+                        data: {
+                            labels: Object.keys(machineData).length > 0 ? Object.keys(machineData) : ['No Data'],
+                            datasets: [{ label: 'Accepted Parts', data: Object.keys(machineData).length > 0 ? Object.values(machineData) : [0], backgroundColor: '#007bff', borderRadius: 4 }]
+                        },
+                        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+                    });
+
+                    const ctxQuality = document.getElementById('qualityChart').getContext('2d');
+                    if (qualityChartInstance) qualityChartInstance.destroy();
+                    qualityChartInstance = new Chart(ctxQuality, {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['Accepted', 'Rejected'],
+                            datasets: [{ data: (totalAcc === 0 && totalRej === 0) ? [1, 0] : [totalAcc, totalRej], backgroundColor: ['#28a745', '#dc3545'], borderWidth: 0 }]
+                        },
+                        options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'bottom' } } }
+                    });
+                } catch (error) { console.error("Chart Rendering Error:", error); }
+            }
+
+            function generateDailyPDF() {
+                showToast("⏳ Generating PDF Report... Please wait.");
+                const productionCard = document.getElementById('productionCard');
+                const formSection = productionCard.children[2];
+                const tabSection = document.querySelector('.tab-container');
+                const filterSection = document.querySelector('.search-container[style*="border-left"]');
+                const buttonsSection = document.getElementById('exportButtonsSection');
+
+                if (formSection) formSection.style.display = 'none';
+                if (tabSection) tabSection.style.display = 'none';
+                if (filterSection) filterSection.style.display = 'none';
+                if (buttonsSection) buttonsSection.style.display = 'none';
+
+                const today = new Date().toISOString().split('T')[0];
+                const opt = {
+                    margin: 0.3, filename: `Daily_Production_Report_${today}.pdf`,
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2, useCORS: true },
+                    jsPDF: { unit: 'in', format: 'a3', orientation: 'landscape' }
+                };
+
+                html2pdf().set(opt).from(productionCard).save().then(() => {
+                    if (formSection) formSection.style.display = '';
+                    if (tabSection) tabSection.style.display = 'flex';
+                    if (filterSection) filterSection.style.display = '';
+                    if (buttonsSection) buttonsSection.style.display = 'flex';
+                    showToast("✅ PDF Report Downloaded Successfully!");
+                }).catch(err => {
+                    console.error("PDF Error:", err);
+                    showToast("❌ Error generating PDF");
+                    if (formSection) formSection.style.display = '';
+                    if (tabSection) tabSection.style.display = 'flex';
+                    if (filterSection) filterSection.style.display = '';
+                    if (buttonsSection) buttonsSection.style.display = 'flex';
+                });
+            }
+
+
+
+            // --- WORK ORDER LOGIC ---
+            async function loadActiveWorkOrders() {
+                try {
+                    const res = await fetch(`${API_URL}/work-orders/active`);
+                    if (!res.ok) return;
+                    activeWorkOrders = await res.json();
+
+                    const woDropdown = document.getElementById('prodWO');
+                    woDropdown.innerHTML = '<option value="">- Select Active WO -</option><option value="OTHER">Manual Entry...</option>';
+
+                    activeWorkOrders.forEach(wo => {
+                        const progress = wo.targetQty ? Math.round((wo.producedQty / wo.targetQty) * 100) : 0;
+                        woDropdown.innerHTML += `<option value="${wo.woNumber}">${wo.woNumber} (${wo.partNo}) - ${progress}% Done</option>`;
+                    });
+                } catch (e) {
+                    console.error("Failed to load WOs", e);
+                }
+            }
+
+            function autoFillFromWO() {
+                const selectedWO = document.getElementById('prodWO').value;
+
+                // This line makes the "Manual Entry" box appear!
+                toggleOtherInput('prodWO', 'prodWOOther');
+
+                if (selectedWO !== 'OTHER' && selectedWO !== '') {
+                    const woData = activeWorkOrders.find(w => w.woNumber === selectedWO);
+                    if (woData) {
+                        document.getElementById('prodPartNo').value = woData.partNo || '';
+                        document.getElementById('prodTarget').value = (woData.targetQty - woData.producedQty) || '';
+                        setSmartDropdown('prodPartName', 'prodPartNameOther', woData.partName);
+                        showToast("ℹ️ Form auto-filled from Work Order");
                     }
                 }
-
-                if (document.getElementById("totalAccQty")) {
-                    document.getElementById("totalAccQty").textContent = totalAcc;
-                    document.getElementById("totalRejQty").textContent = totalRej;
-                    document.getElementById("totalRejKg").textContent = totalRejKg.toFixed(2);
-                }
-            } catch (error) { console.error("Error calculating totals: ", error); }
-        }
-
-        function filterLogs(stage) {
-            currentLogFilter = stage;
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.getElementById('tab-' + stage).classList.add('active');
-
-            // Rebuilds the table to pull items in or out of the Completed archive
-            loadProductionBatches();
-        }
-
-        function clearProductionFilters() {
-            document.getElementById('filterProdDate').value = '';
-            document.getElementById('filterProdShift').value = '';
-            document.getElementById('filterProdGlobal').value = '';
-            applyProductionFilters();
-        }
-
-        function calculateLiveOEE() {
-            try {
-                const todayStr = new Date().toISOString().split('T')[0];
-                const todayBatches = globalBatches.filter(b => b.date && b.date.startsWith(todayStr));
-
-                if (todayBatches.length === 0) {
-                    ['oeeTotal', 'oeeAvail', 'oeePerf', 'oeeQual'].forEach(id => document.getElementById(id).textContent = "0%");
-                    return;
-                }
-
-                let totalPlannedHours = 0; let totalDowntimeMins = 0; let totalTargetQty = 0;
-                let totalAcceptedQty = 0; let totalRejectedQty = 0;
-
-                todayBatches.forEach(b => {
-                    totalPlannedHours += (Number(b.prodPlannedHours) || 0);
-                    totalTargetQty += (Number(b.shiftTargetQty) || 0);
-                    totalAcceptedQty += (Number(b.acceptedQty) || 0);
-                    totalRejectedQty += (Number(b.rejectedQty) || 0);
-                    totalDowntimeMins += (Number(b.lossMajorJC) || 0) + (Number(b.lossMinorJC) || 0) +
-                        (Number(b.lossSetting) || 0) + (Number(b.lossMcClean) || 0) + (Number(b.lossToolRework) || 0) +
-                        (Number(b.lossNoTool) || 0) + (Number(b.lossNoLoad) || 0) + (Number(b.lossNoOperator) || 0) +
-                        (Number(b.lossMMnt) || 0) + (Number(b.lossEMnt) || 0) + (Number(b.lossNoPower) || 0) +
-                        (Number(b.lossNoAirOil) || 0) + (Number(b.lossNoRm) || 0) + (Number(b.lossRmLoading) || 0) +
-                        (Number(b.lossQaApproval) || 0) + (Number(b.lossCoilChange) || 0) + (Number(b.lossNoPlan) || 0) +
-                        (Number(b.lossNpdTeam) || 0) + (Number(b.lossUnknown) || 0);
-                });
-
-                let availability = 0; let downtimeHours = totalDowntimeMins / 60;
-                if (totalPlannedHours > 0) availability = Math.max(totalPlannedHours - downtimeHours, 0) / totalPlannedHours;
-
-                let performance = 0; let totalProduced = totalAcceptedQty + totalRejectedQty;
-                if (totalTargetQty > 0) performance = Math.min(totalProduced / totalTargetQty, 1);
-
-                let quality = 0;
-                if (totalProduced > 0) quality = totalAcceptedQty / totalProduced;
-
-                let oee = availability * performance * quality;
-
-                document.getElementById('oeeTotal').textContent = (oee * 100).toFixed(1) + "%";
-                document.getElementById('oeeAvail').textContent = (availability * 100).toFixed(1) + "%";
-                document.getElementById('oeeDowntimeText').textContent = downtimeHours.toFixed(1) + " hrs down";
-                document.getElementById('oeePerf').textContent = (performance * 100).toFixed(1) + "%";
-                document.getElementById('oeeSpeedText').textContent = totalProduced + " / " + totalTargetQty;
-                document.getElementById('oeeQual').textContent = (quality * 100).toFixed(1) + "%";
-                document.getElementById('oeeRejText').textContent = totalRejectedQty + " rejected";
-            } catch (error) { console.error("OEE Math Error:", error); }
-        }
-
-        let machineChartInstance = null; let qualityChartInstance = null;
-
-        function renderVisualCharts() {
-            try {
-                const todayStr = new Date().toISOString().split('T')[0];
-                const todayBatches = globalBatches.filter(b => b.date && b.date.startsWith(todayStr));
-                const machineData = {}; let totalAcc = 0; let totalRej = 0;
-
-                todayBatches.forEach(b => {
-                    const macName = b.machineName || 'Unknown Machine';
-                    machineData[macName] = (machineData[macName] || 0) + (Number(b.acceptedQty) || 0);
-                    totalAcc += (Number(b.acceptedQty) || 0);
-                    totalRej += (Number(b.rejectedQty) || 0);
-                });
-
-                const ctxMachine = document.getElementById('machineChart').getContext('2d');
-                if (machineChartInstance) machineChartInstance.destroy();
-                machineChartInstance = new Chart(ctxMachine, {
-                    type: 'bar',
-                    data: {
-                        labels: Object.keys(machineData).length > 0 ? Object.keys(machineData) : ['No Data'],
-                        datasets: [{ label: 'Accepted Parts', data: Object.keys(machineData).length > 0 ? Object.values(machineData) : [0], backgroundColor: '#007bff', borderRadius: 4 }]
-                    },
-                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
-                });
-
-                const ctxQuality = document.getElementById('qualityChart').getContext('2d');
-                if (qualityChartInstance) qualityChartInstance.destroy();
-                qualityChartInstance = new Chart(ctxQuality, {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['Accepted', 'Rejected'],
-                        datasets: [{ data: (totalAcc === 0 && totalRej === 0) ? [1, 0] : [totalAcc, totalRej], backgroundColor: ['#28a745', '#dc3545'], borderWidth: 0 }]
-                    },
-                    options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'bottom' } } }
-                });
-            } catch (error) { console.error("Chart Rendering Error:", error); }
-        }
-
-        function generateDailyPDF() {
-            showToast("⏳ Generating PDF Report... Please wait.");
-            const productionCard = document.getElementById('productionCard');
-            const formSection = productionCard.children[2];
-            const tabSection = document.querySelector('.tab-container');
-            const filterSection = document.querySelector('.search-container[style*="border-left"]');
-            const buttonsSection = document.getElementById('exportButtonsSection');
-
-            if (formSection) formSection.style.display = 'none';
-            if (tabSection) tabSection.style.display = 'none';
-            if (filterSection) filterSection.style.display = 'none';
-            if (buttonsSection) buttonsSection.style.display = 'none';
-
-            const today = new Date().toISOString().split('T')[0];
-            const opt = {
-                margin: 0.3, filename: `Daily_Production_Report_${today}.pdf`,
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true },
-                jsPDF: { unit: 'in', format: 'a3', orientation: 'landscape' }
-            };
-
-            html2pdf().set(opt).from(productionCard).save().then(() => {
-                if (formSection) formSection.style.display = '';
-                if (tabSection) tabSection.style.display = 'flex';
-                if (filterSection) filterSection.style.display = '';
-                if (buttonsSection) buttonsSection.style.display = 'flex';
-                showToast("✅ PDF Report Downloaded Successfully!");
-            }).catch(err => {
-                console.error("PDF Error:", err);
-                showToast("❌ Error generating PDF");
-                if (formSection) formSection.style.display = '';
-                if (tabSection) tabSection.style.display = 'flex';
-                if (filterSection) filterSection.style.display = '';
-                if (buttonsSection) buttonsSection.style.display = 'flex';
-            });
-        }
-
-
-
-        // --- WORK ORDER LOGIC ---
-        async function loadActiveWorkOrders() {
-            try {
-                const res = await fetch(`${API_URL}/work-orders/active`);
-                if (!res.ok) return;
-                activeWorkOrders = await res.json();
-
-                const woDropdown = document.getElementById('prodWO');
-                woDropdown.innerHTML = '<option value="">- Select Active WO -</option><option value="OTHER">Manual Entry...</option>';
-
-                activeWorkOrders.forEach(wo => {
-                    const progress = wo.targetQty ? Math.round((wo.producedQty / wo.targetQty) * 100) : 0;
-                    woDropdown.innerHTML += `<option value="${wo.woNumber}">${wo.woNumber} (${wo.partNo}) - ${progress}% Done</option>`;
-                });
-            } catch (e) {
-                console.error("Failed to load WOs", e);
             }
-        }
 
-        function autoFillFromWO() {
-            const selectedWO = document.getElementById('prodWO').value;
 
-            // This line makes the "Manual Entry" box appear!
-            toggleOtherInput('prodWO', 'prodWOOther');
+            // ==========================================
+            // SALES & CRM LOGIC
+            // ==========================================
+            function switchSalesTab(tab) {
+                document.getElementById('crmSection').style.display = tab === 'crm' ? 'block' : 'none';
+                document.getElementById('ordersSection').style.display = tab === 'orders' ? 'block' : 'none';
 
-            if (selectedWO !== 'OTHER' && selectedWO !== '') {
-                const woData = activeWorkOrders.find(w => w.woNumber === selectedWO);
-                if (woData) {
-                    document.getElementById('prodPartNo').value = woData.partNo || '';
-                    document.getElementById('prodTarget').value = (woData.targetQty - woData.producedQty) || '';
-                    setSmartDropdown('prodPartName', 'prodPartNameOther', woData.partName);
-                    showToast("ℹ️ Form auto-filled from Work Order");
-                }
+                document.getElementById('tab-crm').style.background = tab === 'crm' ? '#6f42c1' : '#eee';
+                document.getElementById('tab-crm').style.color = tab === 'crm' ? 'white' : '#555';
+
+                document.getElementById('tab-orders').style.background = tab === 'orders' ? '#28a745' : '#eee';
+                document.getElementById('tab-orders').style.color = tab === 'orders' ? 'white' : '#555';
             }
-        }
 
+            async function loadCustomers() {
+                try {
+                    const res = await fetch(`${API_URL}/customers`);
+                    const customers = await res.json();
 
-        // ==========================================
-        // SALES & CRM LOGIC
-        // ==========================================
-        function switchSalesTab(tab) {
-            document.getElementById('crmSection').style.display = tab === 'crm' ? 'block' : 'none';
-            document.getElementById('ordersSection').style.display = tab === 'orders' ? 'block' : 'none';
+                    const tbody = document.querySelector('#crmTable tbody');
+                    const thead = document.querySelector('#crmTable thead tr');
+                    const soSelect = document.getElementById('soCustomer');
 
-            document.getElementById('tab-crm').style.background = tab === 'crm' ? '#6f42c1' : '#eee';
-            document.getElementById('tab-crm').style.color = tab === 'crm' ? 'white' : '#555';
+                    tbody.innerHTML = '';
+                    soSelect.innerHTML = '<option value="">- Select Customer -</option>';
 
-            document.getElementById('tab-orders').style.background = tab === 'orders' ? '#28a745' : '#eee';
-            document.getElementById('tab-orders').style.color = tab === 'orders' ? 'white' : '#555';
-        }
+                    // Add the new Promotions Header if it doesn't exist
+                    if (!thead.innerHTML.includes('Promotions')) {
+                        thead.innerHTML += `<th>Promotions</th>`;
+                    }
 
-        async function loadCustomers() {
-            try {
-                const res = await fetch(`${API_URL}/customers`);
-                const customers = await res.json();
-
-                const tbody = document.querySelector('#crmTable tbody');
-                const soSelect = document.getElementById('soCustomer');
-                tbody.innerHTML = '';
-                soSelect.innerHTML = '<option value="">- Select Customer -</option>';
-
-                customers.forEach(c => {
-                    // Populate Table with your specific CSV fields
-                    tbody.innerHTML += `<tr>
+                    customers.forEach(c => {
+                        // Populate Table 
+                        tbody.innerHTML += `<tr>
                         <td><strong>${c.name}</strong></td>
                         <td><strong>${c.sector || '-'}</strong><br><span style="font-size:11px; color:#666;">Zone: ${c.zone || '-'}</span></td>
                         <td>📞 ${c.phone || '-'} <br> ✉️ ${c.email || '-'}</td>
                         <td>${c.area || '-'}, ${c.state || '-'}<br><span style="font-size:11px; color:#666;">PIN: ${c.pinCode || '-'}</span></td>
                         <td><span style="background:#17a2b8; color:white; padding:3px 6px; border-radius:3px; font-size:11px; font-weight:bold;">${c.transportMode || 'N/A'}</span></td>
                         <td><button style="background:#007bff; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">Add Note</button></td>
+                        <td style="display: flex; flex-direction: column; gap: 5px; min-width: 130px;">
+                            <button onclick="openIndividualPromo('banner', '${c._id}', '${c.name}')" style="background:#e83e8c; color:white; border:none; padding:5px; border-radius:4px; cursor:pointer; font-weight:bold; font-size: 11px;">🖼️ Send Banner</button>
+                            <button onclick="openIndividualPromo('offer', '${c._id}', '${c.name}')" style="background:#ff9800; color:white; border:none; padding:5px; border-radius:4px; cursor:pointer; font-weight:bold; font-size: 11px;">🎁 Send Offer</button>
+                            <button onclick="openIndividualPromo('discount', '${c._id}', '${c.name}')" style="background:#28a745; color:white; border:none; padding:5px; border-radius:4px; cursor:pointer; font-weight:bold; font-size: 11px;">📄 Send Discount</button>
+                        </td>
                     </tr>`;
 
-                    // Populate Dropdown for Sales Orders
-                    soSelect.innerHTML += `<option value="${c._id}">${c.name}</option>`;
-                });
-            } catch (err) { console.error("Error loading CRM", err); }
-        }
+                        // Populate Dropdown for Sales Orders
+                        soSelect.innerHTML += `<option value="${c._id}">${c.name}</option>`;
+                    });
+                } catch (err) { console.error("Error loading CRM", err); }
+            }
 
-        async function submitCustomer() {
-            const name = document.getElementById('crmName').value;
-            if (!name) return showToast("Customer Name is required!", true);
+            async function submitCustomer() {
+                const name = document.getElementById('crmName').value;
+                if (!name) return showToast("Customer Name is required!", true);
 
-            try {
-                const res = await fetch(`${API_URL}/customers`, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        name: name,
-                        sector: document.getElementById('crmSector').value,
-                        transportMode: document.getElementById('crmTransport').value,
-                        phone: document.getElementById('crmPhone').value,
-                        email: document.getElementById('crmEmail').value,
-                        address: document.getElementById('crmAddress').value,
-                        area: document.getElementById('crmArea').value,
-                        state: document.getElementById('crmState').value,
-                        zone: document.getElementById('crmZone').value,
-                        pinCode: document.getElementById('crmPinCode').value
-                    })
-                });
-                if (res.ok) {
-                    showToast("👥 Customer Added Successfully!");
-                    ['crmName', 'crmSector', 'crmTransport', 'crmPhone', 'crmEmail', 'crmAddress', 'crmArea', 'crmState', 'crmZone', 'crmPinCode'].forEach(id => document.getElementById(id).value = '');
-                    loadCustomers();
-                }
-            } catch (err) { showToast("❌ Error saving customer", true); }
-        }
+                try {
+                    const res = await fetch(`${API_URL}/customers`, {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            name: name,
+                            sector: document.getElementById('crmSector').value,
+                            transportMode: document.getElementById('crmTransport').value,
+                            phone: document.getElementById('crmPhone').value,
+                            email: document.getElementById('crmEmail').value,
+                            address: document.getElementById('crmAddress').value,
+                            area: document.getElementById('crmArea').value,
+                            state: document.getElementById('crmState').value,
+                            zone: document.getElementById('crmZone').value,
+                            pinCode: document.getElementById('crmPinCode').value
+                        })
+                    });
+                    if (res.ok) {
+                        showToast("👥 Customer Added Successfully!");
+                        ['crmName', 'crmSector', 'crmTransport', 'crmPhone', 'crmEmail', 'crmAddress', 'crmArea', 'crmState', 'crmZone', 'crmPinCode'].forEach(id => document.getElementById(id).value = '');
+                        loadCustomers();
+                    }
+                } catch (err) { showToast("❌ Error saving customer", true); }
+            }
 
-        // UPDATE: Load Sales Orders to show Sector, Grade, Length, A/F
-        // --- FULLY FIXED ACTIONS & INVOICE TABLE ---
-        async function loadSalesOrders() {
-            try {
-                const res = await fetch(`${API_URL}/sales-orders`);
-                const orders = await res.json();
-                const tbody = document.querySelector('#salesOrderTable tbody');
-                tbody.innerHTML = '';
+            // UPDATE: Load Sales Orders to show Sector, Grade, Length, A/F
+            // --- FULLY FIXED ACTIONS & INVOICE TABLE ---
+            async function loadSalesOrders() {
+                try {
+                    const res = await fetch(`${API_URL}/sales-orders`);
+                    const orders = await res.json();
+                    const tbody = document.querySelector('#salesOrderTable tbody');
+                    tbody.innerHTML = '';
 
-                orders.forEach(o => {
-                    // Injecting all Product specifics (Sector, Grade, Length, AF, Wt)
-                    let itemsHtml = o.items.map(i => `
+                    orders.forEach(o => {
+                        // Injecting all Product specifics (Sector, Grade, Length, AF, Wt)
+                        let itemsHtml = o.items.map(i => `
                         <div style="margin-bottom: 8px; border-bottom: 1px solid #ddd; padding-bottom: 4px;">
                             <strong>${i.quantity}x ${i.productCode}</strong><br>
                             <span style="font-size:11px; color:#555;">
@@ -2308,30 +2349,30 @@
                         </div>
                     `).join('');
 
-                    let statusColor = o.status === 'QUOTATION' ? '#6c757d' : (o.status === 'CONFIRMED' ? '#007bff' : (o.status === 'DISPATCHED' ? '#ff9800' : '#28a745'));
-                    
-                    // Rebuilding Action Buttons Safely
-                    let actionButtons = '';
-                    
-                    if (o.status === 'QUOTATION') {
-                        actionButtons += `<button onclick="updateOrderStatus('${o._id}', 'CONFIRMED')" style="background:#007bff; color:white; border:none; padding:6px; border-radius:4px; cursor:pointer; width:100%; margin-bottom:5px;">✅ Confirm & Email Invoice</button>`;
-                    }
-                    if (o.status === 'CONFIRMED') {
-                        actionButtons += `<button onclick="updateOrderStatus('${o._id}', 'DISPATCHED')" style="background:#ff9800; color:white; border:none; padding:6px; border-radius:4px; cursor:pointer; width:100%; margin-bottom:5px;">📦 Dispatch</button>`;
-                    }
-                    if (o.status === 'DISPATCHED') {
-                        actionButtons += `<button onclick="updateOrderStatus('${o._id}', 'SHIPPED')" style="background:#17a2b8; color:white; border:none; padding:6px; border-radius:4px; cursor:pointer; width:100%; margin-bottom:5px;">🚚 Ship (Add Link)</button>`;
-                    }
-                    if (o.status === 'SHIPPED') {
-                        actionButtons += `<button onclick="updateOrderStatus('${o._id}', 'DELIVERED')" style="background:#28a745; color:white; border:none; padding:6px; border-radius:4px; cursor:pointer; width:100%; margin-bottom:5px;">🏁 Mark Delivered</button>`;
-                    }
-                    
-                    // Add Invoice Download Button to any order past Quotation Phase
-                    if (o.status !== 'QUOTATION' && o.status !== 'CANCELLED') {
-                        actionButtons += `<button onclick="downloadInvoice('${o._id}')" style="background:#dc3545; color:white; border:none; padding:6px; border-radius:4px; cursor:pointer; width:100%; font-weight:bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">📄 Download Invoice</button>`;
-                    }
+                        let statusColor = o.status === 'QUOTATION' ? '#6c757d' : (o.status === 'CONFIRMED' ? '#007bff' : (o.status === 'DISPATCHED' ? '#ff9800' : '#28a745'));
 
-                    tbody.innerHTML += `<tr>
+                        // Rebuilding Action Buttons Safely
+                        let actionButtons = '';
+
+                        if (o.status === 'QUOTATION') {
+                            actionButtons += `<button onclick="updateOrderStatus('${o._id}', 'CONFIRMED')" style="background:#007bff; color:white; border:none; padding:6px; border-radius:4px; cursor:pointer; width:100%; margin-bottom:5px;">✅ Confirm & Email Invoice</button>`;
+                        }
+                        if (o.status === 'CONFIRMED') {
+                            actionButtons += `<button onclick="updateOrderStatus('${o._id}', 'DISPATCHED')" style="background:#ff9800; color:white; border:none; padding:6px; border-radius:4px; cursor:pointer; width:100%; margin-bottom:5px;">📦 Dispatch</button>`;
+                        }
+                        if (o.status === 'DISPATCHED') {
+                            actionButtons += `<button onclick="updateOrderStatus('${o._id}', 'SHIPPED')" style="background:#17a2b8; color:white; border:none; padding:6px; border-radius:4px; cursor:pointer; width:100%; margin-bottom:5px;">🚚 Ship (Add Link)</button>`;
+                        }
+                        if (o.status === 'SHIPPED') {
+                            actionButtons += `<button onclick="updateOrderStatus('${o._id}', 'DELIVERED')" style="background:#28a745; color:white; border:none; padding:6px; border-radius:4px; cursor:pointer; width:100%; margin-bottom:5px;">🏁 Mark Delivered</button>`;
+                        }
+
+                        // Add Invoice Download Button to any order past Quotation Phase
+                        if (o.status !== 'QUOTATION' && o.status !== 'CANCELLED') {
+                            actionButtons += `<button onclick="downloadInvoice('${o._id}')" style="background:#dc3545; color:white; border:none; padding:6px; border-radius:4px; cursor:pointer; width:100%; font-weight:bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">📄 Download Invoice</button>`;
+                        }
+
+                        tbody.innerHTML += `<tr>
                         <td><strong>${o.orderNo}</strong><br><span style="font-size:10px; color:#888;">${new Date(o.orderDate).toLocaleDateString()}</span></td>
                         <td><strong>${o.customerName || 'Walk-in'}</strong></td>
                         <td>${itemsHtml}</td>
@@ -2339,219 +2380,358 @@
                         <td><span style="background:${statusColor}; color:white; padding:4px 8px; border-radius:4px; font-weight:bold; font-size:11px;">${o.status}</span></td>
                         <td style="min-width: 150px;">${actionButtons}</td>
                     </tr>`;
-                });
-            } catch (err) { console.error(err); }
-        }
-
-        // NEW: Download PDF
-        function downloadInvoice(id) {
-            window.open(`${API_URL}/sales-orders/${id}/invoice`, '_blank');
-        }
-
-        function closeMarketingModal() { 
-            document.getElementById('marketingModal').style.display = 'none'; 
-            document.getElementById('promoBody').value = '';
-            document.getElementById('promoSpecificPhone').value = '';
-        }
-
-        // INSTANT WHATSAPP WEB METHOD (No API required!)
-        function sendMarketingWhatsApp() {
-            const messageText = document.getElementById('promoBody').value.trim();
-            const specificPhone = document.getElementById('promoSpecificPhone').value.trim(); 
-
-            if (!messageText || !specificPhone) {
-                return showToast("⚠️ For this method, you MUST enter a single Phone Number and Message!", true);
+                    });
+                } catch (err) { console.error(err); }
             }
 
-            // Clean the phone number (remove spaces, +, etc.)
-            const cleanPhone = specificPhone.replace(/\D/g, '');
-
-            // Encode the message so it formats correctly in WhatsApp
-            const encodedMessage = encodeURIComponent(messageText);
-
-            // Open WhatsApp Web/App directly
-            const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodedMessage}`;
-            window.open(whatsappUrl, '_blank');
-
-            showToast("✅ Opening WhatsApp...");
-            closeMarketingModal();
-        }
-
-        // Updated Update Order Status with Tracking Link Prompt
-        async function updateOrderStatus(id, newStatus) {
-            let payload = { status: newStatus, username: currentUser.username };
-
-            if (newStatus === 'SHIPPED') {
-                const link = prompt("Enter the Consignment/Tracking URL for this shipment:");
-                if (!link) return showToast("⚠️ Shipping cancelled. Tracking link is required.", true);
-                payload.trackingLink = link;
-            } else {
-                if (!confirm(`Mark order as ${newStatus}? Customer will receive an email.`)) return;
+            // NEW: Download PDF
+            function downloadInvoice(id) {
+                window.open(`${API_URL}/sales-orders/${id}/invoice`, '_blank');
             }
 
-            try {
-                const res = await fetch(`${API_URL}/sales-orders/${id}/status`, {
-                    method: 'PUT', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                if (res.ok) {
-                    showToast(`✅ Order ${newStatus} & Email Sent!`);
-                    loadSalesOrders(); loadInventory(); loadTransactions();
+            function closeMarketingModal() {
+                document.getElementById('marketingModal').style.display = 'none';
+                document.getElementById('promoBody').value = '';
+                document.getElementById('promoSpecificPhone').value = '';
+            }
+
+            // INSTANT WHATSAPP WEB METHOD (No API required!)
+            function sendMarketingWhatsApp() {
+                const messageText = document.getElementById('promoBody').value.trim();
+                const specificPhone = document.getElementById('promoSpecificPhone').value.trim();
+
+                if (!messageText || !specificPhone) {
+                    return showToast("⚠️ For this method, you MUST enter a single Phone Number and Message!", true);
                 }
-            } catch (err) { showToast("Error updating order", true) }
-        }
 
-        function openMarketingModal() { document.getElementById('marketingModal').style.display = 'flex'; }
-        function closeMarketingModal() {
-            document.getElementById('marketingModal').style.display = 'none';
-            document.getElementById('promoSubject').value = '';
-            document.getElementById('promoBody').value = '';
-            document.getElementById('promoSpecificEmail').value = '';
-        }
+                // Clean the phone number (remove spaces, +, etc.)
+                const cleanPhone = specificPhone.replace(/\D/g, '');
 
-        
-        // NEW: Dynamically adds a new row for multiple products
-        function addSOItemRow() {
-            const container = document.getElementById('soItemsContainer');
-            const row = document.createElement('div');
-            row.className = 'so-item-row';
-            row.style.cssText = 'display: flex; gap: 10px; margin-bottom: 10px; align-items: center; flex-wrap: wrap;';
-            row.innerHTML = `
+                // Encode the message so it formats correctly in WhatsApp
+                const encodedMessage = encodeURIComponent(messageText);
+
+                // Open WhatsApp Web/App directly
+                const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodedMessage}`;
+                window.open(whatsappUrl, '_blank');
+
+                showToast("✅ Opening WhatsApp...");
+                closeMarketingModal();
+            }
+
+            // Updated Update Order Status with Tracking Link Prompt
+            async function updateOrderStatus(id, newStatus) {
+                let payload = { status: newStatus, username: currentUser.username };
+
+                if (newStatus === 'SHIPPED') {
+                    const link = prompt("Enter the Consignment/Tracking URL for this shipment:");
+                    if (!link) return showToast("⚠️ Shipping cancelled. Tracking link is required.", true);
+                    payload.trackingLink = link;
+                } else {
+                    if (!confirm(`Mark order as ${newStatus}? Customer will receive an email.`)) return;
+                }
+
+                try {
+                    const res = await fetch(`${API_URL}/sales-orders/${id}/status`, {
+                        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    if (res.ok) {
+                        showToast(`✅ Order ${newStatus} & Email Sent!`);
+                        loadSalesOrders(); loadInventory(); loadTransactions();
+                    }
+                } catch (err) { showToast("Error updating order", true) }
+            }
+
+            function openMarketingModal() { document.getElementById('marketingModal').style.display = 'flex'; }
+            function closeMarketingModal() {
+                document.getElementById('marketingModal').style.display = 'none';
+                document.getElementById('promoSubject').value = '';
+                document.getElementById('promoBody').value = '';
+                document.getElementById('promoSpecificEmail').value = '';
+            }
+
+
+            // NEW: Dynamically adds a new row for multiple products
+            function addSOItemRow() {
+                const container = document.getElementById('soItemsContainer');
+                const row = document.createElement('div');
+                row.className = 'so-item-row';
+                row.style.cssText = 'display: flex; gap: 10px; margin-bottom: 10px; align-items: center; flex-wrap: wrap;';
+                row.innerHTML = `
                 <input type="text" class="so-product prod-input" placeholder="* Product Code" style="flex: 2; min-width: 150px;">
                 <input type="number" class="so-qty prod-input" placeholder="* Qty" style="flex: 1; min-width: 80px;">
                 <input type="number" class="so-price prod-input" placeholder="* Unit Price (₹)" style="flex: 1; min-width: 100px;">
                 <button onclick="this.parentElement.remove()" style="background:#dc3545; color:white; border:none; padding:10px; border-radius:5px; cursor:pointer; font-weight:bold;">✖</button>
             `;
-            container.appendChild(row);
-        }
+                container.appendChild(row);
+            }
 
-        // UPDATED: Submits MULTIPLE items array to the backend
-        async function submitSalesOrder() {
-            const customerSelect = document.getElementById('soCustomer');
-            const status = document.getElementById('soType').value;
+            // UPDATED: Submits MULTIPLE items array to the backend
+            async function submitSalesOrder() {
+                const customerSelect = document.getElementById('soCustomer');
+                const status = document.getElementById('soType').value;
 
-            if (!customerSelect.value) return showToast("⚠️ Please select a Customer!", true);
+                if (!customerSelect.value) return showToast("⚠️ Please select a Customer!", true);
 
-            const itemRows = document.querySelectorAll('.so-item-row');
-            let items = [];
+                const itemRows = document.querySelectorAll('.so-item-row');
+                let items = [];
 
-            // Loop through all product rows on the screen
-            itemRows.forEach(row => {
-                const productCode = row.querySelector('.so-product').value.trim();
-                const quantity = row.querySelector('.so-qty').value;
-                const unitPrice = row.querySelector('.so-price').value;
+                // Loop through all product rows on the screen
+                itemRows.forEach(row => {
+                    const productCode = row.querySelector('.so-product').value.trim();
+                    const quantity = row.querySelector('.so-qty').value;
+                    const unitPrice = row.querySelector('.so-price').value;
 
-                if (productCode && quantity && unitPrice) {
-                    items.push({
-                        productCode,
-                        quantity: Number(quantity),
-                        unitPrice: Number(unitPrice),
-                        total: Number(quantity) * Number(unitPrice)
-                    });
-                }
-            });
-
-            if (items.length === 0) return showToast("⚠️ Please fill out at least one product properly!", true);
-
-            const btn = document.querySelector('button[onclick="submitSalesOrder()"]');
-            btn.innerText = "⏳ Generating..."; btn.disabled = true;
-
-            try {
-                const res = await fetch(`${API_URL}/sales-orders`, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        customerId: customerSelect.value,
-                        customerName: customerSelect.options[customerSelect.selectedIndex].text,
-                        items: items, // Sends the full array of multiple items
-                        status: status,
-                        createdBy: currentUser.username
-                    })
+                    if (productCode && quantity && unitPrice) {
+                        items.push({
+                            productCode,
+                            quantity: Number(quantity),
+                            unitPrice: Number(unitPrice),
+                            total: Number(quantity) * Number(unitPrice)
+                        });
+                    }
                 });
-                
-                const data = await res.json();
-                if (res.ok && data.success) { 
-                    showToast("📝 Order Generated!"); 
-                    loadSalesOrders(); 
-                    
-                    // Reset the form UI
-                    document.getElementById('soItemsContainer').innerHTML = `
+
+                if (items.length === 0) return showToast("⚠️ Please fill out at least one product properly!", true);
+
+                const btn = document.querySelector('button[onclick="submitSalesOrder()"]');
+                btn.innerText = "⏳ Generating..."; btn.disabled = true;
+
+                try {
+                    const res = await fetch(`${API_URL}/sales-orders`, {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            customerId: customerSelect.value,
+                            customerName: customerSelect.options[customerSelect.selectedIndex].text,
+                            items: items, // Sends the full array of multiple items
+                            status: status,
+                            createdBy: currentUser.username
+                        })
+                    });
+
+                    const data = await res.json();
+                    if (res.ok && data.success) {
+                        showToast("📝 Order Generated!");
+                        loadSalesOrders();
+
+                        // Reset the form UI
+                        document.getElementById('soItemsContainer').innerHTML = `
                         <div class="so-item-row" style="display: flex; gap: 10px; margin-bottom: 10px; align-items: center; flex-wrap: wrap;">
                             <input type="text" class="so-product prod-input" placeholder="* Product Code" style="flex: 2; min-width: 150px;">
                             <input type="number" class="so-qty prod-input" placeholder="* Qty" style="flex: 1; min-width: 80px;">
                             <input type="number" class="so-price prod-input" placeholder="* Unit Price (₹)" style="flex: 1; min-width: 100px;">
                         </div>`;
-                } else {
-                    showToast("❌ Error: " + (data.error || "Failed"), true);
+                    } else {
+                        showToast("❌ Error: " + (data.error || "Failed"), true);
+                    }
+                } catch (err) {
+                    showToast("❌ Network Error", true);
+                } finally {
+                    btn.innerText = "💾 Generate Order"; btn.disabled = false;
                 }
-            } catch (err) { 
-                showToast("❌ Network Error", true); 
-            } finally {
-                btn.innerText = "💾 Generate Order"; btn.disabled = false;
             }
-        }
 
-        // UPDATED: Now exposes exact errors to stop silent failures
-        async function updateOrderStatus(id, newStatus) {
-            let payload = { status: newStatus, username: currentUser.username };
+            // UPDATED: Now exposes exact errors to stop silent failures
+            async function updateOrderStatus(id, newStatus) {
+                let payload = { status: newStatus, username: currentUser.username };
 
-            if (newStatus === 'SHIPPED') {
-                const link = prompt("Enter the Consignment/Tracking URL for this shipment:");
-                if (!link) return showToast("⚠️ Shipping cancelled. Tracking link required.", true);
-                payload.trackingLink = link;
+                if (newStatus === 'SHIPPED') {
+                    const link = prompt("Enter the Consignment/Tracking URL for this shipment:");
+                    if (!link) return showToast("⚠️ Shipping cancelled. Tracking link required.", true);
+                    payload.trackingLink = link;
+                } else {
+                    if (!confirm(`Update status to ${newStatus}?`)) return;
+                }
+
+                try {
+                    const res = await fetch(`${API_URL}/sales-orders/${id}/status`, {
+                        method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+                    });
+
+                    const data = await res.json(); // Parses the backend response properly
+
+                    if (res.ok && data.success) {
+                        showToast(`✅ Order updated successfully!`);
+                        loadSalesOrders();
+                        loadInventory();
+                        loadTransactions();
+                    } else {
+                        // This is what prevents the silent failure. You will now see WHY it failed!
+                        showToast(`❌ Update Failed: ${data.error || 'Unknown Error'}`, true);
+                    }
+                } catch (err) {
+                    showToast("❌ Network Error updating order", true);
+                }
+            }
+
+            async function updateOrderPayment(id, newPaymentStatus) {
+                try {
+                    const res = await fetch(`${API_URL}/sales-orders/${id}/status`, {
+                        method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ paymentStatus: newPaymentStatus })
+                    });
+                    if (res.ok) { showToast("💰 Payment Recorded!"); loadSalesOrders(); }
+                } catch (err) { }
+            }
+
+
+
+            // ==========================================
+            // MARKETING & OFFERS LOGIC
+            // ==========================================
+            function openMarketingModal() {
+                document.getElementById('marketingModal').style.display = 'flex';
+            }
+
+            function closeMarketingModal() {
+                document.getElementById('marketingModal').style.display = 'none';
+                document.getElementById('promoBody').value = '';
+                // We clear the new phone input instead of the old email one!
+                if (document.getElementById('promoSpecificPhone')) {
+                    document.getElementById('promoSpecificPhone').value = '';
+                }
+            }
+
+
+
+
+            // ==========================================
+        // INDIVIDUAL PROMOTIONS (BANNERS, OFFERS, DISCOUNTS)
+        // ==========================================
+        let currentPromoType = '';
+        let currentPromoCustomerId = '';
+        let discountFileBase64 = null;
+        let discountFileName = null;
+
+        // Handle File Upload Reading
+        document.getElementById('discountFileInput')?.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            discountFileName = file.name;
+            const reader = new FileReader();
+            reader.onload = function(event) { discountFileBase64 = event.target.result; };
+            reader.readAsDataURL(file);
+        });
+
+        function openIndividualPromo(type, customerId, customerName) {
+            currentPromoType = type;
+            currentPromoCustomerId = customerId;
+            document.getElementById('individualPromoModal').style.display = 'flex';
+            
+            const textSec = document.getElementById('promoTextSection');
+            const fileSec = document.getElementById('promoFileSection');
+            const title = document.getElementById('promoModalTitle');
+
+            document.getElementById('promoTextInput').value = '';
+            discountFileBase64 = null;
+            if(document.getElementById('discountFileInput')) document.getElementById('discountFileInput').value = '';
+
+            if (type === 'banner' || type === 'offer') {
+                title.innerText = type === 'banner' ? `🖼️ Send Banner to ${customerName}` : `🎁 Send Offer to ${customerName}`;
+                textSec.style.display = 'block';
+                fileSec.style.display = 'none';
+                generateCanvasPreview(); // Draw blank canvas
             } else {
-                if (!confirm(`Update status to ${newStatus}?`)) return;
+                title.innerText = `📄 Upload Discount for ${customerName}`;
+                textSec.style.display = 'none';
+                fileSec.style.display = 'block';
             }
+        }
 
-            try {
-                const res = await fetch(`${API_URL}/sales-orders/${id}/status`, {
-                    method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
-                });
-                
-                const data = await res.json(); // Parses the backend response properly
+        function closeIndividualPromo() {
+            document.getElementById('individualPromoModal').style.display = 'none';
+        }
 
-                if (res.ok && data.success) { 
-                    showToast(`✅ Order updated successfully!`); 
-                    loadSalesOrders(); 
-                    loadInventory();
-                    loadTransactions();
+        // Magically draws the text onto an image Canvas!
+        function generateCanvasPreview() {
+            const canvas = document.getElementById('bannerCanvas');
+            if(!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const text = document.getElementById('promoTextInput').value || 'Type your message above...';
+
+            // Draw Background (Gradient)
+            let gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            gradient.addColorStop(0, currentPromoType === 'banner' ? '#6f42c1' : '#ff9800');
+            gradient.addColorStop(1, currentPromoType === 'banner' ? '#e83e8c' : '#dc3545');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw Text
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 24px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            // Basic text wrapping logic for the canvas
+            const words = text.split(' ');
+            let line = '';
+            let y = canvas.height / 2 - 20;
+
+            for(let n = 0; n < words.length; n++) {
+                let testLine = line + words[n] + ' ';
+                let metrics = ctx.measureText(testLine);
+                if (metrics.width > canvas.width - 40 && n > 0) {
+                    ctx.fillText(line, canvas.width / 2, y);
+                    line = words[n] + ' ';
+                    y += 30;
                 } else {
-                    // This is what prevents the silent failure. You will now see WHY it failed!
-                    showToast(`❌ Update Failed: ${data.error || 'Unknown Error'}`, true);
+                    line = testLine;
                 }
-            } catch (err) { 
-                showToast("❌ Network Error updating order", true); 
             }
+            ctx.fillText(line, canvas.width / 2, y);
+            
+            // Add Logo/Footer
+            ctx.font = 'bold 14px Arial';
+            ctx.fillText('PPL ENTERPRISES', canvas.width / 2, canvas.height - 20);
         }
 
-        async function updateOrderPayment(id, newPaymentStatus) {
+        async function executeSendPromotion() {
+            const btn = document.getElementById('sendPromoBtn');
+            let payload = {
+                customerId: currentPromoCustomerId,
+                promoType: currentPromoType
+            };
+
+            if (currentPromoType === 'banner' || currentPromoType === 'offer') {
+                const text = document.getElementById('promoTextInput').value.trim();
+                if (!text) return showToast("⚠️ Please type a message!", true);
+                
+                // Convert Canvas to Base64 Image string
+                const canvas = document.getElementById('bannerCanvas');
+                payload.mediaBase64 = canvas.toDataURL('image/png');
+                payload.messageText = text;
+            } 
+            else if (currentPromoType === 'discount') {
+                if (!discountFileBase64) return showToast("⚠️ Please upload a file!", true);
+                payload.mediaBase64 = discountFileBase64;
+                payload.filename = discountFileName;
+                payload.messageText = "Please find your custom discount document attached.";
+            }
+
+            btn.innerText = "⏳ Sending..."; btn.disabled = true;
+
             try {
-                const res = await fetch(`${API_URL}/sales-orders/${id}/status`, {
-                    method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ paymentStatus: newPaymentStatus })
+                const res = await fetch(`${API_URL}/marketing/send-single`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
                 });
-                if (res.ok) { showToast("💰 Payment Recorded!"); loadSalesOrders(); }
-            } catch (err) { }
-        }
+                const data = await res.json();
 
-
-
-        // ==========================================
-        // MARKETING & OFFERS LOGIC
-        // ==========================================
-        function openMarketingModal() {
-            document.getElementById('marketingModal').style.display = 'flex';
-        }
-
-        function closeMarketingModal() { 
-            document.getElementById('marketingModal').style.display = 'none'; 
-            document.getElementById('promoBody').value = '';
-            // We clear the new phone input instead of the old email one!
-            if(document.getElementById('promoSpecificPhone')) {
-                document.getElementById('promoSpecificPhone').value = '';
+                if (res.ok && data.success) {
+                    showToast(`✅ Promotion sent successfully!`);
+                    closeIndividualPromo();
+                } else {
+                    showToast(`❌ Error: ${data.error}`, true);
+                }
+            } catch (err) {
+                showToast("❌ Network Error", true);
+            } finally {
+                btn.innerText = "🚀 Send to Customer"; btn.disabled = false;
             }
         }
 
-        
-    </script>
+
+        </script>
 </body>
 
 </html>
