@@ -2673,7 +2673,7 @@
         }
 
         // ==========================================
-        // UNBREAKABLE AI GENERATOR (WITH TEMPLATE FALLBACK)
+        // PRO-DESIGNER AI BANNER SYSTEM (Sharp Text + AI Background)
         // ==========================================
         async function fetchAIImage() {
             const rawText = document.getElementById('promoTextInput').value.trim();
@@ -2681,48 +2681,120 @@
 
             const btn = document.getElementById('generateAiBtn');
             const loading = document.getElementById('aiLoadingText');
-            const img = document.getElementById('aiGeneratedImage');
+            const imgEl = document.getElementById('aiGeneratedImage');
 
-            btn.disabled = true; btn.innerText = "⏳ Dreaming... (Takes ~10 sec)";
-            img.style.display = "none"; loading.style.display = "block";
+            btn.disabled = true; btn.innerText = "⏳ Sourcing Background... (~10 sec)";
+            imgEl.style.display = "none"; loading.style.display = "block";
 
-            // 1. Clean the text to prevent URL crashing on the free server
-            const cleanText = rawText.replace(/[^a-zA-Z0-9 %]/g, ''); 
-            const enhancedPrompt = `High quality product photography, industrial hardware bolts, ${cleanText}, 4k, vibrant festive atmosphere`;
-            
+            // 1. We ask the AI ONLY for a background photo (NO TEXT)
+            const aiBackgroundPrompt = "professional macro photography of industrial high-tensile steel bolts and nuts, dramatic studio lighting, dark aesthetic background, 4k resolution";
             const randomSeed = Math.floor(Math.random() * 100000);
-            const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?width=800&height=600&seed=${randomSeed}&nologo=true`;
+            const bgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(aiBackgroundPrompt)}?width=800&height=800&seed=${randomSeed}&nologo=true`;
 
             try {
-                // 2. Try the Free AI API
-                const response = await fetch(imageUrl);
-                if (!response.ok) throw new Error("AI Server is busy");
+                // 2. Load the AI background image
+                const bgImage = await loadBackgroundImage(bgUrl);
                 
-                const blob = await response.blob();
-                const reader = new FileReader();
-                reader.onloadend = function() {
-                    currentAiBase64 = reader.result;
-                    img.src = currentAiBase64;
-                    img.style.display = "block";
-                    loading.style.display = "none";
-                    btn.disabled = false; btn.innerText = "🎨 Generate Free AI Image";
-                    showToast("✅ AI Image Generated Successfully!");
-                }
-                reader.readAsDataURL(blob);
-
-            } catch (err) {
-                // 3. THE UNBREAKABLE FALLBACK: If the AI is down, draw a beautiful template instantly!
-                console.log("AI Server busy. Generating local high-quality template instead.");
-                showToast("⚠️ AI Server busy. Generating Branded Template instead!");
+                // 3. Draw the crisp text over it
+                currentAiBase64 = buildProfessionalCanvas(bgImage, rawText);
                 
-                currentAiBase64 = generateEmergencyTemplate(rawText);
-                
-                img.src = currentAiBase64;
-                img.style.display = "block";
+                imgEl.src = currentAiBase64;
+                imgEl.style.display = "block";
                 loading.style.display = "none";
-                btn.disabled = false; btn.innerText = "🎨 Generate Free AI Image";
+                showToast("✅ Professional Banner Generated!");
+            } catch (err) {
+                console.log("AI Background failed, using premium gradient fallback.");
+                currentAiBase64 = buildProfessionalCanvas(null, rawText); // Uses fallback background
+                imgEl.src = currentAiBase64;
+                imgEl.style.display = "block";
+                loading.style.display = "none";
+                showToast("⚠️ Used premium fallback background.");
+            } finally {
+                btn.disabled = false; btn.innerText = "🎨 Generate Professional Banner";
             }
         }
+
+        // Helper: Loads image safely
+        function loadBackgroundImage(url) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.crossOrigin = "Anonymous"; // Required for Canvas
+                img.onload = () => resolve(img);
+                img.onerror = () => reject(new Error("Image load failed"));
+                img.src = url;
+            });
+        }
+
+        // Creates the final layout with Razor-Sharp Typography
+        function buildProfessionalCanvas(bgImage, offerText) {
+            const canvas = document.createElement('canvas');
+            // 800x800 Square is the absolute best format for WhatsApp
+            canvas.width = 800; canvas.height = 800; 
+            const ctx = canvas.getContext('2d');
+
+            // 1. Draw Background
+            if (bgImage) {
+                ctx.drawImage(bgImage, 0, 0, 800, 800);
+            } else {
+                // Premium Corporate Gradient Fallback
+                let bgGradient = ctx.createLinearGradient(0, 0, 800, 800);
+                bgGradient.addColorStop(0, '#1a2a6c'); 
+                bgGradient.addColorStop(0.5, '#b21f1f'); 
+                bgGradient.addColorStop(1, '#fdbb2d');
+                ctx.fillStyle = bgGradient;
+                ctx.fillRect(0, 0, 800, 800);
+            }
+
+            // 2. Add a Dark Overlay (Crucial so white text pops clearly!)
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.65)'; // 65% dark tint
+            ctx.fillRect(0, 0, 800, 800);
+
+            // 3. Draw Corporate Branding (Top Left)
+            ctx.fillStyle = '#ff9800'; // Orange accent
+            ctx.fillRect(40, 40, 8, 60); // Accent line
+            
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 46px "Segoe UI", Arial, sans-serif';
+            ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+            ctx.fillText('PPL', 60, 40);
+            
+            ctx.fillStyle = '#cccccc';
+            ctx.font = 'bold 18px "Segoe UI", Arial, sans-serif';
+            ctx.letterSpacing = "2px"; // Adds a premium feel
+            ctx.fillText('ENTERPRISES', 62, 85);
+
+            // 4. Draw Main Crisp Text
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 56px "Segoe UI", Arial, sans-serif';
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            
+            // Smart Text Wrapping
+            const words = offerText.split(' ');
+            let line = ''; let y = 350;
+            for(let n = 0; n < words.length; n++) {
+                let testLine = line + words[n] + ' ';
+                if (ctx.measureText(testLine).width > 700 && n > 0) {
+                    ctx.fillText(line, 400, y);
+                    line = words[n] + ' '; y += 70; // Line height
+                } else { line = testLine; }
+            }
+            ctx.fillText(line, 400, y);
+
+            // 5. Draw Footer / Call to Action
+            ctx.beginPath();
+            ctx.roundRect(150, 700, 500, 60, 30); // Draw pill shape button
+            ctx.fillStyle = '#25D366'; // WhatsApp Green
+            ctx.fill();
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 24px "Segoe UI", Arial, sans-serif';
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText('CLICK LINK TO ORDER NOW', 400, 730);
+
+            return canvas.toDataURL('image/jpeg', 0.95);
+        }
+
+        
 
         // Draws a stunning corporate banner locally if the AI server fails
         function generateEmergencyTemplate(offerText) {
