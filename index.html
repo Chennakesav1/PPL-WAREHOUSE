@@ -2618,6 +2618,144 @@
 
 
 
+            // ==========================================
+        // INDIVIDUAL PROMOTIONS (BANNERS, OFFERS, DISCOUNTS)
+        // ==========================================
+        let currentPromoType = '';
+        let currentPromoCustomerId = '';
+        let discountFileBase64 = null;
+        let discountFileName = null;
+
+        // Handle File Upload Reading
+        document.getElementById('discountFileInput')?.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            discountFileName = file.name;
+            const reader = new FileReader();
+            reader.onload = function(event) { discountFileBase64 = event.target.result; };
+            reader.readAsDataURL(file);
+        });
+
+        function openIndividualPromo(type, customerId, customerName) {
+            currentPromoType = type;
+            currentPromoCustomerId = customerId;
+            document.getElementById('individualPromoModal').style.display = 'flex';
+            
+            const textSec = document.getElementById('promoTextSection');
+            const fileSec = document.getElementById('promoFileSection');
+            const title = document.getElementById('promoModalTitle');
+
+            document.getElementById('promoTextInput').value = '';
+            discountFileBase64 = null;
+            if(document.getElementById('discountFileInput')) document.getElementById('discountFileInput').value = '';
+
+            if (type === 'banner' || type === 'offer') {
+                title.innerText = type === 'banner' ? `🖼️ Send Banner to ${customerName}` : `🎁 Send Offer to ${customerName}`;
+                textSec.style.display = 'block';
+                fileSec.style.display = 'none';
+                generateCanvasPreview(); // Draw blank canvas
+            } else {
+                title.innerText = `📄 Upload Discount for ${customerName}`;
+                textSec.style.display = 'none';
+                fileSec.style.display = 'block';
+            }
+        }
+
+        function closeIndividualPromo() {
+            document.getElementById('individualPromoModal').style.display = 'none';
+        }
+
+        // Magically draws the text onto an image Canvas!
+        function generateCanvasPreview() {
+            const canvas = document.getElementById('bannerCanvas');
+            if(!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const text = document.getElementById('promoTextInput').value || 'Type your message above...';
+
+            // Draw Background (Gradient)
+            let gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            gradient.addColorStop(0, currentPromoType === 'banner' ? '#6f42c1' : '#ff9800');
+            gradient.addColorStop(1, currentPromoType === 'banner' ? '#e83e8c' : '#dc3545');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw Text
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 24px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            // Basic text wrapping logic for the canvas
+            const words = text.split(' ');
+            let line = '';
+            let y = canvas.height / 2 - 20;
+
+            for(let n = 0; n < words.length; n++) {
+                let testLine = line + words[n] + ' ';
+                let metrics = ctx.measureText(testLine);
+                if (metrics.width > canvas.width - 40 && n > 0) {
+                    ctx.fillText(line, canvas.width / 2, y);
+                    line = words[n] + ' ';
+                    y += 30;
+                } else {
+                    line = testLine;
+                }
+            }
+            ctx.fillText(line, canvas.width / 2, y);
+            
+            // Add Logo/Footer
+            ctx.font = 'bold 14px Arial';
+            ctx.fillText('PPL ENTERPRISES', canvas.width / 2, canvas.height - 20);
+        }
+
+        async function executeSendPromotion() {
+            const btn = document.getElementById('sendPromoBtn');
+            let payload = {
+                customerId: currentPromoCustomerId,
+                promoType: currentPromoType
+            };
+
+            if (currentPromoType === 'banner' || currentPromoType === 'offer') {
+                const text = document.getElementById('promoTextInput').value.trim();
+                if (!text) return showToast("⚠️ Please type a message!", true);
+                
+                // Convert Canvas to Base64 Image string
+                const canvas = document.getElementById('bannerCanvas');
+                payload.mediaBase64 = canvas.toDataURL('image/png');
+                payload.messageText = text;
+            } 
+            else if (currentPromoType === 'discount') {
+                if (!discountFileBase64) return showToast("⚠️ Please upload a file!", true);
+                payload.mediaBase64 = discountFileBase64;
+                payload.filename = discountFileName;
+                payload.messageText = "Please find your custom discount document attached.";
+            }
+
+            btn.innerText = "⏳ Sending..."; btn.disabled = true;
+
+            try {
+                const res = await fetch(`${API_URL}/marketing/send-single`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+
+                if (res.ok && data.success) {
+                    showToast(`✅ Promotion sent successfully!`);
+                    closeIndividualPromo();
+                } else {
+                    showToast(`❌ Error: ${data.error}`, true);
+                }
+            } catch (err) {
+                showToast("❌ Network Error", true);
+            } finally {
+                btn.innerText = "🚀 Send to Customer"; btn.disabled = false;
+            }
+        }
+
+
+
 
             
 
