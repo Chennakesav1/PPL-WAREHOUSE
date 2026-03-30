@@ -197,40 +197,31 @@ function generateInvoiceHTML(order, customer) {
     </div>`;
 }
 
-
 // ==========================================
-// FREE AI MARKETING (Hugging Face API)
+// FREE AI MARKETING (Hugging Face API via Axios)
 // ==========================================
 app.post('/api/marketing/generate-ai-banner', async (req, res) => {
     try {
         const { userPrompt } = req.body;
         if (!userPrompt) return res.status(400).json({ error: "User prompt is required." });
 
-        // Optimize the prompt for the free AI to ensure it looks like a professional bolt/hardware ad
         const enhancedPrompt = `High quality professional product photography, promotional banner for industrial hardware, high-tensile bolts and nuts, ${userPrompt}, 4k resolution, highly detailed, vibrant lighting, festive atmosphere`;
 
         console.log("⏳ Sending prompt to Free Hugging Face API...");
 
-        // Using a free Stable Diffusion model
-        const response = await fetch(
+        const response = await axios.post(
             "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0",
+            { inputs: enhancedPrompt },
             {
                 headers: { 
                     Authorization: `Bearer ${process.env.HUGGINGFACE_TOKEN}`,
                     "Content-Type": "application/json" 
                 },
-                method: "POST",
-                body: JSON.stringify({ inputs: enhancedPrompt }),
+                responseType: 'arraybuffer' // CRITICAL: Tells Axios we are downloading a binary image
             }
         );
 
-        if (!response.ok) {
-            throw new Error(`Hugging Face API rejected the request: ${response.statusText}`);
-        }
-
-        // The free API returns raw binary image data. We must convert it to Base64 for your frontend.
-        const arrayBuffer = await response.arrayBuffer();
-        const buffer = Buffer.from(arrayBuffer);
+        const buffer = Buffer.from(response.data, 'binary');
         const base64Image = buffer.toString('base64');
 
         console.log("✅ Free AI Image Generated!");

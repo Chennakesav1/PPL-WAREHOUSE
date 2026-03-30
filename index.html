@@ -1033,19 +1033,19 @@
                         <h2 id="promoModalTitle" style="color: #6f42c1; margin-bottom: 15px;">Send Promotion</h2>
 
                         <div id="promoTextSection" style="display: none;">
-                            <label style="font-size:12px; font-weight:bold; color:#555;">Type your Offer/Banner
-                                text:</label>
+                            <label style="font-size:12px; font-weight:bold; color:#555;">Type instructions for the AI:</label>
                             <textarea id="promoTextInput" class="full-width prod-input" rows="3"
-                                placeholder="E.g., DIWALI MEGA SALE! Flat 20% Off on all Fasteners!"
-                                onkeyup="generateCanvasPreview()"></textarea>
+                                placeholder="E.g., Diwali sale, marigold flowers, shiny bolts on a red background"></textarea>
 
-                            <p
-                                style="font-size:12px; font-weight:bold; color:#555; margin-top: 15px; margin-bottom: 5px;">
-                                Live Image Preview:</p>
-                            <div
-                                style="border: 2px dashed #ccc; padding: 10px; text-align: center; background: #f8f9fa; border-radius: 8px;">
-                                <canvas id="bannerCanvas" width="400" height="200"
-                                    style="max-width: 100%; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2);"></canvas>
+                            <button class="save-btn" style="background-color: #17a2b8; margin-top: 10px;" id="generateAiBtn" onclick="fetchAIImage()">
+                                🎨 Generate Free AI Image
+                            </button>
+
+                            <p style="font-size:12px; font-weight:bold; color:#555; margin-top: 15px; margin-bottom: 5px;">
+                                AI Image Preview:</p>
+                            <div style="border: 2px dashed #ccc; padding: 10px; text-align: center; background: #f8f9fa; border-radius: 8px;">
+                                <img id="aiGeneratedImage" src="" style="max-width: 100%; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); display: none;">
+                                <span id="aiLoadingText" style="display:none; color: #e83e8c; font-weight: bold;">⏳ AI is dreaming... (takes 10-20 sec)</span>
                             </div>
                         </div>
 
@@ -2618,16 +2618,17 @@
 
 
 
-        // ==========================================
-        // INDIVIDUAL PROMOTIONS (DIRECT WHATSAPP)
+            // ==========================================
+        // INDIVIDUAL PROMOTIONS (TRUE AI + WHATSAPP)
         // ==========================================
         let currentPromoType = '';
         let currentPromoCustomerId = '';
-        let currentPromoCustomerPhone = ''; // NEW: Stores the phone number
+        let currentPromoCustomerPhone = '';
         let discountFileBase64 = null;
         let discountFileName = null;
+        let currentAiBase64 = null; // Stores the generated AI image
 
-        // Handle File Upload Reading
+        // Handle File Upload Reading (For Discounts)
         document.getElementById('discountFileInput')?.addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -2637,11 +2638,10 @@
             reader.readAsDataURL(file);
         });
 
-        // UPDATED: Now accepts the customerPhone
         function openIndividualPromo(type, customerId, customerName, customerPhone) {
             currentPromoType = type;
             currentPromoCustomerId = customerId;
-            currentPromoCustomerPhone = customerPhone; // Save the phone number
+            currentPromoCustomerPhone = customerPhone;
             document.getElementById('individualPromoModal').style.display = 'flex';
             
             const textSec = document.getElementById('promoTextSection');
@@ -2649,14 +2649,18 @@
             const title = document.getElementById('promoModalTitle');
 
             document.getElementById('promoTextInput').value = '';
-            discountFileBase64 = null;
+            
+            // Reset AI Image Preview
+            currentAiBase64 = null;
+            if(document.getElementById('aiGeneratedImage')) document.getElementById('aiGeneratedImage').style.display = 'none';
+
             if(document.getElementById('discountFileInput')) document.getElementById('discountFileInput').value = '';
+            discountFileBase64 = null;
 
             if (type === 'banner' || type === 'offer') {
-                title.innerText = type === 'banner' ? `🖼️ Send Banner to ${customerName}` : `🎁 Send Offer to ${customerName}`;
+                title.innerText = type === 'banner' ? `🖼️ Send AI Banner to ${customerName}` : `🎁 Send AI Offer to ${customerName}`;
                 textSec.style.display = 'block';
                 fileSec.style.display = 'none';
-                generateCanvasPreview(); 
             } else {
                 title.innerText = `📄 Upload Discount for ${customerName}`;
                 textSec.style.display = 'none';
@@ -2668,117 +2672,78 @@
             document.getElementById('individualPromoModal').style.display = 'none';
         }
 
-        // Upgraded Professional Banner Generator (No Paid API Required)
-        function generateCanvasPreview() {
-            const canvas = document.getElementById('bannerCanvas');
-            if(!canvas) return;
-            const ctx = canvas.getContext('2d');
-            const text = document.getElementById('promoTextInput').value || 'MEGA SALE! Flat 20% Off on all High-Tensile Fasteners!';
+        // NEW: Fetches the real AI image from your Node.js backend
+        async function fetchAIImage() {
+            const text = document.getElementById('promoTextInput').value.trim();
+            if (!text) return showToast("⚠️ Please type instructions for the AI!", true);
 
-            // 1. Draw Rich Background
-            let bgGradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-            bgGradient.addColorStop(0, '#1a2a6c'); // Deep Corporate Blue
-            bgGradient.addColorStop(0.5, '#b21f1f'); // Industrial Red
-            bgGradient.addColorStop(1, '#fdbb2d'); // Gold
-            ctx.fillStyle = bgGradient;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            const btn = document.getElementById('generateAiBtn');
+            const loading = document.getElementById('aiLoadingText');
+            const img = document.getElementById('aiGeneratedImage');
 
-            // 2. Add an Inner Border
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-            ctx.lineWidth = 4;
-            ctx.strokeRect(15, 15, canvas.width - 30, canvas.height - 30);
+            btn.disabled = true; btn.innerText = "⏳ Dreaming...";
+            img.style.display = "none"; loading.style.display = "block";
 
-            // 3. Draw a "Special Offer" Badge
-            ctx.beginPath();
-            ctx.arc(75, 60, 40, 0, Math.PI * 2);
-            ctx.fillStyle = '#ffc107'; // Yellow badge
-            ctx.fill();
-            ctx.shadowColor = 'transparent'; // Reset shadow
-            
-            ctx.fillStyle = '#000';
-            ctx.font = 'bold 12px Arial';
-            ctx.textAlign = 'center';
-            ctx.fillText('SPECIAL', 60, 55);
-            ctx.fillText('OFFER', 60, 70);
+            try {
+                const res = await fetch(`${API_URL}/marketing/generate-ai-banner`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userPrompt: text })
+                });
+                const data = await res.json();
 
-            // 4. Setup Main Text with Drop Shadows
-            ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
-            ctx.shadowBlur = 10;
-            ctx.shadowOffsetX = 3;
-            ctx.shadowOffsetY = 3;
-            
-            ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 28px Impact, Arial Black, sans-serif';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            
-            // 5. Smart Text Wrapping
-            const words = text.split(' ');
-            let line = '';
-            let y = canvas.height / 2 - 20;
-            const maxWidth = canvas.width - 80;
-
-            for(let n = 0; n < words.length; n++) {
-                let testLine = line + words[n] + ' ';
-                let metrics = ctx.measureText(testLine);
-                if (metrics.width > maxWidth && n > 0) {
-                    ctx.fillText(line, canvas.width / 2, y);
-                    line = words[n] + ' ';
-                    y += 35; // line height
+                if (res.ok && data.success) {
+                    currentAiBase64 = data.base64Image;
+                    img.src = currentAiBase64;
+                    img.style.display = "block";
+                    loading.style.display = "none";
+                    showToast("✅ AI Image Generated Successfully!");
                 } else {
-                    line = testLine;
+                    showToast("❌ AI Error: " + data.error, true);
+                    loading.style.display = "none";
                 }
+            } catch (err) {
+                showToast("❌ Server Error. Is your backend running?", true);
+                loading.style.display = "none";
+            } finally {
+                btn.disabled = false; btn.innerText = "🎨 Generate Free AI Image";
             }
-            ctx.fillText(line, canvas.width / 2, y);
-            
-            // 6. Footer Branding
-            ctx.shadowColor = 'transparent'; // Reset shadow for footer
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-            ctx.font = 'bold 14px Arial';
-            ctx.fillText('🏭 PPL ENTERPRISES | PREMIUM BOLTS & FASTENERS', canvas.width / 2, canvas.height - 25);
         }
 
-        // UPDATED: Opens WhatsApp directly instead of using the backend server
+        // UPDATED: Uses the new AI image instead of the old Canvas
         function executeSendPromotion() {
-            // 1. Safety Check: Does the customer have a phone number?
-            if (!currentPromoCustomerPhone || currentPromoCustomerPhone === 'undefined' || currentPromoCustomerPhone === '-' || currentPromoCustomerPhone === 'null') {
+            if (!currentPromoCustomerPhone || currentPromoCustomerPhone === '-' || currentPromoCustomerPhone === 'null') {
                 return showToast("⚠️ This customer does not have a valid phone number saved!", true);
             }
 
-            // Clean the phone number (remove spaces, + signs, etc.)
             const cleanPhone = currentPromoCustomerPhone.replace(/\D/g, '');
             let messageText = "";
 
-            // 2. Handle Banners & Offers
             if (currentPromoType === 'banner' || currentPromoType === 'offer') {
-                const text = document.getElementById('promoTextInput').value.trim();
-                if (!text) return showToast("⚠️ Please type a message!", true);
+                if (!currentAiBase64) return showToast("⚠️ Please click 'Generate AI Image' first!", true);
                 
-                messageText = `*PPL ENTERPRISES* 🏭\n\n${text}\n\n_Please see the attached promotion image._`;
+                messageText = `*PPL ENTERPRISES* 🏭\n\n_Please see our latest update attached._`;
 
-                // Auto-Download the Canvas Image so they can attach it easily
-                const canvas = document.getElementById('bannerCanvas');
+                // Download the AI image so the user can drag it into WhatsApp
                 const link = document.createElement('a');
-                link.download = `PPL_Promo_${Date.now()}.png`;
-                link.href = canvas.toDataURL('image/png');
-                link.click(); // Triggers the download
+                link.download = `PPL_AI_Promo_${Date.now()}.jpg`;
+                link.href = currentAiBase64;
+                link.click(); 
                 
-                showToast("✅ Image downloaded! Please attach it in the WhatsApp chat.");
+                showToast("✅ AI Image downloaded! Please attach it in the WhatsApp chat.");
 
-            // 3. Handle Discounts (File Uploads)
             } else if (currentPromoType === 'discount') {
                 if (!discountFileBase64) return showToast("⚠️ Please upload a file first!", true);
-                messageText = `*PPL ENTERPRISES* 🏭\n\nPlease find your requested discount/pricing document attached.`;
-                showToast("✅ Opening WhatsApp... Please drag and drop your PDF/Image manually.");
+                messageText = `*PPL ENTERPRISES* 🏭\n\nPlease find your requested discount document attached.`;
+                showToast("✅ Opening WhatsApp... Please drag and drop your PDF manually.");
             }
 
-            // 4. Open WhatsApp Web/App
             const encodedMessage = encodeURIComponent(messageText);
             const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodedMessage}`;
-            
             window.open(whatsappUrl, '_blank');
             closeIndividualPromo();
         }
+
+
 
 
 
