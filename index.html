@@ -2314,9 +2314,9 @@
                         <td><span style="background:#17a2b8; color:white; padding:3px 6px; border-radius:3px; font-size:11px; font-weight:bold;">${c.transportMode || 'N/A'}</span></td>
                         <td><button style="background:#007bff; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">Add Note</button></td>
                         <td style="display: flex; flex-direction: column; gap: 5px; min-width: 130px;">
-                            <button onclick="openIndividualPromo('banner', '${c._id}', '${c.name}')" style="background:#e83e8c; color:white; border:none; padding:5px; border-radius:4px; cursor:pointer; font-weight:bold; font-size: 11px;">🖼️ Send Banner</button>
-                            <button onclick="openIndividualPromo('offer', '${c._id}', '${c.name}')" style="background:#ff9800; color:white; border:none; padding:5px; border-radius:4px; cursor:pointer; font-weight:bold; font-size: 11px;">🎁 Send Offer</button>
-                            <button onclick="openIndividualPromo('discount', '${c._id}', '${c.name}')" style="background:#28a745; color:white; border:none; padding:5px; border-radius:4px; cursor:pointer; font-weight:bold; font-size: 11px;">📄 Send Discount</button>
+                            <button onclick="openIndividualPromo('banner', '${c._id}', '${c.name}', '${c.phone}')" style="background:#e83e8c; color:white; border:none; padding:5px; border-radius:4px; cursor:pointer; font-weight:bold; font-size: 11px;">🖼️ Send Banner</button>
+                            <button onclick="openIndividualPromo('offer', '${c._id}', '${c.name}', '${c.phone}')" style="background:#ff9800; color:white; border:none; padding:5px; border-radius:4px; cursor:pointer; font-weight:bold; font-size: 11px;">🎁 Send Offer</button>
+                            <button onclick="openIndividualPromo('discount', '${c._id}', '${c.name}', '${c.phone}')" style="background:#28a745; color:white; border:none; padding:5px; border-radius:4px; cursor:pointer; font-weight:bold; font-size: 11px;">📄 Send Discount</button>
                         </td>
                     </tr>`;
 
@@ -2618,11 +2618,12 @@
 
 
 
-            // ==========================================
-        // INDIVIDUAL PROMOTIONS (BANNERS, OFFERS, DISCOUNTS)
+        // ==========================================
+        // INDIVIDUAL PROMOTIONS (DIRECT WHATSAPP)
         // ==========================================
         let currentPromoType = '';
         let currentPromoCustomerId = '';
+        let currentPromoCustomerPhone = ''; // NEW: Stores the phone number
         let discountFileBase64 = null;
         let discountFileName = null;
 
@@ -2636,9 +2637,11 @@
             reader.readAsDataURL(file);
         });
 
-        function openIndividualPromo(type, customerId, customerName) {
+        // UPDATED: Now accepts the customerPhone
+        function openIndividualPromo(type, customerId, customerName, customerPhone) {
             currentPromoType = type;
             currentPromoCustomerId = customerId;
+            currentPromoCustomerPhone = customerPhone; // Save the phone number
             document.getElementById('individualPromoModal').style.display = 'flex';
             
             const textSec = document.getElementById('promoTextSection');
@@ -2653,7 +2656,7 @@
                 title.innerText = type === 'banner' ? `🖼️ Send Banner to ${customerName}` : `🎁 Send Offer to ${customerName}`;
                 textSec.style.display = 'block';
                 fileSec.style.display = 'none';
-                generateCanvasPreview(); // Draw blank canvas
+                generateCanvasPreview(); 
             } else {
                 title.innerText = `📄 Upload Discount for ${customerName}`;
                 textSec.style.display = 'none';
@@ -2665,95 +2668,117 @@
             document.getElementById('individualPromoModal').style.display = 'none';
         }
 
-        // Magically draws the text onto an image Canvas!
+        // Upgraded Professional Banner Generator (No Paid API Required)
         function generateCanvasPreview() {
             const canvas = document.getElementById('bannerCanvas');
             if(!canvas) return;
             const ctx = canvas.getContext('2d');
-            const text = document.getElementById('promoTextInput').value || 'Type your message above...';
+            const text = document.getElementById('promoTextInput').value || 'MEGA SALE! Flat 20% Off on all High-Tensile Fasteners!';
 
-            // Draw Background (Gradient)
-            let gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-            gradient.addColorStop(0, currentPromoType === 'banner' ? '#6f42c1' : '#ff9800');
-            gradient.addColorStop(1, currentPromoType === 'banner' ? '#e83e8c' : '#dc3545');
-            ctx.fillStyle = gradient;
+            // 1. Draw Rich Background
+            let bgGradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            bgGradient.addColorStop(0, '#1a2a6c'); // Deep Corporate Blue
+            bgGradient.addColorStop(0.5, '#b21f1f'); // Industrial Red
+            bgGradient.addColorStop(1, '#fdbb2d'); // Gold
+            ctx.fillStyle = bgGradient;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Draw Text
-            ctx.fillStyle = 'white';
-            ctx.font = 'bold 24px Arial';
+            // 2. Add an Inner Border
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.lineWidth = 4;
+            ctx.strokeRect(15, 15, canvas.width - 30, canvas.height - 30);
+
+            // 3. Draw a "Special Offer" Badge
+            ctx.beginPath();
+            ctx.arc(60, 60, 40, 0, Math.PI * 2);
+            ctx.fillStyle = '#ffc107'; // Yellow badge
+            ctx.fill();
+            ctx.shadowColor = 'transparent'; // Reset shadow
+            
+            ctx.fillStyle = '#000';
+            ctx.font = 'bold 12px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('SPECIAL', 60, 55);
+            ctx.fillText('OFFER', 60, 70);
+
+            // 4. Setup Main Text with Drop Shadows
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
+            ctx.shadowBlur = 10;
+            ctx.shadowOffsetX = 3;
+            ctx.shadowOffsetY = 3;
+            
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 28px Impact, Arial Black, sans-serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             
-            // Basic text wrapping logic for the canvas
+            // 5. Smart Text Wrapping
             const words = text.split(' ');
             let line = '';
             let y = canvas.height / 2 - 20;
+            const maxWidth = canvas.width - 80;
 
             for(let n = 0; n < words.length; n++) {
                 let testLine = line + words[n] + ' ';
                 let metrics = ctx.measureText(testLine);
-                if (metrics.width > canvas.width - 40 && n > 0) {
+                if (metrics.width > maxWidth && n > 0) {
                     ctx.fillText(line, canvas.width / 2, y);
                     line = words[n] + ' ';
-                    y += 30;
+                    y += 35; // line height
                 } else {
                     line = testLine;
                 }
             }
             ctx.fillText(line, canvas.width / 2, y);
             
-            // Add Logo/Footer
+            // 6. Footer Branding
+            ctx.shadowColor = 'transparent'; // Reset shadow for footer
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
             ctx.font = 'bold 14px Arial';
-            ctx.fillText('PPL ENTERPRISES', canvas.width / 2, canvas.height - 20);
+            ctx.fillText('🏭 PPL ENTERPRISES | PREMIUM BOLTS & FASTENERS', canvas.width / 2, canvas.height - 25);
         }
 
-        async function executeSendPromotion() {
-            const btn = document.getElementById('sendPromoBtn');
-            let payload = {
-                customerId: currentPromoCustomerId,
-                promoType: currentPromoType
-            };
+        // UPDATED: Opens WhatsApp directly instead of using the backend server
+        function executeSendPromotion() {
+            // 1. Safety Check: Does the customer have a phone number?
+            if (!currentPromoCustomerPhone || currentPromoCustomerPhone === 'undefined' || currentPromoCustomerPhone === '-' || currentPromoCustomerPhone === 'null') {
+                return showToast("⚠️ This customer does not have a valid phone number saved!", true);
+            }
 
+            // Clean the phone number (remove spaces, + signs, etc.)
+            const cleanPhone = currentPromoCustomerPhone.replace(/\D/g, '');
+            let messageText = "";
+
+            // 2. Handle Banners & Offers
             if (currentPromoType === 'banner' || currentPromoType === 'offer') {
                 const text = document.getElementById('promoTextInput').value.trim();
                 if (!text) return showToast("⚠️ Please type a message!", true);
                 
-                // Convert Canvas to Base64 Image string
+                messageText = `*PPL ENTERPRISES* 🏭\n\n${text}\n\n_Please see the attached promotion image._`;
+
+                // Auto-Download the Canvas Image so they can attach it easily
                 const canvas = document.getElementById('bannerCanvas');
-                payload.mediaBase64 = canvas.toDataURL('image/png');
-                payload.messageText = text;
-            } 
-            else if (currentPromoType === 'discount') {
-                if (!discountFileBase64) return showToast("⚠️ Please upload a file!", true);
-                payload.mediaBase64 = discountFileBase64;
-                payload.filename = discountFileName;
-                payload.messageText = "Please find your custom discount document attached.";
+                const link = document.createElement('a');
+                link.download = `PPL_Promo_${Date.now()}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click(); // Triggers the download
+                
+                showToast("✅ Image downloaded! Please attach it in the WhatsApp chat.");
+
+            // 3. Handle Discounts (File Uploads)
+            } else if (currentPromoType === 'discount') {
+                if (!discountFileBase64) return showToast("⚠️ Please upload a file first!", true);
+                messageText = `*PPL ENTERPRISES* 🏭\n\nPlease find your requested discount/pricing document attached.`;
+                showToast("✅ Opening WhatsApp... Please drag and drop your PDF/Image manually.");
             }
 
-            btn.innerText = "⏳ Sending..."; btn.disabled = true;
-
-            try {
-                const res = await fetch(`${API_URL}/marketing/send-single`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                const data = await res.json();
-
-                if (res.ok && data.success) {
-                    showToast(`✅ Promotion sent successfully!`);
-                    closeIndividualPromo();
-                } else {
-                    showToast(`❌ Error: ${data.error}`, true);
-                }
-            } catch (err) {
-                showToast("❌ Network Error", true);
-            } finally {
-                btn.innerText = "🚀 Send to Customer"; btn.disabled = false;
-            }
+            // 4. Open WhatsApp Web/App
+            const encodedMessage = encodeURIComponent(messageText);
+            const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodedMessage}`;
+            
+            window.open(whatsappUrl, '_blank');
+            closeIndividualPromo();
         }
-
 
 
 
