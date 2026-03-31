@@ -2395,7 +2395,8 @@
 
                     orders.forEach(o => {
                         // Injecting all Product specifics (Sector, Grade, Length, AF, Wt)
-                        let itemsHtml = o.items.map(i => `
+                        // 1. Build the list of items just like before
+                    let itemsHtml = o.items.map(i => `
                         <div style="margin-bottom: 8px; border-bottom: 1px solid #ddd; padding-bottom: 4px;">
                             <strong>${i.quantity}x ${i.productCode}</strong><br>
                             <span style="font-size:11px; color:#555;">
@@ -2404,33 +2405,32 @@
                         </div>
                     `).join('');
 
-                        let statusColor = o.status === 'QUOTATION' ? '#6c757d' : (o.status === 'CONFIRMED' ? '#007bff' : (o.status === 'DISPATCHED' ? '#ff9800' : '#28a745'));
+                    // 2. NEW: Wrap all those items in a scrollable box!
+                    let scrollableItemsHtml = `
+                        <div style="max-height: 130px; overflow-y: auto; padding: 5px; border: 1px solid #eee; border-radius: 4px; background: #fcfcfc;">
+                            ${itemsHtml}
+                        </div>
+                    `;
 
-                        // Rebuilding Action Buttons Safely
-                        let actionButtons = '';
+                    let statusColor = o.status === 'QUOTATION' ? '#6c757d' : (o.status === 'CONFIRMED' ? '#007bff' : (o.status === 'DISPATCHED' ? '#ff9800' : '#28a745'));
 
-                        if (o.status === 'QUOTATION') {
-                            actionButtons += `<button onclick="updateOrderStatus('${o._id}', 'CONFIRMED')" style="background:#007bff; color:white; border:none; padding:6px; border-radius:4px; cursor:pointer; width:100%; margin-bottom:5px;">✅ Confirm & Email Invoice</button>`;
-                        }
-                        if (o.status === 'CONFIRMED') {
-                            actionButtons += `<button onclick="updateOrderStatus('${o._id}', 'DISPATCHED')" style="background:#ff9800; color:white; border:none; padding:6px; border-radius:4px; cursor:pointer; width:100%; margin-bottom:5px;">📦 Dispatch</button>`;
-                        }
-                        if (o.status === 'DISPATCHED') {
-                            actionButtons += `<button onclick="updateOrderStatus('${o._id}', 'SHIPPED')" style="background:#17a2b8; color:white; border:none; padding:6px; border-radius:4px; cursor:pointer; width:100%; margin-bottom:5px;">🚚 Ship (Add Link)</button>`;
-                        }
-                        if (o.status === 'SHIPPED') {
-                            actionButtons += `<button onclick="updateOrderStatus('${o._id}', 'DELIVERED')" style="background:#28a745; color:white; border:none; padding:6px; border-radius:4px; cursor:pointer; width:100%; margin-bottom:5px;">🏁 Mark Delivered</button>`;
-                        }
+                    let actionButtons = '';
+                    if (o.status === 'QUOTATION') actionButtons += `<button onclick="updateOrderStatus('${o._id}', 'CONFIRMED')" style="background:#007bff; color:white; border:none; padding:6px; border-radius:4px; cursor:pointer; width:100%; margin-bottom:5px;">✅ Confirm & Email</button>`;
+                    if (o.status === 'CONFIRMED') actionButtons += `<button onclick="updateOrderStatus('${o._id}', 'DISPATCHED')" style="background:#ff9800; color:white; border:none; padding:6px; border-radius:4px; cursor:pointer; width:100%; margin-bottom:5px;">📦 Dispatch</button>`;
+                    if (o.status === 'DISPATCHED') actionButtons += `<button onclick="updateOrderStatus('${o._id}', 'SHIPPED')" style="background:#17a2b8; color:white; border:none; padding:6px; border-radius:4px; cursor:pointer; width:100%; margin-bottom:5px;">🚚 Ship (Add Link)</button>`;
+                    if (o.status === 'SHIPPED') actionButtons += `<button onclick="updateOrderStatus('${o._id}', 'DELIVERED')" style="background:#28a745; color:white; border:none; padding:6px; border-radius:4px; cursor:pointer; width:100%; margin-bottom:5px;">🏁 Mark Delivered</button>`;
+                    
+                    if (o.status !== 'QUOTATION' && o.status !== 'CANCELLED') {
+                        actionButtons += `<button onclick="downloadInvoice('${o._id}')" style="background:#dc3545; color:white; border:none; padding:6px; border-radius:4px; cursor:pointer; width:100%; font-weight:bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">📄 Download Invoice</button>`;
+                    }
 
-                        // Add Invoice Download Button to any order past Quotation Phase
-                        if (o.status !== 'QUOTATION' && o.status !== 'CANCELLED') {
-                            actionButtons += `<button onclick="downloadInvoice('${o._id}')" style="background:#dc3545; color:white; border:none; padding:6px; border-radius:4px; cursor:pointer; width:100%; font-weight:bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">📄 Download Invoice</button>`;
-                        }
-
-                        tbody.innerHTML += `<tr>
+                    // 3. Inject the scrollable box into the table row
+                    tbody.innerHTML += `<tr>
                         <td><strong>${o.orderNo}</strong><br><span style="font-size:10px; color:#888;">${new Date(o.orderDate).toLocaleDateString()}</span></td>
                         <td><strong>${o.customerName || 'Walk-in'}</strong></td>
-                        <td>${itemsHtml}</td>
+                        
+                        <td style="min-width: 200px;">${scrollableItemsHtml}</td>
+                        
                         <td><strong>₹${o.grandTotal.toLocaleString()}</strong></td>
                         <td><span style="background:${statusColor}; color:white; padding:4px 8px; border-radius:4px; font-weight:bold; font-size:11px;">${o.status}</span></td>
                         <td style="min-width: 150px;">${actionButtons}</td>
