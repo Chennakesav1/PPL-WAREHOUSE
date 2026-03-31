@@ -1984,17 +1984,45 @@
                     const pos = await response.json();
                     const tbody = document.querySelector('#poTable tbody');
                     tbody.innerHTML = '';
+                    
+                    // Show a message if the database is actually empty
+                    if (!pos || pos.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 20px;">No Purchase Orders found.</td></tr>';
+                        return;
+                    }
+
                     pos.forEach(po => {
-                        const isPending = po.status === 'PENDING';
-                        const actionBtn = isPending ? `<button onclick="receivePO('${po._id}')" style="background:#28a745; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-weight:bold;">📥 Mark Received</button>` : `<span style="color:#666; font-size:12px;">Received on<br>${new Date(po.receivedDate).toLocaleDateString()}</span>`;
+                        // Safety fallbacks in case old database records are missing data
+                        const status = po.status || 'PENDING';
+                        const isPending = status === 'PENDING';
+                        const totalCost = po.totalCost || 0;
+                        const receivedText = po.receivedDate ? new Date(po.receivedDate).toLocaleDateString() : 'N/A';
+
+                        const actionBtn = isPending 
+                            ? `<button onclick="receivePO('${po._id}')" style="background:#28a745; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-weight:bold;">📥 Mark Received</button>` 
+                            : `<span style="color:#666; font-size:12px;">Received on<br>${receivedText}</span>`;
+                        
                         const tr = document.createElement('tr');
-                        tr.innerHTML = `<td><strong>${po.poNumber}</strong><br><span style="font-size:11px; color:#666;">👤 ${po.orderedBy}</span></td><td>${po.supplierName}</td><td><strong>${po.materialCode}</strong></td><td>${po.grade || '-'}</td>
-                        <td><span style="font-size:12px; color:#555;">${po.scope || '-'}</span></td><td><strong>${po.expectedKg} Kg</strong></td><td>₹${po.totalCost.toLocaleString()}</td>
-                        <td style="color:${isPending ? '#ff9800' : '#28a745'}; font-weight:bold;">${po.status}</td><td>${actionBtn}</td>`;
+                        tr.innerHTML = `
+                            <td><strong>${po.poNumber || 'N/A'}</strong><br><span style="font-size:11px; color:#666;">👤 ${po.orderedBy || 'System'}</span></td>
+                            <td>${po.supplierName || '-'}</td>
+                            <td><strong>${po.materialCode || '-'}</strong></td>
+                            <td>${po.grade || '-'}</td>
+                            <td><span style="font-size:12px; color:#555;">${po.scope || '-'}</span></td>
+                            <td><strong>${po.expectedKg || 0} Kg</strong></td>
+                            <td>₹${totalCost.toLocaleString()}</td>
+                            <td style="color:${isPending ? '#ff9800' : '#28a745'}; font-weight:bold;">${status}</td>
+                            <td>${actionBtn}</td>
+                        `;
                         tbody.appendChild(tr);
                     });
                     filterPOs();
-                } catch (error) { }
+                } catch (error) { 
+                    // This prevents the silent failure!
+                    console.error("CRITICAL ERROR LOADING POs:", error); 
+                    const tbody = document.querySelector('#poTable tbody');
+                    tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; color: red;">Error loading data. Check browser console.</td></tr>';
+                }
             }
 
             function openPOModal() { document.getElementById('poModal').style.display = 'flex'; }

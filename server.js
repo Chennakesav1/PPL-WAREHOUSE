@@ -820,13 +820,28 @@ app.get('/api/purchase-orders', async (req, res) => {
     try { res.json(await PurchaseOrder.find().sort({ orderDate: -1, _id: -1 })); } 
     catch (err) { res.status(500).json({ error: err.message }); }
 });
-
 app.post('/api/purchase-orders', async (req, res) => {
     try {
         const { supplierName, materialCode, grade, scope, expectedKg, costPerKg, username } = req.body;
-        await new PurchaseOrder({ poNumber: `PO-${Date.now()}`, supplierName, materialCode: materialCode.toUpperCase(), grade: grade || "Standard", scope: scope || "General Inventory", expectedKg: Number(expectedKg), costPerKg: Number(costPerKg), totalCost: Number(expectedKg) * Number(costPerKg), orderedBy: username || "Purchase Dept" }).save();
+        
+        await new PurchaseOrder({ 
+            poNumber: `PO-${Date.now()}`, 
+            supplierName, 
+            materialCode: materialCode.toUpperCase(), 
+            grade: grade || "Standard", 
+            scope: scope || "General Inventory", 
+            expectedKg: Number(expectedKg), 
+            costPerKg: Number(costPerKg), 
+            totalCost: Number(expectedKg) * Number(costPerKg), 
+            orderedBy: username || "Purchase Dept",
+            status: 'PENDING',        // FIX 1: Explicitly set status to PENDING
+            orderDate: new Date()     // FIX 2: Stamp the creation date
+        }).save();
+        
         res.json({ success: true, message: "PO Created Successfully!" });
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    } catch (err) { 
+        res.status(500).json({ error: err.message }); 
+    }
 });
 
 app.put('/api/purchase-orders/:id/receive', async (req, res) => {
