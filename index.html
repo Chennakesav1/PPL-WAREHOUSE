@@ -1341,6 +1341,48 @@
                 if (cardId === 'qcCard') loadPendingQC();
             }
 
+            function forceShowPurchaseOrderTab() {
+                const poCard = document.getElementById('poCard');
+                const poNav = document.getElementById('nav-po');
+                const poTable = document.getElementById('poTable');
+
+                if (!poCard || !poNav || !poTable) {
+                    console.error('Purchase Orders elements are missing from the DOM.');
+                    return;
+                }
+
+                poNav.style.setProperty('display', 'block', 'important');
+                poCard.style.setProperty('display', 'block', 'important');
+                poCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                poNav.classList.add('active');
+
+                const poRows = poTable.querySelectorAll('tbody tr');
+                console.log(`Found ${poRows.length} rows in the HTML.`);
+
+                poRows.forEach(row => {
+                    row.style.setProperty('display', 'table-row', 'important');
+                    row.style.setProperty('visibility', 'visible', 'important');
+                    row.style.setProperty('opacity', '1', 'important');
+                    row.style.setProperty('background-color', '#39ff14', 'important');
+                });
+
+                let parent = poTable;
+                while (parent && parent.tagName !== 'BODY') {
+                    const computed = window.getComputedStyle(parent);
+                    if (computed.display === 'none' || computed.visibility === 'hidden' || computed.opacity === '0') {
+                        console.warn(`Parent element <${parent.tagName} id="${parent.id}" class="${parent.className}"> is hiding your table!`);
+                        parent.style.setProperty('display', 'block', 'important');
+                        parent.style.setProperty('visibility', 'visible', 'important');
+                        parent.style.setProperty('opacity', '1', 'important');
+                    }
+                    parent = parent.parentElement;
+                }
+
+                if (poRows.length === 0) {
+                    console.info('No PO rows currently in the table; check loadPOs() or PO data source.');
+                }
+            }
+
             function refreshDashboard() {
                 loadInventory();
                 loadTransactions();
