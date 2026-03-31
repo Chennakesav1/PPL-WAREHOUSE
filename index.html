@@ -1830,10 +1830,16 @@
 
             // --- INVENTORY LOGIC ---
             async function loadInventory() {
+
                 const activeElem = document.activeElement;
                 if (activeElem && activeElem.tagName === 'INPUT' && activeElem.id.startsWith('stock-')) return;
                 try {
                     const response = await fetch(`${API_URL}/products`);
+
+                    // ADD THIS: If the server is dead (502), stop here before trying to parse JSON!
+                    if (!response.ok) {
+                        throw new Error(`Server Error: ${response.status} - Backend might be down.`);
+                    }
                     const products = await response.json();
                     const tbody = document.querySelector('#productsTable tbody');
                     tbody.innerHTML = '';
@@ -1980,58 +1986,73 @@
 
             async function loadPOs() {
                 try {
-                    console.log("Fetching POs from:", `${API_URL}/purchase-orders`);
                     const response = await fetch(`${API_URL}/purchase-orders`);
-
-                    // 1. Catch missing routes (e.g., if you haven't deployed to Render yet)
-                    if (!response.ok) {
-                        throw new Error(`Server returned status: ${response.status} ${response.statusText}`);
-                    }
-
                     const pos = await response.json();
-                    console.log("PO Data received from backend:", pos); // Check your F12 Developer Console!
+                    console.log("PO Data received:", pos);
 
-                    const tbody = document.querySelector('#poTable tbody');
-                    tbody.innerHTML = '';
-
-                    // 2. Clearer empty state message
-                    if (!pos || pos.length === 0) {
-                        tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 20px; font-weight: bold; color: #ff9800;">No Purchase Orders found in the database. Try creating one!</td></tr>';
+                    // 1. Safety check to ensure the table actually exists in the DOM
+                    const table = document.getElementById('poTable');
+                    if (!table) {
+                        console.error("CRITICAL: Could not find <table id='poTable'> in the HTML!");
                         return;
                     }
 
+                    const tbody = table.querySelector('tbody');
+                    if (!tbody) {
+                        console.error("CRITICAL: Could not find <tbody> inside poTable!");
+                        return;
+                    }
+
+                    // 2. Clear the table
+                    tbody.innerHTML = '';
+
+                    if (!pos || pos.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 20px; font-weight: bold; color: #ff9800;">No POs found in database.</td></tr>';
+                        return;
+                    }
+
+                    // 3. Build the rows as a single HTML string (faster and more reliable)
+                    let rowsHTML = "";
+
                     pos.forEach(po => {
+                        // Fallbacks in case old database entries are missing fields
                         const status = po.status || 'PENDING';
                         const isPending = status === 'PENDING';
-                        const totalCost = po.totalCost || 0;
+                        const totalCost = Number(po.totalCost) || 0; // Forced Number to prevent toLocaleString crashes
                         const receivedText = po.receivedDate ? new Date(po.receivedDate).toLocaleDateString() : 'N/A';
 
                         const actionBtn = isPending
                             ? `<button onclick="receivePO('${po._id}')" style="background:#28a745; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-weight:bold;">📥 Mark Received</button>`
                             : `<span style="color:#666; font-size:12px;">Received on<br>${receivedText}</span>`;
 
-                        const tr = document.createElement('tr');
-                        tr.innerHTML = `
-                <td><strong>${po.poNumber || 'N/A'}</strong><br><span style="font-size:11px; color:#666;">👤 ${po.orderedBy || 'System'}</span></td>
-                <td>${po.supplierName || '-'}</td>
-                <td><strong>${po.materialCode || '-'}</strong></td>
-                <td>${po.grade || '-'}</td>
-                <td><span style="font-size:12px; color:#555;">${po.scope || '-'}</span></td>
-                <td><strong>${po.expectedKg || 0} Kg</strong></td>
-                <td>₹${totalCost.toLocaleString()}</td>
-                <td style="color:${isPending ? '#ff9800' : '#28a745'}; font-weight:bold;">${status}</td>
-                <td>${actionBtn}</td>
+                        rowsHTML += `
+                <tr>
+                    <td><strong>${po.poNumber || 'N/A'}</strong><br><span style="font-size:11px; color:#666;">👤 ${po.orderedBy || 'System'}</span></td>
+                    <td>${po.supplierName || '-'}</td>
+                    <td><strong>${po.materialCode || '-'}</strong></td>
+                    <td>${po.grade || '-'}</td>
+                    <td><span style="font-size:12px; color:#555;">${po.scope || '-'}</span></td>
+                    <td><strong>${po.expectedKg || 0} Kg</strong></td>
+                    <td>₹${totalCost.toLocaleString()}</td>
+                    <td style="color:${isPending ? '#ff9800' : '#28a745'}; font-weight:bold;">${status}</td>
+                    <td>${actionBtn}</td>
+                </tr>
             `;
-                        tbody.appendChild(tr);
                     });
 
-                    filterPOs();
+                    // 4. Inject all rows into the DOM at once
+                    tbody.innerHTML = rowsHTML;
+                    console.log("Successfully injected PO rows into the table.");
+
+                    // 5. TEMPORARILY DISABLED: Let's prove the data is there before filtering it
+                    // filterPOs(); 
 
                 } catch (error) {
-                    console.error("CRITICAL ERROR LOADING POs:", error);
+                    console.error("ERROR LOADING POs:", error);
                     const tbody = document.querySelector('#poTable tbody');
-                    // 3. Print the exact error directly into the table so it isn't blank
-                    tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: red; font-weight: bold; padding: 20px;">Error loading data: ${error.message}</td></tr>`;
+                    if (tbody) {
+                        tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: red;">Error: ${error.message}</td></tr>`;
+                    }
                 }
             }
 
