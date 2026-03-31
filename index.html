@@ -2969,18 +2969,16 @@
                 closeIndividualPromo();
             }
 
-
             // ==========================================
-        // SMART ORDER NOTIFICATIONS (WHATSAPP & EMAIL)
+        // SMART ORDER NOTIFICATIONS (WITH AUTO-INVOICE ATTACH)
         // ==========================================
         async function sendManualNotification(orderId, method) {
-            // Find the order and the customer data
             const order = window.allSalesOrders.find(o => o._id === orderId);
             const customer = window.allCustomers.find(c => c._id === order.customerId);
 
             if (!customer) return showToast("⚠️ Customer details not found in database!", true);
 
-            // 1. Generate the Smart Message based on Current Status
+            // 1. Generate the Smart Message
             let messageText = `*PPL ENTERPRISES* 🏭\n\nHello ${customer.name},\n`;
             let emailSubject = `Order Update: ${order.orderNo} - PPL Enterprises`;
             let emailBody = `Hello ${customer.name},\n\n`;
@@ -2988,69 +2986,78 @@
             if (order.status === 'QUOTATION') {
                 messageText += `Here is your requested quotation for Order *${order.orderNo}*.\n*Total Amount:* ₹${order.grandTotal.toLocaleString()}`;
                 emailBody += `Here is your requested quotation for Order ${order.orderNo}.\nTotal Amount: ₹${order.grandTotal.toLocaleString()}`;
-            } 
-            else if (order.status === 'CONFIRMED') {
-                messageText += `Great news! Your order *${order.orderNo}* has been confirmed and is being processed.\n*Total Amount:* ₹${order.grandTotal.toLocaleString()}`;
+            } else if (order.status === 'CONFIRMED') {
+                messageText += `Great news! Your order *${order.orderNo}* has been confirmed.\n*Total Amount:* ₹${order.grandTotal.toLocaleString()}`;
                 emailBody += `Great news! Your order ${order.orderNo} has been confirmed and is being processed.\nTotal Amount: ₹${order.grandTotal.toLocaleString()}`;
-            } 
-            else if (order.status === 'DISPATCHED') {
-                messageText += `Your order *${order.orderNo}* has been packed and is ready for dispatch from our facility.`;
+            } else if (order.status === 'DISPATCHED') {
+                messageText += `Your order *${order.orderNo}* has been packed and is ready for dispatch.`;
                 emailBody += `Your order ${order.orderNo} has been packed and is ready for dispatch from our facility.`;
-            } 
-            else if (order.status === 'SHIPPED') {
-                messageText += `Your order *${order.orderNo}* has been shipped and is on its way to you! 🚚\n\n📍 *Track your shipment here:* ${order.trackingLink || 'Link not provided'}`;
+            } else if (order.status === 'SHIPPED') {
+                messageText += `Your order *${order.orderNo}* has been shipped! 🚚\n\n📍 *Track here:* ${order.trackingLink || 'N/A'}`;
                 emailBody += `Your order ${order.orderNo} has been shipped and is on its way to you! 🚚\n\nTrack your shipment here: ${order.trackingLink || 'Link not provided'}`;
-            } 
-            else if (order.status === 'DELIVERED') {
-                messageText += `Your order *${order.orderNo}* has been successfully delivered. ✅\n\nThank you for choosing PPL Enterprises for your fastener needs!`;
+            } else if (order.status === 'DELIVERED') {
+                messageText += `Your order *${order.orderNo}* has been successfully delivered. ✅\n\nThank you for choosing PPL Enterprises!`;
                 emailBody += `Your order ${order.orderNo} has been successfully delivered. ✅\n\nThank you for choosing PPL Enterprises for your fastener needs!`;
             }
 
-            // 2. Execute WhatsApp (Opens Web/App)
+            // Append invoice note to the body text
+            emailBody += `\n\nPlease find your official PDF Invoice attached to this email.`;
+
+            // 2. Execute WhatsApp
             if (method === 'whatsapp') {
-                if (!customer.phone || customer.phone === '-' || customer.phone === '') {
-                    return showToast("⚠️ Customer has no valid phone number saved!", true);
-                }
+                if (!customer.phone || customer.phone === '-' || customer.phone === '') return showToast("⚠️ Customer has no valid phone number saved!", true);
                 const cleanPhone = customer.phone.replace(/\D/g, '');
                 const encodedMessage = encodeURIComponent(messageText);
                 window.open(`https://wa.me/${cleanPhone}?text=${encodedMessage}`, '_blank');
-                showToast("✅ Opening WhatsApp with pre-filled details...");
+                showToast("✅ Opening WhatsApp...");
             } 
             
-            // 3. Execute Email (Sends via Brevo API in background)
+            // 3. Execute Email with Auto-Invoice Attachment
             else if (method === 'email') {
-                if (!customer.email || customer.email === '-' || customer.email === '') {
-                    return showToast("⚠️ Customer has no valid email address saved!", true);
-                }
+                if (!customer.email || customer.email === '-' || customer.email === '') return showToast("⚠️ Customer has no valid email saved!", true);
                 
-                showToast("⏳ Sending Email Update via Brevo...");
+                showToast("⏳ Fetching Invoice & Sending Email...");
                 const btn = event.target;
                 const originalText = btn.innerText;
                 btn.innerText = "⏳ Sending..."; btn.disabled = true;
 
                 try {
-                    // Re-uses your existing Bulk Email API but targets just this single customer
-                    const res = await fetch(`${API_URL}/marketing/send-bulk-email`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            filter: 'single',
-                            specificEmail: customer.email,
-                            subject: emailSubject,
-                            bodyText: emailBody,
-                            link: order.status === 'SHIPPED' ? (order.trackingLink || '') : ''
-                        })
-                    });
-                    const data = await res.json();
-                    
-                    if (res.ok && data.success) {
-                        showToast("✅ Order Update Email Sent Successfully!");
-                    } else {
-                        showToast("❌ Email Error: " + data.error, true);
-                    }
+                    // Step A: Download the PDF Invoice from the backend silently
+                    const pdfRes = await fetch(`${API_URL}/sales-orders/${orderId}/invoice`);
+                    if (!pdfRes.ok) throw new Error("Could not generate PDF");
+                    const pdfBlob = await pdfRes.blob();
+
+                    // Step B: Convert the PDF file into a Base64 string
+                    const reader = new FileReader();
+                    reader.readAsDataURL(pdfBlob);
+                    reader.onloadend = async function() {
+                        const base64Invoice = reader.result;
+
+                        // Step C: Send the email via Brevo API with the attached PDF
+                        const emailRes = await fetch(`${API_URL}/marketing/send-bulk-email`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                filter: 'single',
+                                specificEmail: customer.email,
+                                subject: emailSubject,
+                                bodyText: emailBody,
+                                link: order.status === 'SHIPPED' ? (order.trackingLink || '') : '',
+                                mediaBase64: base64Invoice, // The auto-attached PDF!
+                                filename: `Tax_Invoice_${order.orderNo}.pdf`
+                            })
+                        });
+                        
+                        const data = await emailRes.json();
+                        if (emailRes.ok && data.success) {
+                            showToast("✅ Email Sent with Invoice Attached!");
+                        } else {
+                            showToast("❌ Email Error: " + data.error, true);
+                        }
+                        btn.innerText = originalText; btn.disabled = false;
+                    };
                 } catch (err) {
-                    showToast("❌ Network Error connecting to Email API", true);
-                } finally {
+                    showToast("❌ Network Error generating email", true);
                     btn.innerText = originalText; btn.disabled = false;
                 }
             }
