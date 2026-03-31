@@ -31,13 +31,17 @@ const { Product, Transaction, RawMaterial, PurchaseOrder, ProductionBatch, WorkO
 
 
 // ==========================================
-// EMAIL TRANSPORTER CONFIGURATION
-// ==========================================
 const transporter = nodemailer.createTransport({
-    service: 'gmail', // Or use Brevo/Sendgrid settings here
+    host: 'smtp.gmail.com',
+    port: 587,
+    secure: false, 
+    requireTLS: true,
     auth: {
-        user: process.env.SMTP_USER, // e.g., chennakesavarao89@gmail.com
-        pass: process.env.SMTP_PASS  // Your 16-digit App Password
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS 
+    },
+    tls: {
+        rejectUnauthorized: false 
     }
 });
 // Helper: Send WhatsApp Message via Meta Cloud API using Axios
