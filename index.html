@@ -1980,48 +1980,58 @@
 
             async function loadPOs() {
                 try {
+                    console.log("Fetching POs from:", `${API_URL}/purchase-orders`);
                     const response = await fetch(`${API_URL}/purchase-orders`);
+
+                    // 1. Catch missing routes (e.g., if you haven't deployed to Render yet)
+                    if (!response.ok) {
+                        throw new Error(`Server returned status: ${response.status} ${response.statusText}`);
+                    }
+
                     const pos = await response.json();
+                    console.log("PO Data received from backend:", pos); // Check your F12 Developer Console!
+
                     const tbody = document.querySelector('#poTable tbody');
                     tbody.innerHTML = '';
-                    
-                    // Show a message if the database is actually empty
+
+                    // 2. Clearer empty state message
                     if (!pos || pos.length === 0) {
-                        tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 20px;">No Purchase Orders found.</td></tr>';
+                        tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 20px; font-weight: bold; color: #ff9800;">No Purchase Orders found in the database. Try creating one!</td></tr>';
                         return;
                     }
 
                     pos.forEach(po => {
-                        // Safety fallbacks in case old database records are missing data
                         const status = po.status || 'PENDING';
                         const isPending = status === 'PENDING';
                         const totalCost = po.totalCost || 0;
                         const receivedText = po.receivedDate ? new Date(po.receivedDate).toLocaleDateString() : 'N/A';
 
-                        const actionBtn = isPending 
-                            ? `<button onclick="receivePO('${po._id}')" style="background:#28a745; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-weight:bold;">📥 Mark Received</button>` 
+                        const actionBtn = isPending
+                            ? `<button onclick="receivePO('${po._id}')" style="background:#28a745; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-weight:bold;">📥 Mark Received</button>`
                             : `<span style="color:#666; font-size:12px;">Received on<br>${receivedText}</span>`;
-                        
+
                         const tr = document.createElement('tr');
                         tr.innerHTML = `
-                            <td><strong>${po.poNumber || 'N/A'}</strong><br><span style="font-size:11px; color:#666;">👤 ${po.orderedBy || 'System'}</span></td>
-                            <td>${po.supplierName || '-'}</td>
-                            <td><strong>${po.materialCode || '-'}</strong></td>
-                            <td>${po.grade || '-'}</td>
-                            <td><span style="font-size:12px; color:#555;">${po.scope || '-'}</span></td>
-                            <td><strong>${po.expectedKg || 0} Kg</strong></td>
-                            <td>₹${totalCost.toLocaleString()}</td>
-                            <td style="color:${isPending ? '#ff9800' : '#28a745'}; font-weight:bold;">${status}</td>
-                            <td>${actionBtn}</td>
-                        `;
+                <td><strong>${po.poNumber || 'N/A'}</strong><br><span style="font-size:11px; color:#666;">👤 ${po.orderedBy || 'System'}</span></td>
+                <td>${po.supplierName || '-'}</td>
+                <td><strong>${po.materialCode || '-'}</strong></td>
+                <td>${po.grade || '-'}</td>
+                <td><span style="font-size:12px; color:#555;">${po.scope || '-'}</span></td>
+                <td><strong>${po.expectedKg || 0} Kg</strong></td>
+                <td>₹${totalCost.toLocaleString()}</td>
+                <td style="color:${isPending ? '#ff9800' : '#28a745'}; font-weight:bold;">${status}</td>
+                <td>${actionBtn}</td>
+            `;
                         tbody.appendChild(tr);
                     });
+
                     filterPOs();
-                } catch (error) { 
-                    // This prevents the silent failure!
-                    console.error("CRITICAL ERROR LOADING POs:", error); 
+
+                } catch (error) {
+                    console.error("CRITICAL ERROR LOADING POs:", error);
                     const tbody = document.querySelector('#poTable tbody');
-                    tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; color: red;">Error loading data. Check browser console.</td></tr>';
+                    // 3. Print the exact error directly into the table so it isn't blank
+                    tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: red; font-weight: bold; padding: 20px;">Error loading data: ${error.message}</td></tr>`;
                 }
             }
 
@@ -2424,7 +2434,7 @@
                     orders.forEach(o => {
                         // Injecting all Product specifics (Sector, Grade, Length, AF, Wt)
                         // 1. Build the list of items just like before
-                    let itemsHtml = o.items.map(i => `
+                        let itemsHtml = o.items.map(i => `
                         <div style="margin-bottom: 8px; border-bottom: 1px solid #ddd; padding-bottom: 4px;">
                             <strong>${i.quantity}x ${i.productCode}</strong><br>
                             <span style="font-size:11px; color:#555;">
@@ -2433,27 +2443,27 @@
                         </div>
                     `).join('');
 
-                    // 2. NEW: Wrap all those items in a scrollable box!
-                    let scrollableItemsHtml = `
+                        // 2. NEW: Wrap all those items in a scrollable box!
+                        let scrollableItemsHtml = `
                         <div style="max-height: 130px; overflow-y: auto; padding: 5px; border: 1px solid #eee; border-radius: 4px; background: #fcfcfc;">
                             ${itemsHtml}
                         </div>
                     `;
 
-                    let statusColor = o.status === 'QUOTATION' ? '#6c757d' : (o.status === 'CONFIRMED' ? '#007bff' : (o.status === 'DISPATCHED' ? '#ff9800' : '#28a745'));
+                        let statusColor = o.status === 'QUOTATION' ? '#6c757d' : (o.status === 'CONFIRMED' ? '#007bff' : (o.status === 'DISPATCHED' ? '#ff9800' : '#28a745'));
 
-                    let actionButtons = '';
-                    if (o.status === 'QUOTATION') actionButtons += `<button onclick="updateOrderStatus('${o._id}', 'CONFIRMED')" style="background:#007bff; color:white; border:none; padding:6px; border-radius:4px; cursor:pointer; width:100%; margin-bottom:5px;">✅ Confirm & Email</button>`;
-                    if (o.status === 'CONFIRMED') actionButtons += `<button onclick="updateOrderStatus('${o._id}', 'DISPATCHED')" style="background:#ff9800; color:white; border:none; padding:6px; border-radius:4px; cursor:pointer; width:100%; margin-bottom:5px;">📦 Dispatch</button>`;
-                    if (o.status === 'DISPATCHED') actionButtons += `<button onclick="updateOrderStatus('${o._id}', 'SHIPPED')" style="background:#17a2b8; color:white; border:none; padding:6px; border-radius:4px; cursor:pointer; width:100%; margin-bottom:5px;">🚚 Ship (Add Link)</button>`;
-                    if (o.status === 'SHIPPED') actionButtons += `<button onclick="updateOrderStatus('${o._id}', 'DELIVERED')" style="background:#28a745; color:white; border:none; padding:6px; border-radius:4px; cursor:pointer; width:100%; margin-bottom:5px;">🏁 Mark Delivered</button>`;
-                    
-                    if (o.status !== 'QUOTATION' && o.status !== 'CANCELLED') {
-                        actionButtons += `<button onclick="downloadInvoice('${o._id}')" style="background:#dc3545; color:white; border:none; padding:6px; border-radius:4px; cursor:pointer; width:100%; font-weight:bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">📄 Download Invoice</button>`;
-                    }
+                        let actionButtons = '';
+                        if (o.status === 'QUOTATION') actionButtons += `<button onclick="updateOrderStatus('${o._id}', 'CONFIRMED')" style="background:#007bff; color:white; border:none; padding:6px; border-radius:4px; cursor:pointer; width:100%; margin-bottom:5px;">✅ Confirm & Email</button>`;
+                        if (o.status === 'CONFIRMED') actionButtons += `<button onclick="updateOrderStatus('${o._id}', 'DISPATCHED')" style="background:#ff9800; color:white; border:none; padding:6px; border-radius:4px; cursor:pointer; width:100%; margin-bottom:5px;">📦 Dispatch</button>`;
+                        if (o.status === 'DISPATCHED') actionButtons += `<button onclick="updateOrderStatus('${o._id}', 'SHIPPED')" style="background:#17a2b8; color:white; border:none; padding:6px; border-radius:4px; cursor:pointer; width:100%; margin-bottom:5px;">🚚 Ship (Add Link)</button>`;
+                        if (o.status === 'SHIPPED') actionButtons += `<button onclick="updateOrderStatus('${o._id}', 'DELIVERED')" style="background:#28a745; color:white; border:none; padding:6px; border-radius:4px; cursor:pointer; width:100%; margin-bottom:5px;">🏁 Mark Delivered</button>`;
 
-                    // 3. Inject the scrollable box into the table row
-                    tbody.innerHTML += `<tr>
+                        if (o.status !== 'QUOTATION' && o.status !== 'CANCELLED') {
+                            actionButtons += `<button onclick="downloadInvoice('${o._id}')" style="background:#dc3545; color:white; border:none; padding:6px; border-radius:4px; cursor:pointer; width:100%; font-weight:bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">📄 Download Invoice</button>`;
+                        }
+
+                        // 3. Inject the scrollable box into the table row
+                        tbody.innerHTML += `<tr>
                         <td><strong>${o.orderNo}</strong><br><span style="font-size:10px; color:#888;">${new Date(o.orderDate).toLocaleDateString()}</span></td>
                         <td><strong>${o.customerName || 'Walk-in'}</strong></td>
                         
@@ -2998,98 +3008,98 @@
             }
 
             // ==========================================
-        // SMART ORDER NOTIFICATIONS (WITH AUTO-INVOICE ATTACH)
-        // ==========================================
-        async function sendManualNotification(orderId, method) {
-            const order = window.allSalesOrders.find(o => o._id === orderId);
-            const customer = window.allCustomers.find(c => c._id === order.customerId);
+            // SMART ORDER NOTIFICATIONS (WITH AUTO-INVOICE ATTACH)
+            // ==========================================
+            async function sendManualNotification(orderId, method) {
+                const order = window.allSalesOrders.find(o => o._id === orderId);
+                const customer = window.allCustomers.find(c => c._id === order.customerId);
 
-            if (!customer) return showToast("⚠️ Customer details not found in database!", true);
+                if (!customer) return showToast("⚠️ Customer details not found in database!", true);
 
-            // 1. Generate the Smart Message
-            let messageText = `*PPL ENTERPRISES* 🏭\n\nHello ${customer.name},\n`;
-            let emailSubject = `Order Update: ${order.orderNo} - PPL Enterprises`;
-            let emailBody = `Hello ${customer.name},\n\n`;
+                // 1. Generate the Smart Message
+                let messageText = `*PPL ENTERPRISES* 🏭\n\nHello ${customer.name},\n`;
+                let emailSubject = `Order Update: ${order.orderNo} - PPL Enterprises`;
+                let emailBody = `Hello ${customer.name},\n\n`;
 
-            if (order.status === 'QUOTATION') {
-                messageText += `Here is your requested quotation for Order *${order.orderNo}*.\n*Total Amount:* ₹${order.grandTotal.toLocaleString()}`;
-                emailBody += `Here is your requested quotation for Order ${order.orderNo}.\nTotal Amount: ₹${order.grandTotal.toLocaleString()}`;
-            } else if (order.status === 'CONFIRMED') {
-                messageText += `Great news! Your order *${order.orderNo}* has been confirmed.\n*Total Amount:* ₹${order.grandTotal.toLocaleString()}`;
-                emailBody += `Great news! Your order ${order.orderNo} has been confirmed and is being processed.\nTotal Amount: ₹${order.grandTotal.toLocaleString()}`;
-            } else if (order.status === 'DISPATCHED') {
-                messageText += `Your order *${order.orderNo}* has been packed and is ready for dispatch.`;
-                emailBody += `Your order ${order.orderNo} has been packed and is ready for dispatch from our facility.`;
-            } else if (order.status === 'SHIPPED') {
-                messageText += `Your order *${order.orderNo}* has been shipped! 🚚\n\n📍 *Track here:* ${order.trackingLink || 'N/A'}`;
-                emailBody += `Your order ${order.orderNo} has been shipped and is on its way to you! 🚚\n\nTrack your shipment here: ${order.trackingLink || 'Link not provided'}`;
-            } else if (order.status === 'DELIVERED') {
-                messageText += `Your order *${order.orderNo}* has been successfully delivered. ✅\n\nThank you for choosing PPL Enterprises!`;
-                emailBody += `Your order ${order.orderNo} has been successfully delivered. ✅\n\nThank you for choosing PPL Enterprises for your fastener needs!`;
-            }
+                if (order.status === 'QUOTATION') {
+                    messageText += `Here is your requested quotation for Order *${order.orderNo}*.\n*Total Amount:* ₹${order.grandTotal.toLocaleString()}`;
+                    emailBody += `Here is your requested quotation for Order ${order.orderNo}.\nTotal Amount: ₹${order.grandTotal.toLocaleString()}`;
+                } else if (order.status === 'CONFIRMED') {
+                    messageText += `Great news! Your order *${order.orderNo}* has been confirmed.\n*Total Amount:* ₹${order.grandTotal.toLocaleString()}`;
+                    emailBody += `Great news! Your order ${order.orderNo} has been confirmed and is being processed.\nTotal Amount: ₹${order.grandTotal.toLocaleString()}`;
+                } else if (order.status === 'DISPATCHED') {
+                    messageText += `Your order *${order.orderNo}* has been packed and is ready for dispatch.`;
+                    emailBody += `Your order ${order.orderNo} has been packed and is ready for dispatch from our facility.`;
+                } else if (order.status === 'SHIPPED') {
+                    messageText += `Your order *${order.orderNo}* has been shipped! 🚚\n\n📍 *Track here:* ${order.trackingLink || 'N/A'}`;
+                    emailBody += `Your order ${order.orderNo} has been shipped and is on its way to you! 🚚\n\nTrack your shipment here: ${order.trackingLink || 'Link not provided'}`;
+                } else if (order.status === 'DELIVERED') {
+                    messageText += `Your order *${order.orderNo}* has been successfully delivered. ✅\n\nThank you for choosing PPL Enterprises!`;
+                    emailBody += `Your order ${order.orderNo} has been successfully delivered. ✅\n\nThank you for choosing PPL Enterprises for your fastener needs!`;
+                }
 
-            // Append invoice note to the body text
-            emailBody += `\n\nPlease find your official PDF Invoice attached to this email.`;
+                // Append invoice note to the body text
+                emailBody += `\n\nPlease find your official PDF Invoice attached to this email.`;
 
-            // 2. Execute WhatsApp
-            if (method === 'whatsapp') {
-                if (!customer.phone || customer.phone === '-' || customer.phone === '') return showToast("⚠️ Customer has no valid phone number saved!", true);
-                const cleanPhone = customer.phone.replace(/\D/g, '');
-                const encodedMessage = encodeURIComponent(messageText);
-                window.open(`https://wa.me/${cleanPhone}?text=${encodedMessage}`, '_blank');
-                showToast("✅ Opening WhatsApp...");
-            } 
-            
-            // 3. Execute Email with Auto-Invoice Attachment
-            else if (method === 'email') {
-                if (!customer.email || customer.email === '-' || customer.email === '') return showToast("⚠️ Customer has no valid email saved!", true);
-                
-                showToast("⏳ Fetching Invoice & Sending Email...");
-                const btn = event.target;
-                const originalText = btn.innerText;
-                btn.innerText = "⏳ Sending..."; btn.disabled = true;
+                // 2. Execute WhatsApp
+                if (method === 'whatsapp') {
+                    if (!customer.phone || customer.phone === '-' || customer.phone === '') return showToast("⚠️ Customer has no valid phone number saved!", true);
+                    const cleanPhone = customer.phone.replace(/\D/g, '');
+                    const encodedMessage = encodeURIComponent(messageText);
+                    window.open(`https://wa.me/${cleanPhone}?text=${encodedMessage}`, '_blank');
+                    showToast("✅ Opening WhatsApp...");
+                }
 
-                try {
-                    // Step A: Download the PDF Invoice from the backend silently
-                    const pdfRes = await fetch(`${API_URL}/sales-orders/${orderId}/invoice`);
-                    if (!pdfRes.ok) throw new Error("Could not generate PDF");
-                    const pdfBlob = await pdfRes.blob();
+                // 3. Execute Email with Auto-Invoice Attachment
+                else if (method === 'email') {
+                    if (!customer.email || customer.email === '-' || customer.email === '') return showToast("⚠️ Customer has no valid email saved!", true);
 
-                    // Step B: Convert the PDF file into a Base64 string
-                    const reader = new FileReader();
-                    reader.readAsDataURL(pdfBlob);
-                    reader.onloadend = async function() {
-                        const base64Invoice = reader.result;
+                    showToast("⏳ Fetching Invoice & Sending Email...");
+                    const btn = event.target;
+                    const originalText = btn.innerText;
+                    btn.innerText = "⏳ Sending..."; btn.disabled = true;
 
-                        // Step C: Send the email via Brevo API with the attached PDF
-                        const emailRes = await fetch(`${API_URL}/marketing/send-bulk-email`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                filter: 'single',
-                                specificEmail: customer.email,
-                                subject: emailSubject,
-                                bodyText: emailBody,
-                                link: order.status === 'SHIPPED' ? (order.trackingLink || '') : '',
-                                mediaBase64: base64Invoice, // The auto-attached PDF!
-                                filename: `Tax_Invoice_${order.orderNo}.pdf`
-                            })
-                        });
-                        
-                        const data = await emailRes.json();
-                        if (emailRes.ok && data.success) {
-                            showToast("✅ Email Sent with Invoice Attached!");
-                        } else {
-                            showToast("❌ Email Error: " + data.error, true);
-                        }
+                    try {
+                        // Step A: Download the PDF Invoice from the backend silently
+                        const pdfRes = await fetch(`${API_URL}/sales-orders/${orderId}/invoice`);
+                        if (!pdfRes.ok) throw new Error("Could not generate PDF");
+                        const pdfBlob = await pdfRes.blob();
+
+                        // Step B: Convert the PDF file into a Base64 string
+                        const reader = new FileReader();
+                        reader.readAsDataURL(pdfBlob);
+                        reader.onloadend = async function () {
+                            const base64Invoice = reader.result;
+
+                            // Step C: Send the email via Brevo API with the attached PDF
+                            const emailRes = await fetch(`${API_URL}/marketing/send-bulk-email`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    filter: 'single',
+                                    specificEmail: customer.email,
+                                    subject: emailSubject,
+                                    bodyText: emailBody,
+                                    link: order.status === 'SHIPPED' ? (order.trackingLink || '') : '',
+                                    mediaBase64: base64Invoice, // The auto-attached PDF!
+                                    filename: `Tax_Invoice_${order.orderNo}.pdf`
+                                })
+                            });
+
+                            const data = await emailRes.json();
+                            if (emailRes.ok && data.success) {
+                                showToast("✅ Email Sent with Invoice Attached!");
+                            } else {
+                                showToast("❌ Email Error: " + data.error, true);
+                            }
+                            btn.innerText = originalText; btn.disabled = false;
+                        };
+                    } catch (err) {
+                        showToast("❌ Network Error generating email", true);
                         btn.innerText = originalText; btn.disabled = false;
-                    };
-                } catch (err) {
-                    showToast("❌ Network Error generating email", true);
-                    btn.innerText = originalText; btn.disabled = false;
+                    }
                 }
             }
-        }
 
 
 
