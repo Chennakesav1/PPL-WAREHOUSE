@@ -1003,49 +1003,74 @@
                 </div>
 
 
-                 <div id="marketingModal" class="modal">
-                <div class="modal-content">
-                    <span class="close-btn" onclick="closeMarketingModal()">×</span>
-                    <h2 style="color: #25D366; margin-bottom: 5px;">💬 Send WhatsApp Blast</h2>
-                    
-                    <div class="form-grid" style="grid-template-columns: 1fr;">
-                        <label style="font-size:12px; font-weight:bold; color:#555;">Target Audience:</label>
-                        <select id="promoFilter" class="full-width" style="margin-top:-10px; margin-bottom:10px;">
-                            <option value="all">All Customers</option>
-                            <option value="vip">VIP Customers</option>
-                        </select>
+                <div id="marketingModal" class="modal">
+                    <div class="modal-content" style="max-width: 550px;">
+                        <span class="close-btn" onclick="closeMarketingModal()">×</span>
+                        <h2 style="color: #e83e8c; margin-bottom: 10px;">📧 Send Offers via Email</h2>
 
-                        <label style="font-size:12px; font-weight:bold; color:#555; margin-top: 10px;">OR Single Customer Number:</label>
-                        <input type="text" id="promoSpecificPhone" class="full-width" placeholder="Enter exact phone (e.g., 919876543210)" style="border-color: #25D366;">
+                        <div class="form-grid" style="grid-template-columns: 1fr;">
+                            <label style="font-size:12px; font-weight:bold; color:#555;">1. Target Audience:</label>
+                            <select id="promoFilter" class="full-width prod-input"
+                                style="border-color: #e83e8c; font-weight: bold;" onchange="toggleSpecificEmail()">
+                                <option value="all">Blast to ALL Customers</option>
+                                <option value="single">Send to a Specific Customer Only</option>
+                            </select>
 
-                        <textarea id="promoBody" class="full-width" rows="6" placeholder="* Type your WhatsApp message here... You can use *bold* or _italics_." style="resize: vertical; margin-top: 10px;" required></textarea>
+                            <input type="email" id="promoSpecificEmail" class="full-width prod-input"
+                                placeholder="Enter Exact Email Address..." style="display:none; border-color: #007bff;">
+
+                            <label style="font-size:12px; font-weight:bold; color:#555; margin-top: 10px;">2. Email
+                                Content:</label>
+                            <input type="text" id="promoSubject" class="full-width prod-input"
+                                placeholder="* Email Subject Line" required>
+
+                            <textarea id="promoBody" class="full-width prod-input" rows="6"
+                                placeholder="* Type your message here... (Line breaks will be saved)"
+                                style="resize: vertical;" required></textarea>
+
+                            <input type="url" id="promoLink" class="full-width prod-input"
+                                placeholder="Include a Web Link (Optional, e.g., https://yourwebsite.com)">
+
+                            <label style="font-size:12px; font-weight:bold; color:#555; margin-top: 10px;">3. Upload
+                                Attachment (Optional):</label>
+                            <div
+                                style="border: 2px dashed #007bff; padding: 15px; text-align: center; background: #f8f9fa; border-radius: 8px;">
+                                <input type="file" id="promoBulkFile" class="full-width prod-input"
+                                    accept=".jpg,.png,.pdf,.xlsx,.csv" style="border: none; background: transparent;">
+                            </div>
+                        </div>
+
+                        <button class="save-btn" style="background-color: #e83e8c; margin-top: 20px; font-size: 18px;"
+                            id="promoSubmitBtn" onclick="executeBulkEmail()">
+                            🚀 Send Emails Now
+                        </button>
                     </div>
-                    
-                    <button class="save-btn" style="background-color: #25D366; margin-top: 15px;" id="promoSubmitBtn" onclick="sendMarketingWhatsApp()">
-                        🚀 Send WhatsApp Messages
-                    </button>
                 </div>
-            </div>
-
                 <div id="individualPromoModal" class="modal">
                     <div class="modal-content" style="max-width: 500px;">
                         <span class="close-btn" onclick="closeIndividualPromo()">×</span>
                         <h2 id="promoModalTitle" style="color: #6f42c1; margin-bottom: 15px;">Send Promotion</h2>
 
                         <div id="promoTextSection" style="display: none;">
-                            <label style="font-size:12px; font-weight:bold; color:#555;">Type instructions for the AI:</label>
+                            <label style="font-size:12px; font-weight:bold; color:#555;">Type instructions for the
+                                AI:</label>
                             <textarea id="promoTextInput" class="full-width prod-input" rows="3"
                                 placeholder="E.g., Diwali sale, marigold flowers, shiny bolts on a red background"></textarea>
 
-                            <button class="save-btn" style="background-color: #17a2b8; margin-top: 10px;" id="generateAiBtn" onclick="fetchAIImage()">
+                            <button class="save-btn" style="background-color: #17a2b8; margin-top: 10px;"
+                                id="generateAiBtn" onclick="fetchAIImage()">
                                 🎨 Generate Free AI Image
                             </button>
 
-                            <p style="font-size:12px; font-weight:bold; color:#555; margin-top: 15px; margin-bottom: 5px;">
+                            <p
+                                style="font-size:12px; font-weight:bold; color:#555; margin-top: 15px; margin-bottom: 5px;">
                                 AI Image Preview:</p>
-                            <div style="border: 2px dashed #ccc; padding: 10px; text-align: center; background: #f8f9fa; border-radius: 8px;">
-                                <img id="aiGeneratedImage" src="" style="max-width: 100%; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); display: none;">
-                                <span id="aiLoadingText" style="display:none; color: #e83e8c; font-weight: bold;">⏳ AI is dreaming... (takes 10-20 sec)</span>
+                            <div
+                                style="border: 2px dashed #ccc; padding: 10px; text-align: center; background: #f8f9fa; border-radius: 8px;">
+                                <img id="aiGeneratedImage" src=""
+                                    style="max-width: 100%; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); display: none;">
+                                <span id="aiLoadingText" style="display:none; color: #e83e8c; font-weight: bold;">⏳ AI
+                                    is dreaming... (takes 10-20 sec)</span>
                             </div>
                         </div>
 
@@ -2420,29 +2445,77 @@
                 document.getElementById('promoSpecificPhone').value = '';
             }
 
-            // INSTANT WHATSAPP WEB METHOD (No API required!)
-            function sendMarketingWhatsApp() {
-                const messageText = document.getElementById('promoBody').value.trim();
-                const specificPhone = document.getElementById('promoSpecificPhone').value.trim();
+            // ==========================================
+            // BULK EMAIL LOGIC
+            // ==========================================
+            let bulkFileBase64 = null;
+            let bulkFileName = null;
 
-                if (!messageText || !specificPhone) {
-                    return showToast("⚠️ For this method, you MUST enter a single Phone Number and Message!", true);
+            // Handle the dynamic target dropdown
+            function toggleSpecificEmail() {
+                const filter = document.getElementById('promoFilter').value;
+                const specificInput = document.getElementById('promoSpecificEmail');
+                if (filter === 'single') {
+                    specificInput.style.display = 'block';
+                } else {
+                    specificInput.style.display = 'none';
+                    specificInput.value = '';
                 }
-
-                // Clean the phone number (remove spaces, +, etc.)
-                const cleanPhone = specificPhone.replace(/\D/g, '');
-
-                // Encode the message so it formats correctly in WhatsApp
-                const encodedMessage = encodeURIComponent(messageText);
-
-                // Open WhatsApp Web/App directly
-                const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodedMessage}`;
-                window.open(whatsappUrl, '_blank');
-
-                showToast("✅ Opening WhatsApp...");
-                closeMarketingModal();
             }
 
+            // Read the file if they upload one
+            document.getElementById('promoBulkFile')?.addEventListener('change', function (e) {
+                const file = e.target.files[0];
+                if (!file) {
+                    bulkFileBase64 = null; bulkFileName = null; return;
+                }
+                bulkFileName = file.name;
+                const reader = new FileReader();
+                reader.onload = function (event) { bulkFileBase64 = event.target.result; };
+                reader.readAsDataURL(file);
+            });
+
+            async function executeBulkEmail() {
+                const filter = document.getElementById('promoFilter').value;
+                const specificEmail = document.getElementById('promoSpecificEmail').value.trim();
+                const subject = document.getElementById('promoSubject').value.trim();
+                const bodyText = document.getElementById('promoBody').value.trim();
+                const link = document.getElementById('promoLink').value.trim();
+                const btn = document.getElementById('promoSubmitBtn');
+
+                if (!subject || !bodyText) {
+                    return showToast("⚠️ Subject and Body are required!", true);
+                }
+                if (filter === 'single' && !specificEmail) {
+                    return showToast("⚠️ Please enter the specific customer's email!", true);
+                }
+
+                btn.disabled = true; btn.innerText = "⏳ Sending Emails...";
+
+                try {
+                    const res = await fetch(`${API_URL}/marketing/send-bulk-email`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            filter, specificEmail, subject, bodyText, link,
+                            mediaBase64: bulkFileBase64, filename: bulkFileName
+                        })
+                    });
+
+                    const data = await res.json();
+
+                    if (res.ok && data.success) {
+                        showToast(`✅ ${data.message}`);
+                        closeMarketingModal();
+                    } else {
+                        showToast(`❌ Error: ${data.error}`, true);
+                    }
+                } catch (err) {
+                    showToast("❌ Server/Network Error", true);
+                } finally {
+                    btn.disabled = false; btn.innerText = "🚀 Send Emails Now";
+                }
+            }
             // Updated Update Order Status with Tracking Link Prompt
             async function updateOrderStatus(id, newStatus) {
                 let payload = { status: newStatus, username: currentUser.username };
@@ -2619,278 +2692,278 @@
 
 
             // ==========================================
-        // INDIVIDUAL PROMOTIONS (TRUE AI + WHATSAPP)
-        // ==========================================
-        let currentPromoType = '';
-        let currentPromoCustomerId = '';
-        let currentPromoCustomerPhone = '';
-        let discountFileBase64 = null;
-        let discountFileName = null;
-        let currentAiBase64 = null; // Stores the generated AI image
+            // INDIVIDUAL PROMOTIONS (TRUE AI + WHATSAPP)
+            // ==========================================
+            let currentPromoType = '';
+            let currentPromoCustomerId = '';
+            let currentPromoCustomerPhone = '';
+            let discountFileBase64 = null;
+            let discountFileName = null;
+            let currentAiBase64 = null; // Stores the generated AI image
 
-        // Handle File Upload Reading (For Discounts)
-        document.getElementById('discountFileInput')?.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            discountFileName = file.name;
-            const reader = new FileReader();
-            reader.onload = function(event) { discountFileBase64 = event.target.result; };
-            reader.readAsDataURL(file);
-        });
-
-        function openIndividualPromo(type, customerId, customerName, customerPhone) {
-            currentPromoType = type;
-            currentPromoCustomerId = customerId;
-            currentPromoCustomerPhone = customerPhone;
-            document.getElementById('individualPromoModal').style.display = 'flex';
-            
-            const textSec = document.getElementById('promoTextSection');
-            const fileSec = document.getElementById('promoFileSection');
-            const title = document.getElementById('promoModalTitle');
-
-            document.getElementById('promoTextInput').value = '';
-            
-            // Reset AI Image Preview
-            currentAiBase64 = null;
-            if(document.getElementById('aiGeneratedImage')) document.getElementById('aiGeneratedImage').style.display = 'none';
-
-            if(document.getElementById('discountFileInput')) document.getElementById('discountFileInput').value = '';
-            discountFileBase64 = null;
-
-            if (type === 'banner' || type === 'offer') {
-                title.innerText = type === 'banner' ? `🖼️ Send AI Banner to ${customerName}` : `🎁 Send AI Offer to ${customerName}`;
-                textSec.style.display = 'block';
-                fileSec.style.display = 'none';
-            } else {
-                title.innerText = `📄 Upload Discount for ${customerName}`;
-                textSec.style.display = 'none';
-                fileSec.style.display = 'block';
-            }
-        }
-
-        function closeIndividualPromo() {
-            document.getElementById('individualPromoModal').style.display = 'none';
-        }
-
-        // ==========================================
-        // PRO-DESIGNER AI BANNER SYSTEM (Sharp Text + AI Background)
-        // ==========================================
-        async function fetchAIImage() {
-            const rawText = document.getElementById('promoTextInput').value.trim();
-            if (!rawText) return showToast("⚠️ Please type instructions!", true);
-
-            const btn = document.getElementById('generateAiBtn');
-            const loading = document.getElementById('aiLoadingText');
-            const imgEl = document.getElementById('aiGeneratedImage');
-
-            btn.disabled = true; btn.innerText = "⏳ Sourcing Background... (~10 sec)";
-            imgEl.style.display = "none"; loading.style.display = "block";
-
-            // 1. We ask the AI ONLY for a background photo (NO TEXT)
-            const aiBackgroundPrompt = "professional macro photography of industrial high-tensile steel bolts and nuts, dramatic studio lighting, dark aesthetic background, 4k resolution";
-            const randomSeed = Math.floor(Math.random() * 100000);
-            const bgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(aiBackgroundPrompt)}?width=800&height=800&seed=${randomSeed}&nologo=true`;
-
-            try {
-                // 2. Load the AI background image
-                const bgImage = await loadBackgroundImage(bgUrl);
-                
-                // 3. Draw the crisp text over it
-                currentAiBase64 = buildProfessionalCanvas(bgImage, rawText);
-                
-                imgEl.src = currentAiBase64;
-                imgEl.style.display = "block";
-                loading.style.display = "none";
-                showToast("✅ Professional Banner Generated!");
-            } catch (err) {
-                console.log("AI Background failed, using premium gradient fallback.");
-                currentAiBase64 = buildProfessionalCanvas(null, rawText); // Uses fallback background
-                imgEl.src = currentAiBase64;
-                imgEl.style.display = "block";
-                loading.style.display = "none";
-                showToast("⚠️ Used premium fallback background.");
-            } finally {
-                btn.disabled = false; btn.innerText = "🎨 Generate Professional Banner";
-            }
-        }
-
-        // Helper: Loads image safely
-        function loadBackgroundImage(url) {
-            return new Promise((resolve, reject) => {
-                const img = new Image();
-                img.crossOrigin = "Anonymous"; // Required for Canvas
-                img.onload = () => resolve(img);
-                img.onerror = () => reject(new Error("Image load failed"));
-                img.src = url;
+            // Handle File Upload Reading (For Discounts)
+            document.getElementById('discountFileInput')?.addEventListener('change', function (e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                discountFileName = file.name;
+                const reader = new FileReader();
+                reader.onload = function (event) { discountFileBase64 = event.target.result; };
+                reader.readAsDataURL(file);
             });
-        }
 
-        // Creates the final layout with Razor-Sharp Typography
-        function buildProfessionalCanvas(bgImage, offerText) {
-            const canvas = document.createElement('canvas');
-            // 800x800 Square is the absolute best format for WhatsApp
-            canvas.width = 800; canvas.height = 800; 
-            const ctx = canvas.getContext('2d');
+            function openIndividualPromo(type, customerId, customerName, customerPhone) {
+                currentPromoType = type;
+                currentPromoCustomerId = customerId;
+                currentPromoCustomerPhone = customerPhone;
+                document.getElementById('individualPromoModal').style.display = 'flex';
 
-            // 1. Draw Background
-            if (bgImage) {
-                ctx.drawImage(bgImage, 0, 0, 800, 800);
-            } else {
-                // Premium Corporate Gradient Fallback
-                let bgGradient = ctx.createLinearGradient(0, 0, 800, 800);
-                bgGradient.addColorStop(0, '#1a2a6c'); 
-                bgGradient.addColorStop(0.5, '#b21f1f'); 
-                bgGradient.addColorStop(1, '#fdbb2d');
-                ctx.fillStyle = bgGradient;
+                const textSec = document.getElementById('promoTextSection');
+                const fileSec = document.getElementById('promoFileSection');
+                const title = document.getElementById('promoModalTitle');
+
+                document.getElementById('promoTextInput').value = '';
+
+                // Reset AI Image Preview
+                currentAiBase64 = null;
+                if (document.getElementById('aiGeneratedImage')) document.getElementById('aiGeneratedImage').style.display = 'none';
+
+                if (document.getElementById('discountFileInput')) document.getElementById('discountFileInput').value = '';
+                discountFileBase64 = null;
+
+                if (type === 'banner' || type === 'offer') {
+                    title.innerText = type === 'banner' ? `🖼️ Send AI Banner to ${customerName}` : `🎁 Send AI Offer to ${customerName}`;
+                    textSec.style.display = 'block';
+                    fileSec.style.display = 'none';
+                } else {
+                    title.innerText = `📄 Upload Discount for ${customerName}`;
+                    textSec.style.display = 'none';
+                    fileSec.style.display = 'block';
+                }
+            }
+
+            function closeIndividualPromo() {
+                document.getElementById('individualPromoModal').style.display = 'none';
+            }
+
+            // ==========================================
+            // PRO-DESIGNER AI BANNER SYSTEM (Sharp Text + AI Background)
+            // ==========================================
+            async function fetchAIImage() {
+                const rawText = document.getElementById('promoTextInput').value.trim();
+                if (!rawText) return showToast("⚠️ Please type instructions!", true);
+
+                const btn = document.getElementById('generateAiBtn');
+                const loading = document.getElementById('aiLoadingText');
+                const imgEl = document.getElementById('aiGeneratedImage');
+
+                btn.disabled = true; btn.innerText = "⏳ Sourcing Background... (~10 sec)";
+                imgEl.style.display = "none"; loading.style.display = "block";
+
+                // 1. We ask the AI ONLY for a background photo (NO TEXT)
+                const aiBackgroundPrompt = "professional macro photography of industrial high-tensile steel bolts and nuts, dramatic studio lighting, dark aesthetic background, 4k resolution";
+                const randomSeed = Math.floor(Math.random() * 100000);
+                const bgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(aiBackgroundPrompt)}?width=800&height=800&seed=${randomSeed}&nologo=true`;
+
+                try {
+                    // 2. Load the AI background image
+                    const bgImage = await loadBackgroundImage(bgUrl);
+
+                    // 3. Draw the crisp text over it
+                    currentAiBase64 = buildProfessionalCanvas(bgImage, rawText);
+
+                    imgEl.src = currentAiBase64;
+                    imgEl.style.display = "block";
+                    loading.style.display = "none";
+                    showToast("✅ Professional Banner Generated!");
+                } catch (err) {
+                    console.log("AI Background failed, using premium gradient fallback.");
+                    currentAiBase64 = buildProfessionalCanvas(null, rawText); // Uses fallback background
+                    imgEl.src = currentAiBase64;
+                    imgEl.style.display = "block";
+                    loading.style.display = "none";
+                    showToast("⚠️ Used premium fallback background.");
+                } finally {
+                    btn.disabled = false; btn.innerText = "🎨 Generate Professional Banner";
+                }
+            }
+
+            // Helper: Loads image safely
+            function loadBackgroundImage(url) {
+                return new Promise((resolve, reject) => {
+                    const img = new Image();
+                    img.crossOrigin = "Anonymous"; // Required for Canvas
+                    img.onload = () => resolve(img);
+                    img.onerror = () => reject(new Error("Image load failed"));
+                    img.src = url;
+                });
+            }
+
+            // Creates the final layout with Razor-Sharp Typography
+            function buildProfessionalCanvas(bgImage, offerText) {
+                const canvas = document.createElement('canvas');
+                // 800x800 Square is the absolute best format for WhatsApp
+                canvas.width = 800; canvas.height = 800;
+                const ctx = canvas.getContext('2d');
+
+                // 1. Draw Background
+                if (bgImage) {
+                    ctx.drawImage(bgImage, 0, 0, 800, 800);
+                } else {
+                    // Premium Corporate Gradient Fallback
+                    let bgGradient = ctx.createLinearGradient(0, 0, 800, 800);
+                    bgGradient.addColorStop(0, '#1a2a6c');
+                    bgGradient.addColorStop(0.5, '#b21f1f');
+                    bgGradient.addColorStop(1, '#fdbb2d');
+                    ctx.fillStyle = bgGradient;
+                    ctx.fillRect(0, 0, 800, 800);
+                }
+
+                // 2. Add a Dark Overlay (Crucial so white text pops clearly!)
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.65)'; // 65% dark tint
                 ctx.fillRect(0, 0, 800, 800);
+
+                // 3. Draw Corporate Branding (Top Left)
+                ctx.fillStyle = '#ff9800'; // Orange accent
+                ctx.fillRect(40, 40, 8, 60); // Accent line
+
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 46px "Segoe UI", Arial, sans-serif';
+                ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+                ctx.fillText('PPL', 60, 40);
+
+                ctx.fillStyle = '#cccccc';
+                ctx.font = 'bold 18px "Segoe UI", Arial, sans-serif';
+                ctx.letterSpacing = "2px"; // Adds a premium feel
+                ctx.fillText('ENTERPRISES', 62, 85);
+
+                // 4. Draw Main Crisp Text
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 56px "Segoe UI", Arial, sans-serif';
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+
+                // Smart Text Wrapping
+                const words = offerText.split(' ');
+                let line = ''; let y = 350;
+                for (let n = 0; n < words.length; n++) {
+                    let testLine = line + words[n] + ' ';
+                    if (ctx.measureText(testLine).width > 700 && n > 0) {
+                        ctx.fillText(line, 400, y);
+                        line = words[n] + ' '; y += 70; // Line height
+                    } else { line = testLine; }
+                }
+                ctx.fillText(line, 400, y);
+
+                // 5. Draw Footer / Call to Action
+                ctx.beginPath();
+                ctx.roundRect(150, 700, 500, 60, 30); // Draw pill shape button
+                ctx.fillStyle = '#25D366'; // WhatsApp Green
+                ctx.fill();
+
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 24px "Segoe UI", Arial, sans-serif';
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillText('CLICK LINK TO ORDER NOW', 400, 730);
+
+                return canvas.toDataURL('image/jpeg', 0.95);
             }
 
-            // 2. Add a Dark Overlay (Crucial so white text pops clearly!)
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.65)'; // 65% dark tint
-            ctx.fillRect(0, 0, 800, 800);
 
-            // 3. Draw Corporate Branding (Top Left)
-            ctx.fillStyle = '#ff9800'; // Orange accent
-            ctx.fillRect(40, 40, 8, 60); // Accent line
-            
-            ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 46px "Segoe UI", Arial, sans-serif';
-            ctx.textAlign = 'left'; ctx.textBaseline = 'top';
-            ctx.fillText('PPL', 60, 40);
-            
-            ctx.fillStyle = '#cccccc';
-            ctx.font = 'bold 18px "Segoe UI", Arial, sans-serif';
-            ctx.letterSpacing = "2px"; // Adds a premium feel
-            ctx.fillText('ENTERPRISES', 62, 85);
 
-            // 4. Draw Main Crisp Text
-            ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 56px "Segoe UI", Arial, sans-serif';
-            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-            
-            // Smart Text Wrapping
-            const words = offerText.split(' ');
-            let line = ''; let y = 350;
-            for(let n = 0; n < words.length; n++) {
-                let testLine = line + words[n] + ' ';
-                if (ctx.measureText(testLine).width > 700 && n > 0) {
-                    ctx.fillText(line, 400, y);
-                    line = words[n] + ' '; y += 70; // Line height
-                } else { line = testLine; }
-            }
-            ctx.fillText(line, 400, y);
+            // Draws a stunning corporate banner locally if the AI server fails
+            function generateEmergencyTemplate(offerText) {
+                const canvas = document.createElement('canvas');
+                canvas.width = 800; canvas.height = 600;
+                const ctx = canvas.getContext('2d');
 
-            // 5. Draw Footer / Call to Action
-            ctx.beginPath();
-            ctx.roundRect(150, 700, 500, 60, 30); // Draw pill shape button
-            ctx.fillStyle = '#25D366'; // WhatsApp Green
-            ctx.fill();
+                // Rich Festive Background
+                let bgGradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+                bgGradient.addColorStop(0, '#800000'); // Deep Red
+                bgGradient.addColorStop(0.5, '#b30000'); // Bright Red
+                bgGradient.addColorStop(1, '#ffcc00'); // Gold
+                ctx.fillStyle = bgGradient;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 24px "Segoe UI", Arial, sans-serif';
-            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-            ctx.fillText('CLICK LINK TO ORDER NOW', 400, 730);
+                // Inner Border
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+                ctx.lineWidth = 8;
+                ctx.strokeRect(20, 20, canvas.width - 40, canvas.height - 40);
 
-            return canvas.toDataURL('image/jpeg', 0.95);
-        }
+                // Company Logo Area
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 48px Arial Black';
+                ctx.textAlign = 'left';
+                ctx.fillText('PPL', 40, 80);
+                ctx.fillStyle = '#ffcc00';
+                ctx.font = 'bold 18px Arial';
+                ctx.fillText('ENTERPRISES', 42, 105);
 
-        
+                // Main Text Formatting
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+                ctx.shadowBlur = 15; ctx.shadowOffsetX = 5; ctx.shadowOffsetY = 5;
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 42px Impact, sans-serif';
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
 
-        // Draws a stunning corporate banner locally if the AI server fails
-        function generateEmergencyTemplate(offerText) {
-            const canvas = document.createElement('canvas');
-            canvas.width = 800; canvas.height = 600;
-            const ctx = canvas.getContext('2d');
+                // Smart Text Wrapping
+                const words = offerText.split(' ');
+                let line = ''; let y = canvas.height / 2 - 40;
+                for (let n = 0; n < words.length; n++) {
+                    let testLine = line + words[n] + ' ';
+                    if (ctx.measureText(testLine).width > canvas.width - 100 && n > 0) {
+                        ctx.fillText(line, canvas.width / 2, y);
+                        line = words[n] + ' '; y += 55;
+                    } else { line = testLine; }
+                }
+                ctx.fillText(line, canvas.width / 2, y);
 
-            // Rich Festive Background
-            let bgGradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-            bgGradient.addColorStop(0, '#800000'); // Deep Red
-            bgGradient.addColorStop(0.5, '#b30000'); // Bright Red
-            bgGradient.addColorStop(1, '#ffcc00'); // Gold
-            ctx.fillStyle = bgGradient;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+                // Footer
+                ctx.shadowColor = 'transparent';
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+                ctx.font = 'bold 24px Arial';
+                ctx.fillText('✨ HIGH-TENSILE BOLTS & FASTENERS ✨', canvas.width / 2, canvas.height - 40);
 
-            // Inner Border
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
-            ctx.lineWidth = 8;
-            ctx.strokeRect(20, 20, canvas.width - 40, canvas.height - 40);
-
-            // Company Logo Area
-            ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 48px Arial Black';
-            ctx.textAlign = 'left';
-            ctx.fillText('PPL', 40, 80);
-            ctx.fillStyle = '#ffcc00';
-            ctx.font = 'bold 18px Arial';
-            ctx.fillText('ENTERPRISES', 42, 105);
-
-            // Main Text Formatting
-            ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
-            ctx.shadowBlur = 15; ctx.shadowOffsetX = 5; ctx.shadowOffsetY = 5;
-            ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 42px Impact, sans-serif';
-            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-
-            // Smart Text Wrapping
-            const words = offerText.split(' ');
-            let line = ''; let y = canvas.height / 2 - 40;
-            for(let n = 0; n < words.length; n++) {
-                let testLine = line + words[n] + ' ';
-                if (ctx.measureText(testLine).width > canvas.width - 100 && n > 0) {
-                    ctx.fillText(line, canvas.width / 2, y);
-                    line = words[n] + ' '; y += 55;
-                } else { line = testLine; }
-            }
-            ctx.fillText(line, canvas.width / 2, y);
-
-            // Footer
-            ctx.shadowColor = 'transparent';
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-            ctx.font = 'bold 24px Arial';
-            ctx.fillText('✨ HIGH-TENSILE BOLTS & FASTENERS ✨', canvas.width / 2, canvas.height - 40);
-
-            return canvas.toDataURL('image/jpeg', 0.9);
-        }
-
-        // UPDATED: Uses the new AI image instead of the old Canvas
-        function executeSendPromotion() {
-            if (!currentPromoCustomerPhone || currentPromoCustomerPhone === '-' || currentPromoCustomerPhone === 'null') {
-                return showToast("⚠️ This customer does not have a valid phone number saved!", true);
+                return canvas.toDataURL('image/jpeg', 0.9);
             }
 
-            const cleanPhone = currentPromoCustomerPhone.replace(/\D/g, '');
-            let messageText = "";
+            // UPDATED: Uses the new AI image instead of the old Canvas
+            function executeSendPromotion() {
+                if (!currentPromoCustomerPhone || currentPromoCustomerPhone === '-' || currentPromoCustomerPhone === 'null') {
+                    return showToast("⚠️ This customer does not have a valid phone number saved!", true);
+                }
 
-            if (currentPromoType === 'banner' || currentPromoType === 'offer') {
-                if (!currentAiBase64) return showToast("⚠️ Please click 'Generate AI Image' first!", true);
-                
-                messageText = `*PPL ENTERPRISES* 🏭\n\n_Please see our latest update attached._`;
+                const cleanPhone = currentPromoCustomerPhone.replace(/\D/g, '');
+                let messageText = "";
 
-                // Download the AI image so the user can drag it into WhatsApp
-                const link = document.createElement('a');
-                link.download = `PPL_AI_Promo_${Date.now()}.jpg`;
-                link.href = currentAiBase64;
-                link.click(); 
-                
-                showToast("✅ AI Image downloaded! Please attach it in the WhatsApp chat.");
+                if (currentPromoType === 'banner' || currentPromoType === 'offer') {
+                    if (!currentAiBase64) return showToast("⚠️ Please click 'Generate AI Image' first!", true);
 
-            } else if (currentPromoType === 'discount') {
-                if (!discountFileBase64) return showToast("⚠️ Please upload a file first!", true);
-                messageText = `*PPL ENTERPRISES* 🏭\n\nPlease find your requested discount document attached.`;
-                showToast("✅ Opening WhatsApp... Please drag and drop your PDF manually.");
+                    messageText = `*PPL ENTERPRISES* 🏭\n\n_Please see our latest update attached._`;
+
+                    // Download the AI image so the user can drag it into WhatsApp
+                    const link = document.createElement('a');
+                    link.download = `PPL_AI_Promo_${Date.now()}.jpg`;
+                    link.href = currentAiBase64;
+                    link.click();
+
+                    showToast("✅ AI Image downloaded! Please attach it in the WhatsApp chat.");
+
+                } else if (currentPromoType === 'discount') {
+                    if (!discountFileBase64) return showToast("⚠️ Please upload a file first!", true);
+                    messageText = `*PPL ENTERPRISES* 🏭\n\nPlease find your requested discount document attached.`;
+                    showToast("✅ Opening WhatsApp... Please drag and drop your PDF manually.");
+                }
+
+                const encodedMessage = encodeURIComponent(messageText);
+                const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodedMessage}`;
+                window.open(whatsappUrl, '_blank');
+                closeIndividualPromo();
             }
 
-            const encodedMessage = encodeURIComponent(messageText);
-            const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodedMessage}`;
-            window.open(whatsappUrl, '_blank');
-            closeIndividualPromo();
-        }
 
 
 
 
 
-            
 
 
         </script>
