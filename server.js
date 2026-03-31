@@ -31,19 +31,7 @@ const { Product, Transaction, RawMaterial, PurchaseOrder, ProductionBatch, WorkO
 
 
 // ==========================================
-const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 587,
-    secure: false, 
-    requireTLS: true,
-    auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS 
-    },
-    tls: {
-        rejectUnauthorized: false 
-    }
-});
+
 // Helper: Send WhatsApp Message via Meta Cloud API using Axios
 async function sendWhatsAppMessage(phoneNumber, messageText) {
     const token = process.env.WHATSAPP_TOKEN;
@@ -168,7 +156,7 @@ function generateInvoiceBuffer(order, customer) {
 
 
 // ==========================================
-// BULK EMAIL MARKETING ENGINE
+// BULK EMAIL MARKETING ENGINE (Bypasses Render Firewall via API)
 // ==========================================
 app.post('/api/marketing/send-bulk-email', async (req, res) => {
     try {
@@ -182,58 +170,65 @@ app.post('/api/marketing/send-bulk-email', async (req, res) => {
             if (!singleCustomer) return res.status(404).json({ error: "Customer with that email not found." });
             targetCustomers.push(singleCustomer);
         } else {
-            // Grab everyone who actually has an email address
             targetCustomers = await Customer.find({ email: { $exists: true, $ne: "" } });
         }
 
         if (targetCustomers.length === 0) return res.status(400).json({ error: "No valid customers with email addresses found." });
 
-        // 2. Loop through and Email them
+        // 2. Prepare the Attachment (if uploaded)
+        let attachmentPayload = undefined;
+        if (mediaBase64) {
+            const base64Data = mediaBase64.split(';base64,').pop(); 
+            attachmentPayload = [{
+                name: filename || `Attachment_${Date.now()}`,
+                content: base64Data
+            }];
+        }
+
+        // 3. Loop through and Email them using Brevo API
         let messagesSent = 0;
         for (let customer of targetCustomers) {
             
-            // Format body text to respect line breaks in HTML
             const formattedBody = bodyText.replace(/\n/g, '<br>');
+            const htmlContent = `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
+                    <h2 style="color: #e83e8c;">PPL ENTERPRISES 🏭</h2>
+                    <p style="font-size: 16px;">Dear <strong>${customer.name}</strong>,</p>
+                    <p style="font-size: 15px; color: #444; line-height: 1.6;">${formattedBody}</p>
+                    
+                    ${link ? `
+                    <div style="text-align: center; margin-top: 30px; margin-bottom: 20px;">
+                        <a href="${link}" style="background-color: #007bff; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 16px;">View Offer / Click Here</a>
+                    </div>` : ''}
+                    
+                    <hr style="border: none; border-top: 1px solid #eee; margin-top: 30px;">
+                    <p style="font-size: 12px; color: #888; text-align: center;">This email was sent by PPL Enterprises Sales Department.<br>123 Industrial Estate, India.</p>
+                </div>
+            `;
 
-            let mailOptions = {
-                from: `"PPL Enterprises" <${process.env.SMTP_USER}>`,
-                to: customer.email,
+            // Punch through the firewall using Port 443 (HTTPS)
+            await axios.post('https://api.brevo.com/v3/smtp/email', {
+                sender: { name: "PPL Enterprises", email: process.env.SMTP_USER }, // Must match the email you verified in Brevo
+                to: [{ email: customer.email, name: customer.name }],
                 subject: subject,
-                html: `
-                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
-                        <h2 style="color: #e83e8c;">PPL ENTERPRISES 🏭</h2>
-                        <p style="font-size: 16px;">Dear <strong>${customer.name}</strong>,</p>
-                        <p style="font-size: 15px; color: #444; line-height: 1.6;">${formattedBody}</p>
-                        
-                        ${link ? `
-                        <div style="text-align: center; margin-top: 30px; margin-bottom: 20px;">
-                            <a href="${link}" style="background-color: #007bff; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 16px;">View Offer / Click Here</a>
-                        </div>` : ''}
-                        
-                        <hr style="border: none; border-top: 1px solid #eee; margin-top: 30px;">
-                        <p style="font-size: 12px; color: #888; text-align: center;">This email was sent by PPL Enterprises Sales Department.<br>123 Industrial Estate, India.</p>
-                    </div>
-                `
-            };
+                htmlContent: htmlContent,
+                attachment: attachmentPayload
+            }, {
+                headers: {
+                    'accept': 'application/json',
+                    'api-key': process.env.BREVO_API_KEY,
+                    'content-type': 'application/json'
+                }
+            });
 
-            // 3. Attach Files if uploaded
-            if (mediaBase64) {
-                const base64Data = mediaBase64.split(';base64,').pop(); // Strip header
-                mailOptions.attachments = [{
-                    filename: filename || `Attachment_${Date.now()}`,
-                    content: base64Data,
-                    encoding: 'base64'
-                }];
-            }
-
-            await transporter.sendMail(mailOptions);
             messagesSent++;
         }
 
         res.json({ success: true, message: `Successfully sent ${messagesSent} emails!` });
     } catch (err) { 
-        console.error("Bulk Email Error:", err);
-        res.status(500).json({ error: err.message }); 
+        // This will print the EXACT reason Brevo failed if something goes wrong
+        console.error("Bulk Email API Error:", err.response ? JSON.stringify(err.response.data) : err.message);
+        res.status(500).json({ error: "Failed to send emails. Check server logs." }); 
     }
 });
 // NEW: Download PDF Invoice Endpoint
