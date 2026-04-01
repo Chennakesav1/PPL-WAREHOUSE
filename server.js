@@ -21,7 +21,7 @@ app.use(cors({
 // Allow large file uploads via Base64 (up to 50MB)
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
-const { Product, Transaction, RawMaterial, PurchaseOrder, ProductionBatch, WorkOrder, Customer, SalesOrder } = require('./models');
+const { Product, Transaction, RawMaterial, PurchaseOrder, ProductionBatch, WorkOrder, Customer, SalesOrder, ToolMaster, ToolTransaction, ToolConversion } = require('./models');
 
 // ==========================================
 // WHATSAPP API & PDF SETUP (server.js)
@@ -876,6 +876,93 @@ app.get('/api/work-orders/active', async (req, res) => {
 app.post('/api/work-orders', async (req, res) => {
     try { await new WorkOrder(req.body).save(); res.json({ success: true, message: "Work Order Created!" }); } 
     catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+
+// ==========================================
+// TOOL ROOM ERP ROUTES
+// ==========================================
+// 1. Get Master Stock & Histories
+app.get('/api/tools/data', async (req, res) => {
+    try {
+        const inventory = await ToolMaster.find();
+        const transactions = await ToolTransaction.find().sort({ date: -1 }).limit(200);
+        const conversions = await ToolConversion.find().sort({ createdAt: -1 });
+        res.json({ inventory, transactions, conversions });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// 2. Add/Adjust Master Stock
+app.post('/api/tools/inventory', async (req, res) => {
+    try {
+        const { code, family, machine, part, desc, loc, stock, min } = req.body;
+        let tool = await ToolMaster.findOne({ code });
+        if (tool) {
+            tool.stock += Number(stock); tool.loc = loc; await tool.save();
+        } else {
+            await new ToolMaster({ code, family, machine, part, desc, loc, stock, min }).save();
+        }
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// 3. Issue / Return Tool (Logs Transaction + Updates Stock)
+app.post('/api/tools/transaction', async (req, res) => {
+    try {
+        const { action, code, machine, operator, details, qty } = req.body;
+        if(action.includes('ISSUED')) {
+            let tool = await ToolMaster.findOne({ code });
+            if(tool) { tool.stock = Math.max(0, tool.stock - qty); await tool.save(); }
+        }
+        await new ToolTransaction({ action, code, machine, operator, details }).save();
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// 4. 3-TIER CONVERSION WORKFLOW
+// Tier 1: Request
+app.post('/api/tools/conversions/request', async (req, res) => {
+    try {
+        const { sourceCode, targetCode, requestedBy, reworkDetails } = req.body;
+        let srcTool = await ToolMaster.findOne({ code: sourceCode });
+        if(srcTool) { srcTool.stock = Math.max(0, srcTool.stock - 1); await srcTool.save(); }
+        
+        let tgtTool = await ToolMaster.findOne({ code: targetCode });
+        if(!tgtTool) {
+            await new ToolMaster({ code: targetCode, family: srcTool?.family || 'N/A', machine: srcTool?.machine || 'N/A', part: 'Converted', desc: `Converted from ${sourceCode}`, loc: srcTool?.loc || 'TBD', stock: 0 }).save();
+        }
+        
+        await new ToolConversion({ sourceCode, targetCode, requestedBy, reworkDetails }).save();
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// Tier 2: QA Approve
+app.put('/api/tools/conversions/qa-approve/:id', async (req, res) => {
+    try {
+        const conv = await ToolConversion.findById(req.params.id);
+        if(!conv) return res.status(404).json({ error: 'Not found' });
+        conv.status = 'Pending Admin'; conv.qaInspector = req.body.qaInspector;
+        conv.qaMetrics = { frontID: req.body.frontID, backID: req.body.backID, oal: req.body.oal };
+        conv.qaApprovedAt = new Date(); await conv.save();
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// Tier 3: Admin Final Approve
+app.put('/api/tools/conversions/admin-approve/:id', async (req, res) => {
+    try {
+        const conv = await ToolConversion.findById(req.params.id);
+        if(!conv) return res.status(404).json({ error: 'Not found' });
+        
+        let tgtTool = await ToolMaster.findOne({ code: conv.targetCode });
+        if(tgtTool) { tgtTool.stock += 1; await tgtTool.save(); }
+        
+        conv.status = 'Approved'; conv.adminApprovedAt = new Date(); await conv.save();
+        
+        await new ToolTransaction({ action: '<span class="badge" style="background:#0A2540; color:white;">STOCK ADDED (CONV)</span>', code: conv.targetCode, machine: 'Admin', operator: 'System', details: '+1 (Passed QA)' }).save();
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 // ==========================================

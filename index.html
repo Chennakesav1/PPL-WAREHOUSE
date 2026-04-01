@@ -400,6 +400,11 @@
             <button class="tab-btn" id="nav-sales" onclick="switchMainTab('salesCard', 'nav-sales')"
                 style="display: none; background: #6f42c1; color: white;">📈 Sales & CRM</button>
         </div>
+        <button class="tab-btn" id="nav-tools" onclick="switchMainTab('toolRoomCard', 'nav-tools')"
+            style="display: none; background: #0A2540; color: white;">
+            🛠️ Tool Room <span id="toolAdminBadge"
+                style="display:none; background:red; color:white; padding:2px 6px; border-radius:10px; font-size:11px; margin-left:5px;">0</span>
+        </button>
         <div style="font-size: 14px; display: flex; align-items: center;">
             <span id="roleDisplay" class="role-badge"></span>
             <a href="#" onclick="logout()"
@@ -1093,6 +1098,155 @@
                     </div>
                 </div>
             </div>
+
+
+            <div class="card" id="toolRoomCard" style="display: none; margin-bottom: 20px;">
+                <h2 style="color: #0A2540; border-bottom: 2px solid #0A2540;">
+                    <span>🛠️ Tool Room Management</span>
+                    <div class="tab-container" style="border: none; margin: 0; padding: 0; font-size: 14px;">
+                        <button class="tab-btn active" id="tr-tab-issue" onclick="switchToolTab('issue')"
+                            style="background: #0A2540; color: white;">Issue/Return</button>
+                        <button class="tab-btn" id="tr-tab-convert" onclick="switchToolTab('convert')">Conversions
+                            (3-Tier)</button>
+                        <button class="tab-btn" id="tr-tab-stock" onclick="switchToolTab('stock')">Master Stock</button>
+                    </div>
+                </h2>
+
+                <div id="trSectionIssue" style="display: block;">
+                    <div class="form-section" style="border-left-color: #0A2540;">
+                        <div class="form-section-title" style="color: #0A2540;">Issue / Return / QA</div>
+                        <div class="form-grid-multi" style="align-items: end;">
+                            <div><label style="font-size: 12px; font-weight:bold;">Action</label>
+                                <select id="trAction" class="prod-input"
+                                    style="border-color:#0A2540; font-weight:bold;">
+                                    <option value="ISSUE">Issue to Machine</option>
+                                    <option value="RETURN">Return / Scrap</option>
+                                </select>
+                            </div>
+                            <div><label style="font-size: 12px; font-weight:bold;">Tool Code</label><input type="text"
+                                    id="trCode" class="prod-input" placeholder="Scan/Type Code"></div>
+                            <div><label style="font-size: 12px; font-weight:bold;">Machine</label><input type="text"
+                                    id="trMachine" class="prod-input" placeholder="e.g. 164S"></div>
+                            <div><label style="font-size: 12px; font-weight:bold;">Operator</label><input type="text"
+                                    id="trOperator" class="prod-input" placeholder="Name"></div>
+                            <div><label style="font-size: 12px; font-weight:bold;">Qty / Details</label><input
+                                    type="text" id="trDetails" class="prod-input" placeholder="Qty or Reason"></div>
+                            <button onclick="submitToolTransaction()" class="save-btn"
+                                style="background:#0A2540; margin-top:0; padding:10px;">💾 Save</button>
+                        </div>
+                    </div>
+                    <div class="table-wrapper" style="max-height: 300px;">
+                        <table id="trTransTable">
+                            <thead style="background:#0A2540;">
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Action</th>
+                                    <th>Code</th>
+                                    <th>Machine</th>
+                                    <th>Operator</th>
+                                    <th>Details</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="trSectionConvert" style="display: none;">
+
+                    <div class="form-section"
+                        style="border-left-color: #17a2b8; display: flex; gap: 15px; flex-wrap: wrap;">
+                        <div style="flex:1;"><label style="font-size: 12px; font-weight:bold;">Source Tool (Deducts
+                                1)</label><input type="text" id="trConvSrc" class="prod-input" style="width:100%;">
+                        </div>
+                        <div style="flex:1;"><label style="font-size: 12px; font-weight:bold;">Target Tool
+                                (New)</label><input type="text" id="trConvTgt" class="prod-input" style="width:100%;">
+                        </div>
+                        <div style="flex:1;"><label style="font-size: 12px; font-weight:bold;">Rework
+                                Details</label><input type="text" id="trConvDesc" class="prod-input"
+                                style="width:100%;"></div>
+                        <div style="display:flex; align-items:flex-end;"><button onclick="submitToolConversion()"
+                                class="save-btn" style="background:#17a2b8; margin:0; padding:10px;">Submit to
+                                QA</button></div>
+                    </div>
+
+                    <div class="grid-2">
+                        <div style="border: 1px solid #ffc107; border-radius: 8px; padding: 10px;">
+                            <h4 style="margin:0 0 10px 0; color:#ffc107;">⏳ Pending QA Inspection</h4>
+                            <div class="table-wrapper" style="max-height: 200px;">
+                                <table id="trQaTable">
+                                    <thead style="background:#ffc107; color:black;">
+                                        <tr>
+                                            <th>Src</th>
+                                            <th>Tgt</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div style="border: 1px solid #dc3545; border-radius: 8px; padding: 10px;">
+                            <h4 style="margin:0 0 10px 0; color:#dc3545;">🛡️ Pending Admin Approval</h4>
+                            <div class="table-wrapper" style="max-height: 200px;">
+                                <table id="trAdminTable">
+                                    <thead style="background:#dc3545;">
+                                        <tr>
+                                            <th>Tgt</th>
+                                            <th>QA Metrics</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="trSectionStock" style="display: none;">
+                    <div class="search-container" style="margin-bottom: 15px;">
+                        <input type="text" id="trSearchInput" class="search-box" onkeyup="filterToolStock()"
+                            placeholder="🔍 Search Tools...">
+                        <button class="add-btn" style="background:#0A2540;"
+                            onclick="document.getElementById('trAddStockForm').style.display='flex'">➕ Add Master
+                            Stock</button>
+                    </div>
+
+                    <div id="trAddStockForm" class="form-section"
+                        style="border-left-color: #28a745; display: none; gap: 10px; flex-wrap: wrap;">
+                        <input type="text" id="trAddCode" class="prod-input" placeholder="Tool Code">
+                        <input type="text" id="trAddFamily" class="prod-input" placeholder="Family (e.g. FLG)">
+                        <input type="text" id="trAddMac" class="prod-input" placeholder="Machine / Part">
+                        <input type="text" id="trAddLoc" class="prod-input" placeholder="Loc (Ra-Ro-B)">
+                        <input type="number" id="trAddQty" class="prod-input" placeholder="Qty">
+                        <button onclick="submitToolMaster()" class="save-btn"
+                            style="background:#28a745; margin:0; padding:10px;">Save Stock</button>
+                        <button onclick="document.getElementById('trAddStockForm').style.display='none'"
+                            class="save-btn" style="background:#6c757d; margin:0; padding:10px;">Cancel</button>
+                    </div>
+
+                    <div class="table-wrapper">
+                        <table id="trStockTable">
+                            <thead style="background:#0A2540;">
+                                <tr>
+                                    <th>Code</th>
+                                    <th>Family</th>
+                                    <th>Machine</th>
+                                    <th>Location</th>
+                                    <th>Stock</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+
+
+
+
             <div class="card" id="poCard" style="display: none;">
                 <h2>Purchase Orders
                     <div class="search-container">
@@ -1262,6 +1416,8 @@
             document.getElementById('nav-tx').style.display = 'none';
             document.getElementById('nav-rm').style.display = 'none';
             document.getElementById('nav-po').style.display = 'none';
+            document.getElementById('nav-tools').style.display = 'none';
+            document.getElementById('toolRoomCard').style.display = 'none';
 
             let styleTag = document.getElementById('adminStyleOverride');
             if (currentUser.role === 'ADMIN' || currentUser.role === 'SALES') {
@@ -1269,10 +1425,15 @@
             }
             if (!styleTag) { styleTag = document.createElement('style'); styleTag.id = 'adminStyleOverride'; document.head.appendChild(styleTag); }
 
+            if (currentUser.role === 'PRODUCTION' || currentUser.role === 'QC') {
+                document.getElementById('nav-tools').style.display = 'block';
+            }
+
             if (currentUser.role === 'ADMIN') {
                 document.getElementById('nav-prod').style.display = 'block';
                 document.getElementById('nav-qc').style.display = 'block';
                 document.getElementById('nav-inv').style.display = 'block';
+                document.getElementById('nav-tools').style.display = 'block';
                 document.getElementById('nav-tx').style.display = 'block';
                 document.getElementById('nav-rm').style.display = 'block';
                 document.getElementById('nav-po').style.display = 'block';
@@ -1297,6 +1458,7 @@
                 styleTag.innerHTML = '.admin-actions { display: none !important; }';
                 switchMainTab('qcCard', 'nav-qc');
             }
+
             else if (currentUser.role === 'PURCHASE') {
                 document.getElementById('nav-inv').style.display = 'block';
                 document.getElementById('nav-tx').style.display = 'block';
@@ -3161,6 +3323,111 @@
                     btn.innerText = originalText; btn.disabled = false;
                 }
             }
+        }
+
+
+
+        // ==========================================
+        // TOOL ROOM ERP JAVASCRIPT
+        // ==========================================
+        function switchToolTab(tab) {
+            document.getElementById('trSectionIssue').style.display = tab === 'issue' ? 'block' : 'none';
+            document.getElementById('trSectionConvert').style.display = tab === 'convert' ? 'block' : 'none';
+            document.getElementById('trSectionStock').style.display = tab === 'stock' ? 'block' : 'none';
+
+            document.getElementById('tr-tab-issue').style.background = tab === 'issue' ? '#0A2540' : '#eee';
+            document.getElementById('tr-tab-issue').style.color = tab === 'issue' ? 'white' : '#555';
+            document.getElementById('tr-tab-convert').style.background = tab === 'convert' ? '#0A2540' : '#eee';
+            document.getElementById('tr-tab-convert').style.color = tab === 'convert' ? 'white' : '#555';
+            document.getElementById('tr-tab-stock').style.background = tab === 'stock' ? '#0A2540' : '#eee';
+            document.getElementById('tr-tab-stock').style.color = tab === 'stock' ? 'white' : '#555';
+        }
+
+        async function loadToolRoom() {
+            try {
+                const res = await fetch(`${API_URL}/tools/data`);
+                const data = await res.json();
+
+                // Render Transactions
+                document.querySelector('#trTransTable tbody').innerHTML = data.transactions.map(t => `<tr><td>${new Date(t.date).toLocaleDateString()}</td><td>${t.action}</td><td><strong>${t.code}</strong></td><td>${t.machine}</td><td>${t.operator}</td><td>${t.details}</td></tr>`).join('');
+
+                // Render Master Stock
+                document.querySelector('#trStockTable tbody').innerHTML = data.inventory.map(t => `<tr><td><strong>${t.code}</strong></td><td><span class="badge b-dark">${t.family || 'N/A'}</span></td><td>${t.machine}</td><td><span class="badge b-red">${t.loc}</span></td><td><strong style="font-size:16px; color:${t.stock === 0 ? 'red' : 'green'}">${t.stock}</strong></td></tr>`).join('');
+
+                // Render Conversions (Tier 2 & 3)
+                let qaRows = ''; let adminRows = ''; let adminPendingCount = 0;
+                data.conversions.forEach(c => {
+                    if (c.status === 'Pending QA') {
+                        qaRows += `<tr><td>${c.sourceCode}</td><td>${c.targetCode}</td><td><button onclick="approveToolQA('${c._id}')" style="background:#28a745; color:white; border:none; padding:4px; border-radius:3px; cursor:pointer;">Pass QA</button></td></tr>`;
+                    } else if (c.status === 'Pending Admin') {
+                        adminPendingCount++;
+                        adminRows += `<tr><td><strong>${c.targetCode}</strong></td><td>ID:${c.qaMetrics.frontID} | OAL:${c.qaMetrics.oal}</td><td><button onclick="approveToolAdmin('${c._id}')" style="background:#007bff; color:white; border:none; padding:4px; border-radius:3px; cursor:pointer;">Approve</button></td></tr>`;
+                    }
+                });
+
+                document.querySelector('#trQaTable tbody').innerHTML = qaRows || '<tr><td colspan="3">No pending items.</td></tr>';
+                document.querySelector('#trAdminTable tbody').innerHTML = adminRows || '<tr><td colspan="3">No pending items.</td></tr>';
+
+                // Update Admin Badge
+                let badge = document.getElementById('toolAdminBadge');
+                if (currentUser.role === 'ADMIN' && adminPendingCount > 0) { badge.style.display = 'inline-block'; badge.innerText = adminPendingCount; }
+                else { badge.style.display = 'none'; }
+
+            } catch (err) { console.error(err); }
+        }
+
+        async function submitToolTransaction() {
+            const payload = {
+                action: document.getElementById('trAction').value === 'ISSUE' ? '<span class="badge b-green">ISSUED</span>' : '<span class="badge b-yellow">RETURNED</span>',
+                code: document.getElementById('trCode').value.trim(), machine: document.getElementById('trMachine').value,
+                operator: document.getElementById('trOperator').value, details: document.getElementById('trDetails').value, qty: 1
+            };
+            if (!payload.code || !payload.operator) return showToast("Code and Operator Required", true);
+            await fetch(`${API_URL}/tools/transaction`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            showToast("✅ Tool Transaction Logged"); loadToolRoom();
+        }
+
+        async function submitToolConversion() {
+            const payload = {
+                sourceCode: document.getElementById('trConvSrc').value.trim(), targetCode: document.getElementById('trConvTgt').value.trim(),
+                requestedBy: currentUser.username, reworkDetails: document.getElementById('trConvDesc').value
+            };
+            await fetch(`${API_URL}/tools/conversions/request`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            showToast("✅ Sent to QA"); loadToolRoom();
+        }
+
+        async function approveToolQA(id) {
+            const payload = { qaInspector: currentUser.username, frontID: prompt("Front ID (mm):"), backID: prompt("Back ID (mm):"), oal: prompt("Overall Length:") };
+            if (!payload.frontID) return;
+            await fetch(`${API_URL}/tools/conversions/qa-approve/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            showToast("✅ QA Passed. Sent to Admin."); loadToolRoom();
+        }
+
+        async function approveToolAdmin(id) {
+            if (currentUser.role !== 'ADMIN') return showToast("⚠️ Admin Access Required", true);
+            await fetch(`${API_URL}/tools/conversions/admin-approve/${id}`, { method: 'PUT' });
+            showToast("✅ Admin Approved. Master Stock Updated."); loadToolRoom();
+        }
+
+        async function submitToolMaster() {
+            const payload = { code: document.getElementById('trAddCode').value, family: document.getElementById('trAddFamily').value, machine: document.getElementById('trAddMac').value, part: 'General', desc: 'Added manually', loc: document.getElementById('trAddLoc').value, stock: document.getElementById('trAddQty').value, min: 5 };
+            await fetch(`${API_URL}/tools/inventory`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            showToast("✅ Master Stock Updated"); loadToolRoom();
+        }
+
+        function filterToolStock() {
+            const filter = document.getElementById('trSearchInput').value.toUpperCase();
+            const tr = document.getElementById('trStockTable').getElementsByTagName("tr");
+            for (let i = 1; i < tr.length; i++) {
+                tr[i].style.display = tr[i].textContent.toUpperCase().includes(filter) ? "" : "none";
+            }
+        }
+
+        // Hook it into your auto-refresh
+        const originalRefresh = refreshDashboard;
+        refreshDashboard = function () {
+            originalRefresh();
+            if (document.getElementById('toolRoomCard').style.display === 'block') loadToolRoom();
         }
 
 
