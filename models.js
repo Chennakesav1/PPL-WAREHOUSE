@@ -64,7 +64,7 @@ const SalesOrderSchema = new mongoose.Schema({
     paymentStatus: { type: String, enum: ['PENDING', 'PARTIAL', 'PAID', 'OVERDUE'], default: 'PENDING' }, trackingLink: { type: String }, orderDate: { type: Date, default: Date.now }, createdBy: { type: String }
 });
 
-// --- NEW TOOL ROOM SCHEMAS ---
+// --- START: NEW TOOL ROOM SCHEMAS ---
 const toolMasterSchema = new mongoose.Schema({
     code: { type: String, required: true, unique: true }, family: String, machine: String, part: String, desc: String, loc: String,
     stock: { type: Number, default: 0 }, min: { type: Number, default: 5 }
@@ -80,19 +80,10 @@ const toolConversionSchema = new mongoose.Schema({
     qaInspector: String, qaMetrics: { frontID: String, backID: String, oal: String }, qaApprovedAt: Date, adminApprovedAt: Date, createdAt: { type: Date, default: Date.now }
 });
 
-const Product = mongoose.model('Product', productSchema);
-const Transaction = mongoose.model('Transaction', transactionSchema);
-const RawMaterial = mongoose.model('RawMaterial', rawMaterialSchema);
-const PurchaseOrder = mongoose.model('PurchaseOrder', purchaseOrderSchema);
-const ProductionBatch = mongoose.model('ProductionBatch', productionBatchSchema);
-const WorkOrder = mongoose.model('WorkOrder', workOrderSchema);
-const Customer = mongoose.model('Customer', CustomerSchema);
-const SalesOrder = mongoose.model('SalesOrder', SalesOrderSchema);
-
-// Export new models
 const ToolMaster = mongoose.model('ToolMaster', toolMasterSchema);
 const ToolTransaction = mongoose.model('ToolTransaction', toolTransactionSchema);
 const ToolConversion = mongoose.model('ToolConversion', toolConversionSchema);
+// --- END: NEW TOOL ROOM SCHEMAS ---
 
 module.exports = { 
     Product, Transaction, RawMaterial, PurchaseOrder, ProductionBatch, WorkOrder, Customer, SalesOrder,

@@ -965,6 +965,77 @@ app.put('/api/tools/conversions/admin-approve/:id', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// --- START: TOOL ROOM API ROUTES ---
+app.get('/api/tools/data', async (req, res) => {
+    try {
+        const inventory = await ToolMaster.find();
+        const transactions = await ToolTransaction.find().sort({ date: -1 }).limit(200);
+        const conversions = await ToolConversion.find().sort({ createdAt: -1 });
+        res.json({ inventory, transactions, conversions });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/tools/inventory', async (req, res) => {
+    try {
+        const { code, family, machine, part, desc, loc, stock, min } = req.body;
+        let tool = await ToolMaster.findOne({ code });
+        if (tool) { tool.stock += Number(stock); tool.loc = loc; await tool.save(); } 
+        else { await new ToolMaster({ code, family, machine, part, desc, loc, stock, min }).save(); }
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/tools/transaction', async (req, res) => {
+    try {
+        const { action, code, machine, operator, details, qty } = req.body;
+        if(action.includes('ISSUED')) {
+            let tool = await ToolMaster.findOne({ code });
+            if(tool && tool.stock >= qty) { tool.stock -= qty; await tool.save(); }
+        }
+        await new ToolTransaction({ action, code, machine, operator, details }).save();
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// Tier 1: Request Conversion
+app.post('/api/tools/conversions/request', async (req, res) => {
+    try {
+        const { sourceCode, targetCode, requestedBy, reworkDetails } = req.body;
+        let srcTool = await ToolMaster.findOne({ code: sourceCode });
+        if(srcTool) { srcTool.stock = Math.max(0, srcTool.stock - 1); await srcTool.save(); }
+        
+        let tgtTool = await ToolMaster.findOne({ code: targetCode });
+        if(!tgtTool) { await new ToolMaster({ code: targetCode, family: srcTool?.family || 'N/A', machine: srcTool?.machine || 'N/A', part: 'Converted', desc: `Converted from ${sourceCode}`, loc: srcTool?.loc || 'TBD', stock: 0 }).save(); }
+        await new ToolConversion({ sourceCode, targetCode, requestedBy, reworkDetails }).save();
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// Tier 2: QA Approve
+app.put('/api/tools/conversions/qa-approve/:id', async (req, res) => {
+    try {
+        const conv = await ToolConversion.findById(req.params.id);
+        conv.status = 'Pending Admin'; conv.qaInspector = req.body.qaInspector;
+        conv.qaMetrics = { frontID: req.body.frontID, backID: req.body.backID, oal: req.body.oal };
+        conv.qaApprovedAt = new Date(); await conv.save();
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// Tier 3: Admin Final Approve
+app.put('/api/tools/conversions/admin-approve/:id', async (req, res) => {
+    try {
+        const conv = await ToolConversion.findById(req.params.id);
+        let tgtTool = await ToolMaster.findOne({ code: conv.targetCode });
+        if(tgtTool) { tgtTool.stock += 1; await tgtTool.save(); }
+        conv.status = 'Approved'; conv.adminApprovedAt = new Date(); await conv.save();
+        
+        await new ToolTransaction({ action: '<span style="background:#0A2540; color:white; padding:4px; border-radius:4px; font-size:11px;">STOCK ADDED</span>', code: conv.targetCode, machine: 'Admin', operator: 'System', details: '+1 (Passed QA)' }).save();
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+// --- END: TOOL ROOM API ROUTES ---
+
 // ==========================================
 // SERVER LISTEN
 // ==========================================
