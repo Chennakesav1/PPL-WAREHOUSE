@@ -400,11 +400,7 @@
             <button class="tab-btn" id="nav-sales" onclick="switchMainTab('salesCard', 'nav-sales')"
                 style="display: none; background: #6f42c1; color: white;">📈 Sales & CRM</button>
         </div>
-        <button class="tab-btn" id="nav-tools" onclick="switchMainTab('toolRoomCard', 'nav-tools')"
-            style="display: none; position: relative; background: #0A2540; color: white;">
-            🛠️ Tool Room <span id="adminNotifBadge"
-                style="display:none; position: absolute; top: -5px; right: -5px; background: #DC3545; color: white; border-radius: 50%; padding: 2px 6px; font-size: 11px;">0</span>
-        </button>
+       
         <div style="font-size: 14px; display: flex; align-items: center;">
             <span id="roleDisplay" class="role-badge"></span>
             <a href="#" onclick="logout()"
@@ -1099,135 +1095,6 @@
                 </div>
             </div>
 
-
-            <div class="card" id="toolRoomCard" style="display: none; padding: 20px;">
-                <h2 style="color: #0A2540; border-bottom: 2px solid #ddd; padding-bottom: 10px;">
-                    🛠️ Tool Room Enterprise
-                    <div style="margin-top: 10px; font-size: 14px;">
-                        <button class="tab-btn active" id="tr-tab-main" onclick="switchToolTab('main')">Operations
-                            Dashboard</button>
-                        <button class="tab-btn" id="tr-tab-stock" onclick="switchToolTab('stock')">Master
-                            Inventory</button>
-                    </div>
-                </h2>
-
-                <div id="trSectionMain" style="display: block;">
-
-                    <div id="tr-operator-view" style="display:none;">
-                        <h3>Issue / Return Tool</h3>
-                        <div style="display:flex; gap:10px; margin-bottom: 20px;">
-                            <select id="trAction" class="prod-input">
-                                <option value="ISSUE">Issue</option>
-                                <option value="RETURN">Return</option>
-                            </select>
-                            <input type="text" id="trCode" class="prod-input" placeholder="Tool Code">
-                            <input type="text" id="trMachine" class="prod-input" placeholder="Machine">
-                            <input type="text" id="trOperator" class="prod-input" placeholder="Operator">
-                            <button onclick="submitTrTransaction()" class="save-btn" style="margin:0;">Save</button>
-                        </div>
-
-                        <h3>Convert Tool (Sends to QA)</h3>
-                        <div
-                            style="display:flex; gap:10px; margin-bottom: 20px; background:#f0f8ff; padding:15px; border-radius:5px;">
-                            <input type="text" id="trConvSrc" class="prod-input" placeholder="Source Code (Old)">
-                            <input type="text" id="trConvTgt" class="prod-input" placeholder="Target Code (New)">
-                            <input type="text" id="trConvDesc" class="prod-input" placeholder="Rework Details">
-                            <button onclick="requestTrConversion()" class="save-btn"
-                                style="margin:0; background:#17a2b8;">Submit Request</button>
-                        </div>
-
-                        <h4>Recent Issue/Return Logs</h4>
-                        <div class="table-wrapper">
-                            <table id="trTransTable">
-                                <thead>
-                                    <tr>
-                                        <th>Date</th>
-                                        <th>Action</th>
-                                        <th>Code</th>
-                                        <th>Machine</th>
-                                        <th>Operator</th>
-                                    </tr>
-                                </thead>
-                                <tbody></tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <div id="tr-qa-view" style="display:none;">
-                        <h3 style="color:#ffc107;">⏳ Pending Tool Inspections</h3>
-                        <div class="table-wrapper">
-                            <table id="trQaPendingTable">
-                                <thead style="background:#ffc107; color:black;">
-                                    <tr>
-                                        <th>Date</th>
-                                        <th>Source Tool</th>
-                                        <th>Target Tool</th>
-                                        <th>Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody></tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <div id="tr-admin-view" style="display:none;">
-                        <h3 style="color:#dc3545;">🛡️ Admin Approval Queue (Passed QA)</h3>
-                        <div class="table-wrapper">
-                            <table id="trAdminPendingTable">
-                                <thead style="background:#dc3545; color:white;">
-                                    <tr>
-                                        <th>QA Date</th>
-                                        <th>Source Tool</th>
-                                        <th>Target Tool (To Add)</th>
-                                        <th>Metrics</th>
-                                        <th>Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody></tbody>
-                            </table>
-                        </div>
-
-                        <h4 style="margin-top:20px; color:#28A745;">Admin Approval History</h4>
-                        <div class="table-wrapper">
-                            <table id="trAdminHistoryTable">
-                                <thead style="background:#28A745; color:white;">
-                                    <tr>
-                                        <th>Date</th>
-                                        <th>Target Tool</th>
-                                        <th>Source Tool</th>
-                                        <th>Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="trSectionStock" style="display: none;">
-                    <input type="text" id="trSearchInput" class="prod-input" onkeyup="filterToolStock()"
-                        placeholder="🔍 Search Tools..." style="margin-bottom: 15px; max-width: 400px;">
-                    <div class="table-wrapper" style="max-height: 500px;">
-                        <table id="trStockTable">
-                            <thead style="background:#0A2540; color:white;">
-                                <tr>
-                                    <th>Tool Code</th>
-                                    <th>Family</th>
-                                    <th>Machine | Part</th>
-                                    <th>Location</th>
-                                    <th>Stock</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-
-
-
-
             <div class="card" id="poCard" style="display: none;">
                 <h2>Purchase Orders
                     <div class="search-container">
@@ -1397,8 +1264,7 @@
             document.getElementById('nav-tx').style.display = 'none';
             document.getElementById('nav-rm').style.display = 'none';
             document.getElementById('nav-po').style.display = 'none';
-            document.getElementById('nav-tools').style.display = 'none';
-            document.getElementById('toolRoomCard').style.display = 'none';
+            
 
             let styleTag = document.getElementById('adminStyleOverride');
             if (currentUser.role === 'ADMIN' || currentUser.role === 'SALES') {
@@ -1406,15 +1272,10 @@
             }
             if (!styleTag) { styleTag = document.createElement('style'); styleTag.id = 'adminStyleOverride'; document.head.appendChild(styleTag); }
 
-            if (currentUser.role === 'PRODUCTION' || currentUser.role === 'QC') {
-                document.getElementById('nav-tools').style.display = 'block';
-            }
-
             if (currentUser.role === 'ADMIN') {
                 document.getElementById('nav-prod').style.display = 'block';
                 document.getElementById('nav-qc').style.display = 'block';
                 document.getElementById('nav-inv').style.display = 'block';
-                document.getElementById('nav-tools').style.display = 'block';
                 document.getElementById('nav-tx').style.display = 'block';
                 document.getElementById('nav-rm').style.display = 'block';
                 document.getElementById('nav-po').style.display = 'block';
@@ -3309,115 +3170,6 @@
 
 
 
-        // Hook it into your auto-refresh
-        const originalRefresh = refreshDashboard;
-        refreshDashboard = function () {
-            originalRefresh();
-            if (document.getElementById('toolRoomCard').style.display === 'block') loadToolRoom();
-        }
-
-
-        // --- START: TOOL ROOM JAVASCRIPT LOGIC ---
-
-        // 1. Function to switch internal Tool Room tabs
-        function switchToolTab(tab) {
-            document.getElementById('trSectionMain').style.display = tab === 'main' ? 'block' : 'none';
-            document.getElementById('trSectionStock').style.display = tab === 'stock' ? 'block' : 'none';
-        }
-
-        // 2. Add this to your existing unlockDashboard(user) function:
-        // (Find your unlockDashboard function and paste these 5 lines inside it)
-        /*
-            if(user.role === 'ADMIN' || user.role === 'QA' || user.role === 'TOOLROOM') {
-                document.getElementById('nav-tools').style.display = 'block';
-            }
-        */
-
-        // 3. Core Tool Room Engine
-        async function loadToolRoom() {
-            try {
-                const res = await fetch(`${API_URL}/tools/data`);
-                const data = await res.json();
-
-                // Hide all views initially
-                document.getElementById('tr-operator-view').style.display = 'none';
-                document.getElementById('tr-qa-view').style.display = 'none';
-                document.getElementById('tr-admin-view').style.display = 'none';
-
-                // Master Stock rendering
-                document.querySelector('#trStockTable tbody').innerHTML = data.inventory.map(t => `<tr><td><strong>${t.code}</strong></td><td>${t.family || '-'}</td><td>${t.machine} | ${t.part}</td><td>${t.loc}</td><td><strong>${t.stock}</strong></td></tr>`).join('');
-
-                // Render based on roles
-                if (currentUser.role === 'TOOLROOM' || currentUser.role === 'ADMIN') {
-                    document.getElementById('tr-operator-view').style.display = 'block';
-                    document.querySelector('#trTransTable tbody').innerHTML = data.transactions.map(t => `<tr><td>${new Date(t.date).toLocaleDateString()}</td><td>${t.action}</td><td><strong>${t.code}</strong></td><td>${t.machine}</td><td>${t.operator}</td></tr>`).join('');
-                }
-
-                if (currentUser.role === 'QA' || currentUser.role === 'ADMIN') {
-                    document.getElementById('tr-qa-view').style.display = 'block';
-                    const pendingQa = data.conversions.filter(c => c.status === 'Pending QA');
-                    document.querySelector('#trQaPendingTable tbody').innerHTML = pendingQa.map(c => `<tr><td>${new Date(c.createdAt).toLocaleDateString()}</td><td>${c.sourceCode}</td><td><strong>${c.targetCode}</strong></td><td><button onclick="approveToolQA('${c._id}')" style="background:#007BFF; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer;">Inspect & Pass</button></td></tr>`).join('');
-                }
-
-                if (currentUser.role === 'ADMIN') {
-                    document.getElementById('tr-admin-view').style.display = 'block';
-                    const pendingAdmin = data.conversions.filter(c => c.status === 'Pending Admin');
-
-                    // Notification Badge logic
-                    let badge = document.getElementById('adminNotifBadge');
-                    if (pendingAdmin.length > 0) { badge.style.display = 'inline-block'; badge.innerText = pendingAdmin.length; }
-                    else { badge.style.display = 'none'; }
-
-                    document.querySelector('#trAdminPendingTable tbody').innerHTML = pendingAdmin.map(c => `<tr><td>${new Date(c.qaApprovedAt).toLocaleDateString()}</td><td>${c.sourceCode}</td><td><strong>${c.targetCode}</strong></td><td>FID:${c.qaMetrics.frontID} | OAL:${c.qaMetrics.oal}</td><td><button onclick="approveToolAdmin('${c._id}')" style="background:#28A745; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer;">Approve Stock +1</button></td></tr>`).join('');
-
-                    const approvedHistory = data.conversions.filter(c => c.status === 'Approved');
-                    document.querySelector('#trAdminHistoryTable tbody').innerHTML = approvedHistory.map(c => `<tr><td>${new Date(c.adminApprovedAt).toLocaleDateString()}</td><td><strong>${c.targetCode}</strong></td><td>${c.sourceCode}</td><td>Added</td></tr>`).join('');
-                }
-
-            } catch (err) { console.error("Tool room load error:", err); }
-        }
-
-        // 4. Action Functions
-        async function submitTrTransaction() {
-            const payload = {
-                action: document.getElementById('trAction').value === 'ISSUE' ? '<span style="color:green; font-weight:bold;">ISSUED</span>' : '<span style="color:orange; font-weight:bold;">RETURNED</span>',
-                code: document.getElementById('trCode').value, machine: document.getElementById('trMachine').value,
-                operator: document.getElementById('trOperator').value, details: "Standard Tx", qty: 1
-            };
-            await fetch(`${API_URL}/tools/transaction`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-            alert("Transaction Logged"); loadToolRoom();
-        }
-
-        async function requestTrConversion() {
-            const payload = {
-                sourceCode: document.getElementById('trConvSrc').value, targetCode: document.getElementById('trConvTgt').value,
-                requestedBy: currentUser.username, reworkDetails: document.getElementById('trConvDesc').value
-            };
-            await fetch(`${API_URL}/tools/conversions/request`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-            alert("Sent to QA Department!"); loadToolRoom();
-        }
-
-        async function approveToolQA(id) {
-            const payload = { qaInspector: currentUser.username, frontID: prompt("Enter Front ID:"), backID: prompt("Enter Back ID:"), oal: prompt("Enter OAL:") };
-            if (!payload.frontID) return;
-            await fetch(`${API_URL}/tools/conversions/qa-approve/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-            alert("QA Passed! Sent to Admin."); loadToolRoom();
-        }
-
-        async function approveToolAdmin(id) {
-            await fetch(`${API_URL}/tools/conversions/admin-approve/${id}`, { method: 'PUT' });
-            alert("Approved! Target Tool added to Master Stock."); loadToolRoom();
-        }
-
-        function filterToolStock() {
-            const filter = document.getElementById('trSearchInput').value.toUpperCase();
-            const tr = document.getElementById('trStockTable').getElementsByTagName("tr");
-            for (let i = 1; i < tr.length; i++) { tr[i].style.display = tr[i].textContent.toUpperCase().includes(filter) ? "" : "none"; }
-        }
-
-        // Hook into your main dashboard refresh loop (if you have one)
-        // Example: setInterval(loadToolRoom, 10000); // Refreshes tool room data every 10 seconds
-        // --- END: TOOL ROOM JAVASCRIPT LOGIC ---
 
 
 

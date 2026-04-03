@@ -64,28 +64,6 @@ const SalesOrderSchema = new mongoose.Schema({
     paymentStatus: { type: String, enum: ['PENDING', 'PARTIAL', 'PAID', 'OVERDUE'], default: 'PENDING' }, trackingLink: { type: String }, orderDate: { type: Date, default: Date.now }, createdBy: { type: String }
 });
 
-// --- START: NEW TOOL ROOM SCHEMAS ---
-const toolMasterSchema = new mongoose.Schema({
-    code: { type: String, required: true, unique: true }, family: String, machine: String, part: String, desc: String, loc: String,
-    stock: { type: Number, default: 0 }, min: { type: Number, default: 5 }
-});
-
-const toolTransactionSchema = new mongoose.Schema({
-    date: { type: Date, default: Date.now }, action: String, code: String, machine: String, operator: String, details: String
-});
-
-const toolConversionSchema = new mongoose.Schema({
-    sourceCode: String, targetCode: String, requestedBy: String, reworkDetails: String,
-    status: { type: String, enum: ['Pending QA', 'Pending Admin', 'Approved'], default: 'Pending QA' },
-    qaInspector: String, qaMetrics: { frontID: String, backID: String, oal: String }, qaApprovedAt: Date, adminApprovedAt: Date, createdAt: { type: Date, default: Date.now }
-});
-
-// --- MODEL DEFINITIONS ---
-// 1. Tool Room Models
-const ToolMaster = mongoose.model('ToolMaster', toolMasterSchema);
-const ToolTransaction = mongoose.model('ToolTransaction', toolTransactionSchema);
-const ToolConversion = mongoose.model('ToolConversion', toolConversionSchema);
-
 // 2. Main ERP Models
 const Product = mongoose.model('Product', productSchema);
 const Transaction = mongoose.model('Transaction', transactionSchema);
