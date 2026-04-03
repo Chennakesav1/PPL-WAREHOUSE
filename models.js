@@ -77,6 +77,5 @@ const SalesOrder = mongoose.model('SalesOrder', SalesOrderSchema);
 
 // --- EXPORTS ---
 module.exports = { 
-    Product, Transaction, RawMaterial, PurchaseOrder, ProductionBatch, WorkOrder, Customer, SalesOrder,
-    ToolMaster, ToolTransaction, ToolConversion
+    Product, Transaction, RawMaterial, PurchaseOrder, ProductionBatch, WorkOrder, Customer, SalesOrder
 };
