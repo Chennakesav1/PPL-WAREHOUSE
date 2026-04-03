@@ -80,11 +80,24 @@ const toolConversionSchema = new mongoose.Schema({
     qaInspector: String, qaMetrics: { frontID: String, backID: String, oal: String }, qaApprovedAt: Date, adminApprovedAt: Date, createdAt: { type: Date, default: Date.now }
 });
 
+// --- MODEL DEFINITIONS ---
+// 1. Tool Room Models
 const ToolMaster = mongoose.model('ToolMaster', toolMasterSchema);
 const ToolTransaction = mongoose.model('ToolTransaction', toolTransactionSchema);
 const ToolConversion = mongoose.model('ToolConversion', toolConversionSchema);
-// --- END: NEW TOOL ROOM SCHEMAS ---
 
+// 2. Main ERP Models
+const Product = mongoose.model('Product', productSchema);
+const Transaction = mongoose.model('Transaction', transactionSchema);
+const RawMaterial = mongoose.model('RawMaterial', rawMaterialSchema);
+const PurchaseOrder = mongoose.model('PurchaseOrder', purchaseOrderSchema);
+const ProductionBatch = mongoose.model('ProductionBatch', productionBatchSchema);
+const WorkOrder = mongoose.model('WorkOrder', workOrderSchema);
+const Customer = mongoose.model('Customer', CustomerSchema);
+const SalesOrder = mongoose.model('SalesOrder', SalesOrderSchema);
+
+
+// --- EXPORTS ---
 module.exports = { 
     Product, Transaction, RawMaterial, PurchaseOrder, ProductionBatch, WorkOrder, Customer, SalesOrder,
     ToolMaster, ToolTransaction, ToolConversion
