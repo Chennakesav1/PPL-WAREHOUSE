@@ -21,7 +21,7 @@ app.use(cors({
 // Allow large file uploads via Base64 (up to 50MB)
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
-const { Product, Transaction, RawMaterial, PurchaseOrder, ProductionBatch, WorkOrder, Customer, SalesOrder, ToolMaster, ToolTransaction, ToolConversion } = require('./models');
+const { Product, Transaction, RawMaterial, PurchaseOrder, ProductionBatch, WorkOrder, Customer, SalesOrder } = require('./models');
 
 // ==========================================
 // WHATSAPP API & PDF SETUP (server.js)
